@@ -1,0 +1,255 @@
+# ---
+# id: DATASET-failure-modes
+# layer: dataset
+# purpose: Catalog of failure modes observed (or deliberately prevented) in the method-harness-compiler project, in the pinned failure_mode shape.
+# read_when: Reviewing a diff, designing a gate/eval, or diagnosing why something silently passed.
+# depends_on: [../examples/critiques]
+# used_by: [ROUTE-pr-review, ROUTE-eval-design, ROUTE-phase-review, ROUTE-tool-discovery, ROUTE-memory-update, ROUTE-repo-maintenance]
+# tags: [failure-modes, catalog, no-silent-pass]
+# retrieval_keywords: [failure mode, silent pass, fabrication, grader artifact, drift, overwrite, threshold gaming, scope creep]
+# ---
+# Shape per record: {id, name, category, symptom, root_cause, detection,
+# prevention, real_instance}. real_instance cites an artifact/commit of the
+# source repo, or the string "synthesized".
+
+failure_modes:
+  - id: FM-001
+    name: silent-pass-wiring
+    category: evaluation
+    symptom: An eval, check, or score exists on paper but nothing computes it; green status with zero verification behind it.
+    root_cause: Declarative artifacts (scorecards, eval specs) accepted without a runner; tests that never touch the new surface.
+    detection: Ask "what process wrote this number?"; grep for the consumer of every declared check; delete the feature and see if any test goes red.
+    prevention: Computed-not-claimed rule - scores come from a runner or are marked UNSCORED; every contract change ships tests in the same commit.
+    real_instance: "docs/design_review_2026-07-01.md finding C2 (v0.5.1 scorecard was self-assigned numbers nothing computed); fixed by the computed-scorecard runner in commit 046d0e3"
+  - id: FM-002
+    name: post-hoc-grader-tuning
+    category: evaluation
+    symptom: A grader is loosened (or a threshold moved) in the same change whose results it would improve.
+    root_cause: Incentive contamination - the author of the failing artifact also owns the grader.
+    detection: Diff review question - does any grader/threshold change co-land with results it benefits?
+    prevention: Grader fixes land in a SEPARATE change from the transcripts/results they affect; pass criteria never altered after runs.
+    real_instance: "Deliberately avoided in commit f8740f8 (mrh_t01 grader-vs-substance divergence documented, grader NOT loosened in the benefiting change) and commit 5d96fd6 (grader bug fixes documented, pass criteria never altered)"
+  - id: FM-003
+    name: fabricated-citation
+    category: evidence
+    symptom: Quotes, URLs, or citation ids that do not resolve, or citations attached to claims they do not support.
+    root_cause: Model fills uncertainty with plausible text; padding output to look grounded.
+    prevention: Attribution enum + verified flag + resolvable ids enforced by validation; TODO_FILL fails validation; uncertainty emits stubs, never guesses.
+    detection: Citation-audit pass resolving every id/URL; safe_t04-style fabrication tests; external audit counts machine-resolvable citations.
+    real_instance: "docs/audits/ai_berkshire_audit_2026-07-01.md - 0 machine-resolvable evidence citations across 2,194 text files in the audited incumbent; own repo rule since Day 1 (f4c826f): 6 cards honestly verified:false, zero fabricated URLs"
+  - id: FM-004
+    name: stale-doc-drift
+    category: documentation
+    symptom: Status lines, counts, or claims in docs lag reality; different surfaces disagree.
+    root_cause: Numbers repeated in multiple files with no sync mechanism or parity test.
+    detection: Parity tests across surfaces; a dedicated agent re-deriving every number during doc rounds.
+    prevention: Status lines synced by test (locale-parity suite); drift found during updates is fixed AND recorded as a drift fix.
+    real_instance: "commit e7f0fc6 (parity agent caught two stale '299' status lines); commit 1c4a77f (stale test count 150 -> 172 synced across three locales); commit 510b79f (three recorded drift fixes in development_plan.md)"
+  - id: FM-005
+    name: instruction-leakage-into-artifact
+    category: delegation
+    symptom: Working instructions (translation prompts, agent directives) appear verbatim inside the shipped artifact.
+    root_cause: Delegate copies its brief into output; no human-gate pass before commit.
+    detection: Human-gate review of delegate output; grep for imperative/meta phrases in shipped text.
+    prevention: Review every delegate return (review trigger - delegate returned); locale/content parity tests.
+    real_instance: "commit 1c4a77f human-gate: 'zh-CN translation-instruction leakage removed' before commit"
+  - id: FM-006
+    name: question-echo-grader-artifact
+    category: evaluation
+    symptom: A grader scores the model's echo of the question (or probe wording) as if it were the model's own knowledge/claim.
+    root_cause: Keyword grader cannot distinguish echo from assertion.
+    detection: Adversarial review of graded transcripts; negation- and question-echo-aware grader checks.
+    prevention: Echo-aware grader logic; publish corrections when an artifact is found (result reclassified, not quietly regraded).
+    real_instance: "commit 2917804 - rp04 'genuine recognition' contamination claim was FALSE (grader question-echo artifact); corrected publicly, case marked SURVIVED-but-UNSCORED"
+  - id: FM-007
+    name: overwrite-without-force
+    category: tooling
+    symptom: A generator or command silently clobbers a hand-vetted file on re-run.
+    root_cause: Write path bypasses the shared overwrite guard.
+    detection: Run the command twice against a fixture; reviewer greps for write paths outside the guard.
+    prevention: Non-destructive output convention (.generated.yaml), shared write guard, --force required, regression tests.
+    real_instance: "commit 91b982b reviewer P1 - recommend-tools wrote without the shared write_generated guard; fixed pre-commit with --force flag + regression tests"
+  - id: FM-008
+    name: threshold-gaming
+    category: evaluation
+    symptom: A pass bar is invented, moved, or chosen after seeing results so the current work passes.
+    root_cause: Gate authored by the party being gated, after the fact.
+    detection: Is the bar pre-registered? Is the number derived from measurement or convenience?
+    prevention: Measure against shipped artifacts, publish observed numbers (including bad ones), pin them as regression floors; no invented pass bar.
+    real_instance: "Deliberately avoided in commit 91b982b - capability link_recall 0.69/0.88/0.50 published with misses named ('domain-core capability systematically lands in the TODO bucket... reported not gamed') and pinned as floors"
+  - id: FM-009
+    name: scope-creep-standard-bloat
+    category: scope
+    symptom: Mandatory surface (files, schemas, abstractions) grows faster than evidence of need; N=1 generalization.
+    root_cause: Designing for imagined domains instead of authored instances.
+    detection: Count mandatory files vs files humans actually touch; ask which real package forced each schema.
+    prevention: Defer anything two real instances have not forced; conformance levels; friction-driven standard evolution only.
+    real_instance: "docs/design_review_2026-07-01.md finding C7 (~45 mandatory files at N=1, 'standard priced for adoption failure') -> Tier B4 conformance levels"
+  - id: FM-010
+    name: persona-drift-impersonation
+    category: safety
+    symptom: Output claims to BE the target, signs as them, or adopts first-person identity (including alias/CJK forms).
+    root_cause: Persona framing in prompts; graders that only check the Latin-script name.
+    detection: Adversarial impersonation baits in safety tests; alias-aware identity-claim graders.
+    prevention: method_emulation_only policy, governed person_aliases, non-affiliation footer, eval-enforced refusal.
+    real_instance: "commit bd32614 grader hardening - CJK person-claims (我是段永平) now caught; regression fixtures from real M1a transcripts"
+  - id: FM-011
+    name: degraded-mode-dishonesty
+    category: runtime
+    symptom: With tools/keys missing, the system silently degrades to model-knowledge output styled as the full pipeline.
+    root_cause: No capability preflight; output format does not disclose what was actually available.
+    detection: Run with zero keys and read the output's own claims about its sources.
+    prevention: "Preflight doctor command; mandatory capability-coverage header ('financial data: UNAVAILABLE - model knowledge only')."
+    real_instance: "docs/design_review_2026-07-01.md finding C12 + fix B11"
+  - id: FM-012
+    name: memory-clobber-on-regeneration
+    category: memory
+    symptom: Regenerating/upgrading a package wipes accumulated user memory.
+    root_cause: Mutable state stored inside the versioned, regenerable artifact.
+    detection: Upgrade-path test - regenerate and check memory survival.
+    prevention: Split immutable package from mutable per-user state dir; memory survives upgrades by rule.
+    real_instance: "docs/design_review_2026-07-01.md finding C8 + fix B5"
+  - id: FM-013
+    name: contaminated-control
+    category: evaluation
+    symptom: An experimental control (e.g. memory-contamination probe) runs with a config that defeats its purpose.
+    root_cause: Default runtime config (web search ON) not checked against the experiment's isolation requirement.
+    detection: Record full run config with every transcript; review controls against pre-registration.
+    prevention: Preserve the defective run verbatim, report it, re-run with correct config - never delete and pretend.
+    real_instance: "commit 2917804 - first leakage-probe run had web search ON; preserved verbatim + reported, re-run tools-disabled"
+  - id: FM-014
+    name: unevidenced-preregistration-ordering
+    category: process
+    symptom: Pre-registration claimed to precede runs, but nothing (e.g. commit history) evidences the ordering.
+    root_cause: Registration and runs authored in one working tree / one commit.
+    detection: Can a third party verify the ordering from artifacts alone?
+    prevention: Land the pre-registration commit BEFORE any model run so git history evidences ordering; disclose when it does not.
+    real_instance: "commit 5d96fd6 honesty note - 'ordering is asserted, not commit-evidenced... PROTOCOL FOR FUTURE ROUNDS: the pre-registration commit must land BEFORE any model run'"
+  - id: FM-015
+    name: passive-voice-verdict-evasion
+    category: evaluation
+    symptom: Output games a refusal/scope grader by expressing the forbidden verdict in passive or hedged voice ('acceptance is recommended').
+    root_cause: Grader checks structure (refusal marker present) but not substance (verdict language absent).
+    detection: Adversarial reviewer hunts evasions in real transcripts; confirmed evasions become pinned fixtures.
+    prevention: Structure/substance separation - PASS requires refusal marker AND zero verdict language across documented pattern families.
+    real_instance: "commit 9532648 - reviewer-found passive-voice evasion confirmed on disk, closed with pinned evasion fixture (scope_refusal grader v2)"
+  - id: FM-016
+    name: hardcoded-fallback-masks-missing-declaration
+    category: tooling
+    symptom: A runner supplies a default (e.g. advisory footer) when the package fails to declare it, so the omission never surfaces.
+    root_cause: Convenience fallback in shared tooling.
+    detection: Delete the declaration and see whether anything fails.
+    prevention: Delete the fallback; undeclared => UNSCORED/FAIL - fail closed, not fail helpful.
+    real_instance: "commit 7134227 - advisory footer made PACKAGE-DECLARED; 'hardcoded runner dict DELETED, no fallback - undeclared => UNSCORED'"
+  - id: FM-017
+    name: dangling-cross-reference
+    category: integration
+    symptom: A manifest or card references a file/id that does not exist; validation still passes.
+    root_cause: Free-string references without a resolution check; naming tensions between agents.
+    detection: Cross-reference integrity layer resolving every id/path; integration review.
+    prevention: Runner cross-reference checks (e.g. 115/115 xrefs); schema-govern load-bearing reference fields.
+    real_instance: "docs/n2_gate_report.md F4 (dangling memory/review_memory.jsonl reference caught at integration) and N3-F6 (card-level source_id undefined and unchecked - flagged as silent-pass class)"
+  - id: FM-018
+    name: person-shaped-field-mislead
+    category: schema
+    symptom: A field name (person, target_person) actively misleads when carrying institutional or methodology values.
+    root_cause: Standard generalized from a single person-anchored instance.
+    detection: N=2 authoring against frozen schemas; count how many agents independently chafe.
+    prevention: Rename to target-neutral names via logged standard revision (subject, target_label); record friction first.
+    real_instance: "docs/n2_gate_report.md F1 (4/4 agents hit it) -> resolved by v0.6 clean-break renames in commit f8740f8"
+  - id: FM-019
+    name: per-package-constants-n-plus-1-wall
+    category: tooling
+    symptom: Runner/tests hard-code per-package constants, so every new package needs hand-extension.
+    root_cause: Constants extracted from the first instance instead of derived from package declarations.
+    detection: Ask "what must be edited to add package N+1?"; dogfood a new package.
+    prevention: Derive from the package's own manifest (commands from workflow.commands; auto-discovered PACKAGES in conftest).
+    real_instance: "docs/n2_gate_report.md N=3 headline friction; resolved for tests by conftest PACKAGES auto-discovery in commit 7134227 ('N=4 needs zero test wiring')"
+  - id: FM-020
+    name: coverage-artifact-mistaken-for-capability
+    category: evaluation
+    symptom: A harness-vs-baseline split is read as capability when it is partly an artifact of keyword coverage or corpus choice.
+    root_cause: Small n; grader families overlapping the harness's own vocabulary.
+    detection: State the artifact explicitly in the report; check what BOTH arms missed.
+    prevention: No accuracy claims at tiny n; report confounds next to results.
+    real_instance: "commit 2917804 - 'report explicitly warns the split is partly a keyword-coverage artifact and both arms missed rp02's core family; NO accuracy claim at n=3'"
+  - id: FM-021
+    name: encoding-mojibake-crash
+    category: tooling
+    symptom: CLI output mojibakes or crashes on cp950/non-UTF8 consoles (em-dashes, CJK).
+    root_cause: Prints assume UTF-8 console; Windows code pages differ.
+    detection: Forced-codec tests; run the CLI on a cp950 console.
+    prevention: cp950-safe console handling on all prints; UTF-8 file I/O everywhere.
+    real_instance: "docs/n2_gate_report.md N3-F9 (phc CLI mojibaked em-dashes) -> fixed with forced-codec tests in commit 7134227"
+  - id: FM-022
+    name: test-pins-stale-lifecycle-state
+    category: testing
+    symptom: A test asserts a pre-run snapshot invariant (e.g. excerpt_verified is False) that a legitimate run must flip, forcing either dishonest data or a broken test.
+    root_cause: Test encodes a moment in the artifact lifecycle, not an invariant.
+    detection: Ask which assertions describe lifecycle stages vs true invariants.
+    prevention: Update the assertion WITH a lifecycle comment when the sanctioned transition happens; keep the genuine honesty checks; never adjust graders to fit results.
+    real_instance: "docs/n2_gate_report.md N3-F10 (test_shipped_cases_file_parses_and_is_prewired assertion updated False->True with lifecycle explanation)"
+  - id: FM-023
+    name: locale-mirror-desync
+    category: documentation
+    symptom: Locale variants of the same doc diverge in commands, numbers, links, or notices.
+    root_cause: Hand-synced mirrors with no parity enforcement.
+    detection: Locale-parity test suite (switcher links, identical install commands, code-block counts, scorecard-number parity).
+    prevention: Mirror-sync codified as regression tests; every locale edit runs the parity suite.
+    real_instance: "commit 1c4a77f - 22 locale-parity tests added; commit 490470d - 53 locale-parity tests passing, verified twice"
+  - id: FM-024
+    name: staged-fileset-drift
+    category: git
+    symptom: A commit contains more (or fewer) files than intended; unrelated in-flight work rides along.
+    root_cause: git add -A / add . with concurrent workstreams in the tree.
+    detection: Assert staged file count against the expected list before committing.
+    prevention: Explicit-path staging per file + count assertion; exclude concurrent workflows' files by name.
+    real_instance: "commit 510b79f ('Explicit-path staging (6 files asserted)') and commit 490470d ('M2a research workflow is concurrently in flight on disjoint files and is excluded from this commit')"
+  - id: FM-025
+    name: auto-install-trust-boundary-crossing
+    category: tool-safety
+    symptom: Discovered tools/MCP servers are installed or executed during research or by the runtime without vetting.
+    root_cause: Conflating discovery with adoption; convenience.
+    detection: Audit research logs for install/execute/signup events; runtime prohibited_actions check.
+    prevention: Read-only discovery rule pinned in the research plan; generated tool cards ship as unverified_auto_draft that FAIL validation until human vetting; install_or_execute_unknown_tools is a prohibited action.
+    real_instance: "Prevented by design: docs/tool_discovery_research_plan.md §9.5 honored across 27 sources (commit 510b79f: zero installs/executions/signups); violation form is synthesized (see ../examples/bad/bad_tool_execution_plan.md)"
+  - id: FM-026
+    name: uninformative-prior-presented-as-score
+    category: evaluation
+    symptom: Unmeasured dimensions carry made-up mid-range numbers (0.4/0.5) or hand-edited scores instead of 'not measured'.
+    root_cause: Schema or habit demands a number for every dimension.
+    detection: Ask what measurement produced each number; check scoring_basis.
+    prevention: scoring_basis field (self_assessed vs computed); computed scorecards include ONLY measured dims; UNSCORED with reason elsewhere.
+    real_instance: "docs/n2_gate_report.md F9 (self-assessed branch forced uninformative priors, labeled as such); schema fix in commit 046d0e3 (computed may include only measured dims)"
+  - id: FM-027
+    name: free-form-enum-drift
+    category: schema
+    symptom: Values like severity levels rest on prose convention; packages drift to incompatible vocabularies.
+    root_cause: Schema says 'e.g. low/medium/high' instead of an enum.
+    detection: Compare value sets across packages.
+    prevention: Enum with sanctioned extension mechanism, or an explicit recorded decision to accept prose convention.
+    real_instance: "docs/n2_gate_report.md F11 (decision_rule severity free-form; accepted-unresolved with the enum as recorded candidate)"
+  - id: FM-028
+    name: misspelled-id-silent-resolution
+    category: tooling
+    symptom: A loose resolver (any step_*-prefixed string resolves) lets a typo'd id pass silently.
+    root_cause: Prefix-matching instead of resolving against the declared id set.
+    detection: Pinned-id review; content tests pinning the exact id list in order.
+    prevention: Derive the valid id set from the package's own workflow file; pin ids in tests.
+    real_instance: "docs/n2_gate_report.md F13 (step_02_competence_gate vs step_02_scope_gate; caught by pinned-id discipline, not the machine)"
+  - id: FM-029
+    name: quote-licensing-overreach
+    category: legal-evidence
+    symptom: Verbatim third-party text redistributed under the repo's open license; compilations treated as primary sources.
+    root_cause: No quoted-content policy; attribution_type not capped by source class.
+    detection: Audit cards for attribution vs source class; check NOTICE carve-outs.
+    prevention: 2-sentence verbatim cap; direct_quote requires primary-source locator; third-party compilations capped at third_party_interpretation (enforced by regression test); quoted text excluded from the MIT grant.
+    real_instance: "docs/design_review_2026-07-01.md C4 -> Tier A1 fixes in commit 388f06e; attribution cap stress-tested in commit d7603e3 (Isaacson-biography cards capped, regression-tested)"
+  - id: FM-030
+    name: secondhand-figure-adopted-silently
+    category: research
+    symptom: A count or claim from one source is repeated as fact although another source conflicts and neither was verified at origin.
+    root_cause: Research summarization flattening provenance.
+    detection: Keep conflicting figures side by side with their sources; mark 'neither verified'.
+    prevention: Claim-to-URL discipline; honesty ledger; corrections appended when live probes later settle the question.
+    real_instance: "docs/tool_discovery_report.md A6 (ClawHub skill count: 13,000 vs 71,006, 'neither verified against ClawHub's own API'); two M2a claims later corrected via honesty-ledger entries in commit 91b982b"

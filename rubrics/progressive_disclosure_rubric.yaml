@@ -1,0 +1,85 @@
+id: RUBRIC-progressive-disclosure
+layer: rubric
+purpose: Score a harness/docs layout (including this harness itself) on whether
+  a weaker model can orient cheaply - layered entry, small focused files,
+  routing frontmatter, stable cross-links - instead of reading the whole repo.
+read_when: Reviewing harness exports, documentation restructures, or any
+  change to context/, operating_model/, playbooks/, prompts/ layout.
+depends_on:
+  - ../prompts/weak_model_bootstrap_prompt.md
+used_by:
+  - ROUTE-runtime-export
+  - ROUTE-repo-maintenance
+  - ROUTE-memory-update
+tags: [progressive-disclosure, context-budget, frontmatter, routing]
+retrieval_keywords: [layered reading, L0 context, read_when, retrieval
+  keywords, small focused files, relative links, weak model bootstrap]
+
+criteria:
+  - id: PD-1
+    name: layered_entry_path
+    question: Is there a defined reading order (L0 context -> operating model
+      -> playbooks -> route files) such that a new agent acts correctly
+      without opening rubric/dataset/validation files it doesn't need yet?
+    anchors:
+      "1": No entry point; correct behavior requires reading everything.
+      "3": Entry doc exists but doesn't say what NOT to read.
+      "5": Bootstrap path is explicit, bounded (a handful of files), and each
+        file says when deeper layers become relevant.
+  - id: PD-2
+    name: file_size_and_focus
+    question: Are files small and single-purpose (md roughly 500-1500 words,
+      yaml < 200 lines, jsonl one record per line) with one concern per file?
+    anchors:
+      "1": Monolith files mixing procedure, examples, and policy.
+      "3": Mostly focused but a few files serve three unrelated readers.
+      "5": Every file answers one read_when; oversized content split along
+        consumer boundaries.
+  - id: PD-3
+    name: routing_frontmatter
+    question: Does every important md carry the full frontmatter block (id /
+      layer / purpose / read_when / depends_on / used_by / tags /
+      retrieval_keywords) with accurate values?
+    anchors:
+      "1": No frontmatter; discovery requires full-text reading.
+      "3": Frontmatter present but read_when/used_by generic or stale.
+      "5": read_when is decision-grade ("open this when reviewing X");
+        used_by names the exact ROUTE-* ids; keywords match how a searcher
+        would phrase the need.
+  - id: PD-4
+    name: stable_ids_and_links
+    question: Are cross-references made with stable IDs (ROUTE-*, FM-###,
+      TE-###, EC-###, RUBRIC-*) and relative paths that survive renames?
+    anchors:
+      "1": Prose references ("the eval doc") with no id or path.
+      "3": Links exist but absolute paths or duplicated content instead of
+        references.
+      "5": IDs stable across revisions; one canonical home per fact; everything
+        else links to it.
+  - id: PD-5
+    name: read_path_economy
+    question: For each of the eight routes, is the minimal file set to execute
+      it small and enumerated (route file + its rubric + its checklist)?
+    anchors:
+      "1": A route requires ad-hoc exploration to find its own rubric.
+      "3": Dependencies findable but only via grep, not declared.
+      "5": Each route declares depends_on; a weak model can list its full
+        reading set before opening anything.
+  - id: PD-6
+    name: self_containment
+    question: Is the harness reconstructible from observable artifacts only -
+      no references to private chats, hidden prompts, secrets, or files
+      outside the harness/repo?
+    anchors:
+      "1": Content depends on context that is not in any file.
+      "3": Mostly self-contained but some claims lack a source artifact.
+      "5": Every method claim cites a repo path or commit; nothing private,
+        nothing invented.
+
+verdict_rule: |
+  Score each criterion 1-5.
+  FAIL   - PD-6 at 1 (unsourced/private content) or PD-1 at 1.
+  REVISE - any criterion <= 2.
+  PASS   - all criteria >= 3 and mean >= 4.
+  Tie-breaker: prefer the layout that minimizes tokens-to-first-correct-action
+  for a weak model, even at the cost of some duplication in frontmatter.

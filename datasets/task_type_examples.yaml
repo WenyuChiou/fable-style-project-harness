@@ -1,0 +1,68 @@
+# ---
+# id: DATASET-task-type-examples
+# layer: dataset
+# purpose: The eight task types with example request phrasings each, for router training/calibration.
+# read_when: Classifying an incoming request into a route; writing or tuning the router.
+# depends_on: [./routing_examples.yaml]
+# used_by: [ROUTE-phase-review, ROUTE-tool-discovery, ROUTE-pr-review, ROUTE-eval-design, ROUTE-memory-update, ROUTE-runtime-export, ROUTE-repo-maintenance, ROUTE-ab-test-design]
+# tags: [task-types, router, phrasings]
+# retrieval_keywords: [task type, request classification, route, example phrasing, which route]
+# ---
+
+task_types:
+  - task_type: phase_review
+    route: ROUTE-phase-review
+    description: Adversarial review of a completed phase/spec/milestone, or a gate verdict (GO / CONDITIONAL_GO / NO_GO).
+    example_requests:
+      - "Run a design review on the v0.5.1 spec before we commit Day 1 - I want the weaknesses, not applause."
+      - "The second package is done. Did we pass the N=2 gate? Write the gate report."
+      - "Before we start Phase 2 automation, check whether the falsifiable gate conditions are actually met."
+  - task_type: tool_discovery
+    route: ROUTE-tool-discovery
+    description: Read-only research into external tools, registries, MCP servers, or data sources; scoring and comparison without installing anything.
+    example_requests:
+      - "Which skill registries could feed our tool recommender? Investigate them without installing or signing up for anything."
+      - "Score the candidate MCP registries on machine-readability, maintenance, and security metadata - cite every claim."
+      - "Is there a safe, keyless API for company filings we could declare as a ToolCard?"
+  - task_type: pr_review
+    route: ROUTE-pr-review
+    description: Reviewing a diff/commit range before it lands - correctness, honesty of claimed numbers, safety surface, regression net.
+    example_requests:
+      - "Review the M2b diff before commit - especially whether the gate numbers in the doc reproduce."
+      - "Two subagents just returned their changes; review the combined diff and re-verify their claims on disk."
+      - "Audit this external repo's package against our standard, read-only, and write up the findings fairly."
+  - task_type: eval_design
+    route: ROUTE-eval-design
+    description: Designing eval specs, graders, corpora, pre-registrations, baselines/ablations, or outcome evals.
+    example_requests:
+      - "Design an outcome eval for the manuscript-review package - something with real ground truth, and pre-register it before any runs."
+      - "The scope_refusal grader is gameable by passive voice; harden it without loosening any pass criteria."
+      - "Add safety tests for impersonation baits, including the CJK alias forms."
+  - task_type: memory_update
+    route: ROUTE-memory-update
+    description: Appending to project memory - gate reports, friction inventories, changelogs, status documents, correction records.
+    example_requests:
+      - "Append the N=3 friction items to the gate report and map each to a v0.7 backlog candidate."
+      - "Record the honesty-ledger correction: the registry search parameter does work after all."
+      - "Update the development plan after M2a - and fix any drift you find in the existing status lines, visibly."
+  - task_type: runtime_export
+    route: ROUTE-runtime-export
+    description: Making packages installable/runnable in a target runtime - plugin manifests, command frontmatter, marketplace entries, install verification.
+    example_requests:
+      - "Make the demo installable as a Claude Code plugin - marketplace.json, plugin.json, command frontmatter, the works."
+      - "Do a fresh-user end-to-end: clean environment, install the plugin, run the full workflow headless, and log every stumble."
+      - "Scaffold a third package with phc new and verify the scaffold fails validation until real evidence is filled."
+  - task_type: repo_maintenance
+    route: ROUTE-repo-maintenance
+    description: Repo hygiene - locale mirror sync, doc trims, asset hygiene, CI wiring, gitignore, staging discipline.
+    example_requests:
+      - "Sync the three README locales and fix the stale status lines - the test counts moved again."
+      - "Trim the README prose; the SVG diagrams should carry the structure, and verify them rendered at GitHub content width."
+      - "Set up CI to run the full suite plus phc validate on all three packages, on both OSes."
+  - task_type: ab_test_design
+    route: ROUTE-ab-test-design
+    description: Comparative experiments - harness vs baselines, ablations, blinded grading, side-by-side transcript publication.
+    example_requests:
+      - "Compare the harness against a persona-prompt baseline on the six behavioral tests and publish the transcripts as-is."
+      - "Design the ablation matrix: no_evidence, no_tools, no_memory, no_guardrails - what does each arm measure?"
+      - "Run the retracted-paper pilot on both arms, tools disabled, and report the confounds next to the split."

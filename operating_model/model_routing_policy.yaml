@@ -1,0 +1,95 @@
+# id: OM-model-routing-policy
+# layer: operating_model
+# purpose: Cost-aware routing as the OPERATING HABIT actually observed in this
+#   project (mirrors docs/model_routing_policy.md, grounded in commit trailers:
+#   subagent workflows for mechanical bulk, orchestrator/strong reasoning for
+#   design and synthesis, human gate last, review always layered).
+# read_when: Deciding who/what executes a task; budgeting a round.
+# depends_on: [./decision_rules.yaml, ./review_protocol.md]
+# used_by: [ROUTE-tool-discovery, ROUTE-pr-review, ROUTE-eval-design,
+#   ROUTE-runtime-export, ROUTE-repo-maintenance, ROUTE-ab-test-design]
+# tags: [routing, cost, tiers, delegation]
+# retrieval_keywords: model routing, tier 0, deterministic, cheap fast,
+#   balanced, strong reasoning, human review, escalation, subagents
+
+principle: >
+  Use the cheapest reliable method that passes quality thresholds
+  (docs/model_routing_policy.md section 2). Quality is assured by the
+  layered review gate (author-agnostic), not by routing everything to the
+  strongest executor.
+
+tiers:
+  - tier: 0
+    method: deterministic
+    task_classes:
+      - schema validation, YAML/JSON formatting, template file generation
+      - static package validation (phc validate), cross-reference checks
+      - coverage/gate metrics (scripts/generator_gate.py), install smoke
+      - transcript grading via documented deterministic graders
+    observed: >
+      M2b generators run with "no LLM, no network" (91b982b); all scorecard
+      numbers and gate floors are script-emitted; graders are deterministic
+      with documented constants.
+  - tier: 1
+    model_class: cheap_fast
+    task_classes:
+      - metadata extraction, tag generation, draft tool-card text
+      - simple documentation cleanup
+    quality_threshold: output must pass schema validation; escalate on low confidence.
+  - tier: 2
+    model_class: balanced
+    task_classes:
+      - capability decomposition, evidence-card drafting, eval-test drafting
+      - guardrail drafting, SKILL.md drafts, locale mirror sync
+      - partitioned mechanical sweeps across many files
+    observed: >
+      Rounds executed by 3-9 parallel "Sonnet subagents" under pinned work
+      orders (e7f0fc6 "7 Sonnet subagents"; 4437320 "3 Sonnet subagents,
+      partitioned sweep + zero-leftover audit"; 490470d "4 Sonnet subagents").
+    quality_threshold: >
+      schema-valid; claims cited; consistency checks pass; escalate on
+      conflicting sources, high-risk domain, or tool-permission risk.
+  - tier: 3
+    model_class: strong_reasoning
+    task_classes:
+      - architecture critique and design review synthesis
+      - safety/security review; guardrail design for high-risk domains
+      - adversarial review lenses; gate-honesty and fairness audits
+      - conflict resolution between agents; release-readiness decisions
+      - visual/design iteration the orchestrator does directly
+    observed: >
+      The 4-lens design review and its synthesis (f4c826f); orchestrator
+      resolves cross-agent conflicts by on-disk verification (490470d);
+      "SVG redesign by Claude directly (visual iteration loop)" (490470d).
+    quality_threshold: explicit reasoning summary; uncertainty identified; next actions recommended.
+  - tier: 4
+    method: human_review
+    required_for:
+      - high-risk-domain releases and anything public-facing
+      - write/execute/external-action tool permissions
+      - language feel / cultural judgment
+      - promotion of any .generated.yaml draft to a governed filename
+      - setting gate pass-bars over measured numbers
+    observed: >
+      "Human-gate: zh-TW 語感 review (one full-width punctuation fix)"
+      (e7f0fc6); draft promotion "is a HUMAN act" (CHANGELOG v0.7.1);
+      "the maintainer sets the bar" (generator_fixture_gate.md).
+
+routing_rules:
+  - >-
+    Mechanical bulk with a stable pattern and no security/governance surface
+    goes to parallel tier-2 subagents; size increases the case for delegation.
+  - >-
+    Design, security, governance, gate definitions, and live-state debugging
+    stay at tier 3 (orchestrator) regardless of size.
+  - >-
+    Review is ALWAYS layered regardless of who authored: adversarial lenses ->
+    independent re-verification -> code-review gate (see review_protocol.md).
+  - >-
+    Escalation is one-way within a round: tier 1 -> 2 on schema failure or low
+    confidence; tier 2 -> 3 on conflict or risk; tier 3 -> 4 (human) on
+    release, permissions, or judgment calls.
+  - >-
+    Model classes stay abstract (cheap_fast | balanced | strong_reasoning);
+    concrete model bindings belong to runtime configuration
+    (docs/model_routing_policy.md section 4 note).

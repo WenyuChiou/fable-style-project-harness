@@ -1,0 +1,105 @@
+id: RUBRIC-eval-quality
+layer: rubric
+purpose: Score an eval spec, grader, or outcome-eval design against
+  docs/evaluation_framework.md (six categories, baselines/ablations, scorecard
+  gates, Category-7 outcome doctrine, grader-hardening discipline).
+read_when: Designing or reviewing eval_spec.yaml, graders, outcome-eval
+  pre-registrations, or scorecard gating logic.
+depends_on:
+  - ../validation/self_checklists/phase_review_checklist.md
+used_by:
+  - ROUTE-eval-design
+  - ROUTE-ab-test-design
+tags: [evaluation, graders, baselines, ablations, outcome-eval, pre-registration]
+retrieval_keywords: [six eval categories, baselines ablations, UNSCORED,
+  pre-registration, leakage probe, grader hardening, mutation tests,
+  safety veto]
+
+criteria:
+  - id: EQ-1
+    name: category_coverage
+    question: Are all six MVP categories covered (completeness, evidence
+      grounding, method consistency, tool fit, memory readiness, safety), each
+      with concrete tests?
+    anchors:
+      "1": Safety or memory category absent; only structural checks exist.
+      "3": Categories named but some hold zero tests or tests without pass
+        criteria.
+      "5": All six populated; behavioral tests generated from artifact ids
+        (principle -> test, rule -> fire/no-fire pair, red flag -> surface).
+  - id: EQ-2
+    name: grader_specification
+    question: Is every test's grader specified (deterministic script, marker
+      list, or named human judgment) rather than "reviewer judges quality"?
+    anchors:
+      "1": No grader named; pass/fail is vibes.
+      "3": Graders named but their marker lists / thresholds undocumented.
+      "5": Deterministic-first (Tier 0); marker contracts documented
+        ("extend, never loosen ad hoc"); honest-manual grading recorded as
+        such, never auto-passed.
+  - id: EQ-3
+    name: grader_hardening
+    question: Are graders treated as fallible artifacts - adversarially
+      iterated, with grader-vs-substance divergences published and every
+      grader fix pinned by mutation regression tests?
+    anchors:
+      "1": Grader trusted on first write; divergences silently patched.
+      "3": Fixes made but not pinned to the exact transcript/sentence that
+        exposed them.
+      "5": The scope_refusal-v2 / DISCLOSURE_MARKERS pattern - divergence
+        published in the comparison doc, frozen transcripts regraded via the
+        runner, mutation tests assert both catch and still-rejects.
+  - id: EQ-4
+    name: baselines_and_ablations
+    question: Are the six baselines (raw_model .. full_harness) and five
+      ablations DEFINED, with at least one baseline comparison documented, so
+      the value claim is falsifiable?
+    anchors:
+      "1": No baseline; the harness is compared to nothing.
+      "3": Baselines listed but no comparison documented and no expected
+        failure signatures for ablations.
+      "5": Side-by-side vs persona_prompt published; each ablation states the
+        failure signature that proves the component matters.
+  - id: EQ-5
+    name: outcome_eval_validity
+    question: If an outcome claim is made, does it meet ALL of - pre-registered
+      rules before data, information-cutoff with pretraining-leakage probes,
+      long-enough window, benchmark adjustment, published transcripts?
+    anchors:
+      "1": A track-record claim ("returned X% over Y years") stands in for an
+        eval.
+      "3": Some requirements met; the missing ones scored optimistically
+        instead of UNSCORED.
+      "5": All five present, or the dimension is marked UNSCORED with the
+        missing requirement listed in next_actions. "No outcome eval exists
+        yet for this domain" is an acceptable entry; a marketing claim is not.
+  - id: EQ-6
+    name: grader_beneficiary_separation
+    question: Do grader changes land in a separate commit/PR from the
+      transcripts or data they benefit?
+    anchors:
+      "1": Grading rules changed in the same change that adds the outputs now
+        scoring well (retroactive rule-fitting).
+      "3": Separated but the ordering/motivation is undocumented.
+      "5": Separate commits, divergence documented, regrade of frozen
+        transcripts shows verdict deltas explicitly (including unchanged
+        FAILs).
+  - id: EQ-7
+    name: unscored_discipline
+    question: Are unmeasured or not-applicable dimensions recorded UNSCORED /
+      not_applicable with reasons - never guessed, never silently passed?
+    anchors:
+      "1": Uninformative-prior numbers (0.4/0.5) published where the honest
+        answer is "not measured".
+      "3": Skips happen but are invisible in the scorecard.
+      "5": Every skip is RECORDED with its reason; the runner neither crashes
+        nor silently passes on inapplicable checks (no-silent-pass invariant).
+
+verdict_rule: |
+  Score each criterion 1-5.
+  REJECT - EQ-5 at 1 or EQ-7 at 1 (fabricated-or-guessed results are the
+           failure class the whole framework exists to prevent), or EQ-6 at 1.
+  REVISE - any criterion <= 2.
+  ACCEPT - all criteria >= 3 and mean >= 4.
+  Safety is a veto, not a weight: a failing safety test caps release status
+  regardless of the aggregate score.

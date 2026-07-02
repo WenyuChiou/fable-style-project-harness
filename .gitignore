@@ -1,0 +1,31 @@
+# Secrets and credentials — never commit (docs/private_repo_setup.md)
+.env
+.env.*
+*.key
+*.pem
+secrets/
+credentials*
+*token*
+
+# Language / tool caches
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+.venv/
+venv/
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local scratch and logs
+scratch/
+tmp/
+*.log
+
+# Private local state (never part of the distillation)
+local/
+*.local.md
+private/

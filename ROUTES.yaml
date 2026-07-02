@@ -1,0 +1,261 @@
+# ---
+# id: ROUTES
+# layer: context
+# purpose: The 8 pinned routes - per task type, the exact minimal file set to load, the expected deliverable, and the pre-return self-checks.
+# read_when: Immediately after L3 classification, before opening any playbook/rubric/example file.
+# depends_on: [context/L3_task_router.md, context/L4_progressive_disclosure_policy.md, schemas/route.schema.yaml]
+# used_by: [ROUTE-phase-review, ROUTE-tool-discovery, ROUTE-pr-review, ROUTE-eval-design, ROUTE-memory-update, ROUTE-runtime-export, ROUTE-repo-maintenance, ROUTE-ab-test-design]
+# tags: [routes, routing, file-sets, progressive-disclosure]
+# retrieval_keywords: [route file list, which files to load, required optional, expected output, self check, ROUTE ids]
+# ---
+# Each entry validates against schemas/route.schema.yaml.
+# start is ALWAYS the L0 -> L2 -> L3 context ladder. Load required in full;
+# open optional only with a stated one-line reason (L4 rule 3).
+
+# Entry files that lead INTO the start ladder (runtime-convention launchers;
+# they are pre-route entrypoints, not route members — all three converge on
+# the same L0 -> L2 -> L3 -> ROUTES sequence):
+entrypoints:
+  - path: BOOTSTRAP.md
+    convention: universal_minimal_entry
+  - path: AGENTS.md
+    convention: repository_agent_instructions
+  - path: SKILL.md
+    convention: skill_discovery_frontmatter
+
+routes:
+
+  - id: ROUTE-phase-review
+    task_type: phase_review
+    status: active
+    start:
+      - context/L0_bootstrap.md
+      - context/L2_current_phase.md
+      - context/L3_task_router.md
+    required:
+      - operating_model/phase_gates.md
+      - playbooks/phase0_static_package_standard.md
+      - rubrics/architecture_review_rubric.yaml
+      - examples/golden/good_phase_review.md
+      - examples/golden/good_go_no_go_decision.md
+      - prompts/phase_review_prompt.md
+      - validation/self_checklists/phase_review_checklist.md
+    optional:
+      - datasets/failure_modes.yaml
+      - datasets/edge_cases.yaml
+      - examples/bad/bad_overengineered_plan.md
+      - examples/critiques/critique_bad_overengineered_plan.md
+      - memory/phase_history.jsonl
+      - operating_model/decision_rules.yaml
+    expected_output: >-
+      A findings-table review of the phase/plan/spec with per-finding severity
+      and evidence, closing in an explicit GO / CONDITIONAL_GO / NO_GO verdict
+      whose conditions are falsifiable and pre-stated.
+    self_check:
+      - "ARCH-1 (proof_before_automation): the plan proves value by hand before automating it."
+      - "ARCH-2 (falsifiable_gates): gate criteria are falsifiable and were stated BEFORE scoring against them."
+      - "ARCH-6 (lens_coverage_and_synthesis): review lenses are orthogonal and the synthesis names conflicts explicitly."
+      - "Verdict is exactly one of GO / CONDITIONAL_GO / NO_GO with conditions enumerated (OM-phase-gates semantics)."
+      - "Checklist CHECK-phase-review completed before returning."
+
+  - id: ROUTE-tool-discovery
+    task_type: tool_discovery
+    status: active
+    start:
+      - context/L0_bootstrap.md
+      - context/L2_current_phase.md
+      - context/L3_task_router.md
+    required:
+      - playbooks/phase1_tool_discovery.md
+      - rubrics/tool_discovery_rubric.yaml
+      - rubrics/tool_boundary_rubric.yaml
+      - examples/golden/good_tool_discovery_report.md
+      - prompts/tool_discovery_prompt.md
+      - validation/self_checklists/tool_discovery_checklist.md
+    optional:
+      - prompts/boundary_review_prompt.md
+      - examples/bad/bad_tool_execution_plan.md
+      - examples/critiques/critique_bad_tool_execution_plan.md
+      - datasets/failure_modes.yaml
+      - datasets/edge_cases.yaml
+      - playbooks/pr_review_playbook.md
+      - operating_model/model_routing_policy.yaml
+    expected_output: >-
+      A metadata-only discovery report: per-claim fetched-URL citations, a
+      scored source registry, an explicit unverified ledger, and ZERO installs,
+      signups, or executions of discovered tools.
+    self_check:
+      - "TD-3 (claim_url_traceability): every load-bearing claim carries a fetched-URL citation."
+      - "TD-4 (unverified_marking): unverified claims sit in an explicit ledger, never inline as fact."
+      - "TB-1 (discovery_without_execution): nothing was installed, executed, or signed up for during discovery."
+      - "TB-3 (computed_risk): risk/permission scores are computed from conservative proxies, not guessed."
+      - "Checklist CHECK-tool-discovery completed before returning."
+
+  - id: ROUTE-pr-review
+    task_type: pr_review
+    status: active
+    start:
+      - context/L0_bootstrap.md
+      - context/L2_current_phase.md
+      - context/L3_task_router.md
+    required:
+      - playbooks/pr_review_playbook.md
+      - operating_model/review_protocol.md
+      - rubrics/pr_review_rubric.yaml
+      - examples/golden/good_pr_review.md
+      - prompts/pr_review_prompt.md
+      - validation/self_checklists/pr_review_checklist.md
+    optional:
+      - examples/bad/bad_schema_breaking_change.md
+      - examples/critiques/critique_bad_schema_breaking_change.md
+      - datasets/failure_modes.yaml
+      - datasets/edge_cases.yaml
+      - prompts/boundary_review_prompt.md
+      - playbooks/phase6_evaluation_runner.md
+    expected_output: >-
+      A review verdict (APPROVE / REQUEST_CHANGES / NEEDS_DISCUSSION) with a
+      findings table, independent re-verification by re-running scripts/tests/
+      greps, and staging hygiene checked (explicit paths + count assertion).
+    self_check:
+      - "PR-5 (independent_reverification): at least one load-bearing claim in the diff was re-verified by re-running, not by reading."
+      - "PR-2 (schema_change_gate): any schema/contract edit is covered by mutation tests and a changelog entry, or flagged."
+      - "PR-4 (grader_beneficiary_separation): grader/scorer fixes land separately from changes that benefit from them."
+      - "PR-6 (commit_hygiene): staged file list is explicit-path with a count assertion; no add-all."
+      - "Checklist CHECK-pr-review completed before returning."
+
+  - id: ROUTE-eval-design
+    task_type: eval_design
+    status: active
+    start:
+      - context/L0_bootstrap.md
+      - context/L2_current_phase.md
+      - context/L3_task_router.md
+    required:
+      - playbooks/phase6_evaluation_runner.md
+      - rubrics/eval_quality_rubric.yaml
+      - examples/golden/good_eval_spec.yaml
+      - prompts/self_check_prompt.md
+    optional:
+      - examples/bad/bad_eval_free_feature.md
+      - examples/critiques/critique_bad_eval_free_feature.md
+      - datasets/failure_modes.yaml
+      - validation/regression_tasks/T04_evalspec_critique.md
+      - validation/self_checklists/package_quality_checklist.md
+    expected_output: >-
+      An eval spec or grader design with declared categories, deterministic
+      graders, pre-registered pass criteria, and UNSCORED-never-guessed
+      semantics — scorecards computed, never claimed.
+    self_check:
+      - "EQ-1 (category_coverage): all test categories are declared with ids before any grading logic is written."
+      - "EQ-2 (grader_specification): every grader is specified and deterministic."
+      - "EQ-7 (unscored_discipline): unmatched cases return UNSCORED, never a guessed score."
+      - "EQ-5 (outcome_eval_validity): outcome claims and pass thresholds are pre-registered BEFORE any run."
+      - "EQ-4 (baselines_and_ablations): baselines/ablations (or their absence) are stated explicitly."
+
+  - id: ROUTE-memory-update
+    task_type: memory_update
+    status: active
+    start:
+      - context/L0_bootstrap.md
+      - context/L2_current_phase.md
+      - context/L3_task_router.md
+    required:
+      - playbooks/phase4_memory_update.md
+      - operating_model/project_memory_policy.yaml
+      - examples/golden/good_project_state_update.md
+      - prompts/project_state_update_prompt.md
+    optional:
+      - examples/bad/bad_memory_overbuild.md
+      - examples/critiques/critique_bad_memory_overbuild.md
+      - datasets/edge_cases.yaml
+      - validation/regression_tasks/T03_memory_scope_review.md
+      - rubrics/maintainability_rubric.yaml
+    expected_output: >-
+      Appended memory records (JSONL) and/or a rewritten project_state.md
+      snapshot — corrections append with a pointer to what they supersede,
+      never overwrite; friction reports carry ids that feed standard revisions.
+    self_check:
+      - "MT-6 (memory_update_discipline): corrections were APPENDED with supersedes-pointers; no history rewritten or deleted."
+      - "MT-1 (friction_to_changelog_traceability): every friction report has a stable id traceable into the changelog path it feeds."
+      - "Memory writes verified on disk (re-read after write), per PLAYBOOK-phase4-memory-update."
+      - "No new memory infrastructure was built where a file append sufficed (CRIT-memory-overbuild precedent)."
+
+  - id: ROUTE-runtime-export
+    task_type: runtime_export
+    status: active
+    start:
+      - context/L0_bootstrap.md
+      - context/L2_current_phase.md
+      - context/L3_task_router.md
+    required:
+      - playbooks/phase5_runtime_export.md
+      - rubrics/tool_boundary_rubric.yaml
+      - examples/golden/good_harness_yaml.yaml
+      - schemas/harness_repo.schema.yaml
+    optional:
+      - rubrics/harness_quality_rubric.yaml
+      - datasets/failure_modes.yaml
+      - validation/self_checklists/package_quality_checklist.md
+      - examples/golden/good_project_state_update.md
+    expected_output: >-
+      An export/install artifact (manifest, plugin scaffold, or verification
+      report) with an honest E2E install verification and an explicit
+      UNVERIFIED list for anything not actually exercised.
+    self_check:
+      - "TB-2 (read_only_default): exported defaults are read-only; any write/execute capability is opt-in and declared."
+      - "TB-3 (computed_risk): permission/risk statements in the manifest are computed from conservative proxies."
+      - "HQ-6 (runtime_installability): the install path was actually exercised end-to-end, or the gap is listed as UNVERIFIED."
+      - "HQ-4 (guardrails_and_disclosure): guardrail and disclosure blocks are present in the manifest."
+      - "Manifest validates against schemas/harness_repo.schema.yaml."
+
+  - id: ROUTE-repo-maintenance
+    task_type: repo_maintenance
+    status: active
+    start:
+      - context/L0_bootstrap.md
+      - context/L2_current_phase.md
+      - context/L3_task_router.md
+    required:
+      - playbooks/repo_maintenance_playbook.md
+      - rubrics/maintainability_rubric.yaml
+      - docs/retrieval_smoke_test.md
+      - INDEX.yaml
+    optional:
+      - datasets/failure_modes.yaml
+      - memory/project_state.md
+      - docs/codebase_memory_indexing.md
+      - schemas/route.schema.yaml
+    expected_output: >-
+      Drift-free repo state: docs/status lines match reality, renames are
+      grep-swept, INDEX.yaml matches disk, and the retrieval smoke test passes
+      after the edit round.
+    self_check:
+      - "MT-4 (clean_breaks): after any rename/move, the old value was grepped repo-wide and every stale reference fixed."
+      - "MT-1 (friction_to_changelog_traceability): friction found during the sweep is recorded with a stable id."
+      - "MT-5 (scratch_hygiene): scratch/temp artifacts cleaned; INDEX.yaml matches disk exactly — no orphan or ghost entries."
+      - "docs/retrieval_smoke_test.md executed after the edit round and passed."
+
+  - id: ROUTE-ab-test-design
+    task_type: ab_test_design
+    status: future-work
+    start:
+      - context/L0_bootstrap.md
+      - context/L2_current_phase.md
+      - context/L3_task_router.md
+    required:
+      - docs/ab_test_protocol.md
+      - rubrics/eval_quality_rubric.yaml
+      - playbooks/phase6_evaluation_runner.md
+    optional:
+      - examples/golden/good_eval_spec.yaml
+      - datasets/edge_cases.yaml
+      - operating_model/model_routing_policy.yaml
+    expected_output: >-
+      A pre-registered A/B experiment design (arms, corpus, blinded grading
+      protocol, leakage/contamination controls). FUTURE WORK — designing is
+      allowed; RUNNING any arm is gated by L2's pre-registration-before-runs rule.
+    self_check:
+      - "EQ-5 (outcome_eval_validity): the full design (arms, corpus, metrics, pass criteria) is pre-registered before any model call."
+      - "EQ-4 (baselines_and_ablations): baseline and ablation arms are specified, not just the harness arm."
+      - "EQ-3 (grader_hardening): grading is blinded to arm identity; leakage/contamination probes are specified."
+      - "L2 check: no run was started under this route — design only."

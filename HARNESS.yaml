@@ -1,0 +1,49 @@
+# fable-style-project-harness — package manifest
+# Distilled from observable artifacts of method-harness-compiler only.
+name: fable-style-project-harness
+version: 0.1.0
+entrypoint: context/L0_bootstrap.md
+provenance:
+  distilled_from: method-harness-compiler@965c68e
+  date: 2026-07-02
+  sources: observable artifacts only
+  source_classes:
+    - docs (design_review, n2_gate_report, CHANGELOG_STANDARD, development_plan,
+      evaluation_framework, comparisons/*, audits/*, quality/*)
+    - git log with full commit bodies and trailers
+    - schemas/
+    - scripts/
+    - tests/
+    - the three example packages (quality_value_investing, manuscript_review,
+      first_principles_engineering)
+layers:
+  - context        # L0-L5 progressive-disclosure layers (context/)
+  - operating_model  # the distilled method skeleton (operating_model/)
+  - playbook       # step-by-step procedures, PLAYBOOK-* (playbooks/)
+  - rubric         # scoring/review rubrics, RUBRIC-* (rubrics/)
+  - example        # worked examples grounded in real episodes (examples/)
+  - dataset        # JSONL records: TE-### / FM-### / EC-### / RE-### (datasets/)
+  - prompt         # reusable prompt fragments, never hidden internals (prompts/)
+  - validation     # smoke tests and consistency checks (validation/)
+  - memory         # append-only corrections and friction records (memory/)
+  - schema         # record shapes for datasets and frontmatter (schemas/)
+  - doc            # meta-documentation (docs/)
+routes_file: ROUTES.yaml
+routes:
+  - ROUTE-phase-review
+  - ROUTE-tool-discovery
+  - ROUTE-pr-review
+  - ROUTE-eval-design
+  - ROUTE-memory-update
+  - ROUTE-runtime-export
+  - ROUTE-repo-maintenance
+  - ROUTE-ab-test-design
+portability_targets:
+  - claude_code
+  - codex
+  - cursor
+  - local agents
+constraints:
+  - private_until_reviewed   # never public without human content review
+  - no_secrets               # no keys, tokens, contact info, private chats
+  - no_hidden_reasoning      # no invented system prompts or chain-of-thought

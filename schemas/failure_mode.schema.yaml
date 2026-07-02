@@ -1,0 +1,47 @@
+# ---
+# id: SCHEMA-failure-mode
+# layer: schema
+# purpose: JSON Schema (draft 2020-12) for one failure_mode record (FM-###) in datasets/failure_modes.yaml.
+# read_when: Adding or validating failure-mode records, or building tooling over the catalog.
+# depends_on: [../datasets/failure_modes.yaml]
+# used_by: [ROUTE-repo-maintenance, ROUTE-pr-review, ROUTE-eval-design]
+# tags: [schema, dataset, failure-mode]
+# retrieval_keywords: [failure mode shape, FM record, symptom root_cause, detection prevention, real_instance]
+# ---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "fable-style-project-harness/schemas/failure_mode.schema.yaml"
+title: Failure mode record (FM-###)
+description: >-
+  Pinned dataset shape. Records live under the failure_modes key of
+  datasets/failure_modes.yaml. real_instance cites an artifact or commit
+  of the source repo, or the literal string "synthesized".
+type: object
+additionalProperties: true
+required: [id, name, category, symptom, root_cause, detection, prevention, real_instance]
+properties:
+  id:
+    type: string
+    pattern: "^FM-[0-9]{3}$"
+  name:
+    type: string
+    description: Short memorable name for the failure mode.
+  category:
+    type: string
+    description: Failure family (e.g. fabrication, silent-pass, scope-creep, grader-artifact, drift).
+  symptom:
+    type: string
+    description: What an observer sees when this failure is happening.
+  root_cause:
+    type: string
+    description: Why it happens — mechanism, not blame.
+  detection:
+    type: string
+    description: The check, test, grep, or gate that catches it.
+  prevention:
+    type: string
+    description: The standing discipline or code gate that stops it recurring.
+  real_instance:
+    type: string
+    description: >-
+      Artifact/commit citation in the source repo, or "synthesized"
+      when the mode was deliberately prevented rather than observed.

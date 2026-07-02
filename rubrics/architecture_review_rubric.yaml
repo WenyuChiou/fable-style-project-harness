@@ -1,0 +1,96 @@
+id: RUBRIC-architecture-review
+layer: rubric
+purpose: Score an architecture / phase-plan / design-review artifact the way the
+  2026-07-01 four-lens design review scored spec v0.5.1 (34 findings, Tier A/B/C
+  change program).
+read_when: Reviewing a development plan, phase plan, spec revision, or any
+  proposal that sequences build phases or changes the standard's surface.
+depends_on:
+  - ../validation/self_checklists/phase_review_checklist.md
+used_by:
+  - ROUTE-phase-review
+  - ROUTE-ab-test-design
+tags: [architecture, design-review, phase-gate, adversarial-review]
+retrieval_keywords: [phase order, falsifiable gate, adoption surface, GO NO_GO,
+  design review, Tier A protective fixes, installability exit criterion]
+
+criteria:
+  - id: ARCH-1
+    name: proof_before_automation
+    question: Does the plan put runnable proof (installable demo, computed eval)
+      BEFORE automation and exporters, not after?
+    anchors:
+      "1": Proof artifacts (installability, eval runner) deferred to a late
+        phase; early phases produce only declarative YAML. The v0.5.1
+        inverted-phase-order failure (design review C1/C2).
+      "3": Proof exists but is not an exit criterion; a phase can close without
+        a fresh-install end-to-end run.
+      "5": '"Runs end-to-end in a stock runtime" is the Phase-0/1 EXIT
+        criterion (design review B1); the eval runner is the first code that
+        matters (B2).'
+  - id: ARCH-2
+    name: falsifiable_gates
+    question: Is every promotion to the next phase gated on a pre-stated,
+      falsifiable condition (e.g. B3's "second harness authored with zero
+      schema edits", the N=2/N=3 gates)?
+    anchors:
+      "1": Phases advance on completion of work items; no condition could fail.
+      "3": Gates exist but conditions are vague ("quality is acceptable") or
+        set after seeing the result.
+      "5": Gates are numeric/binary, stated before execution, and the plan says
+        what happens on FAIL ("revise the standard, don't automate it").
+        Halt-is-a-success is an admissible outcome.
+  - id: ARCH-3
+    name: adoption_priced_surface
+    question: Is the mandatory surface sized for adoption (conformance levels,
+      compiler intermediates demoted to build/), not the ~45-mandatory-files
+      failure (C7/B4)?
+    anchors:
+      "1": Every abstraction is mandatory at N=1; humans must touch compiler
+        intermediates.
+      "3": Some optionality, but no explicit L0/L1/L2-style conformance ladder.
+      "5": Minimal core (~4 files) + explicit levels; schemas deferred "until
+        harness #2 forces generalization".
+  - id: ARCH-4
+    name: state_separation
+    question: Are immutable package artifacts separated from mutable state
+      (memory outside the regenerable package, B5/C8), and is each artifact in
+      the layer that consumes it (no C9-style category errors)?
+    anchors:
+      "1": Mutable JSONL lives inside the versioned package; compiler config
+        ships in the runtime package.
+      "3": Separation stated but not enforced by rule or path convention.
+      "5": Memory survives upgrades by rule; every file's consumer is named;
+        misplaced artifacts are relocated, not annotated.
+  - id: ARCH-5
+    name: trust_and_legal_exposure
+    question: Are quote licensing, living-person naming, subject policy, and
+      degraded-mode honesty addressed BEFORE public exposure (Tier A A1-A6)?
+    anchors:
+      "1": Zero occurrences of copyright / person-policy / degraded-mode topics
+        in the plan.
+      "3": Risks listed but mitigations unscheduled or unowned.
+      "5": Protective fixes are their own pre-exposure tier with concrete
+        mechanisms (quote caps, non-affiliation notice, UNSCORED rule,
+        subject_status, capability-coverage header).
+  - id: ARCH-6
+    name: lens_coverage_and_synthesis
+    question: Was the review run with orthogonal adversarial lenses (journey /
+      positioning / skeptic / trust) whose findings are synthesized by the
+      orchestrator, with convergent findings weighted highest?
+    anchors:
+      "1": Single-perspective review; endorsements counted as evidence.
+      "3": Multiple lenses but overlapping questions, or conflicts left
+        unsynthesized.
+      "5": Independent lenses, convergence table, keep-list of what survives
+        unchanged, and explicitly rejected changes recorded (Tier C).
+
+verdict_rule: |
+  Score each criterion 1-5.
+  NO_GO        - any of ARCH-1, ARCH-2, ARCH-5 scores 1, or mean < 2.5.
+  CONDITIONAL_GO - mean >= 2.5 and no gate criterion at 1, but at least one
+                  criterion <= 2; list the blocking findings as the conditions.
+  GO           - mean >= 4.0 and no criterion below 3.
+  A verdict must cite the specific findings (file/section) behind every
+  criterion scored <= 2. Halting the plan is a reportable success, not a
+  failure of the review.

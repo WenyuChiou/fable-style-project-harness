@@ -1,0 +1,91 @@
+id: RUBRIC-tool-boundary
+layer: rubric
+purpose: Score whether a tool plan, recommender output, or generated ToolCard
+  set respects the execution boundary - discovery without execution, read-only
+  defaults, computed risk, human vetting before trust (CHANGELOG v0.7.1
+  conventions).
+read_when: Reviewing any change that selects, recommends, or configures tools;
+  reviewing phc recommend-tools output or a ToolCard PR.
+depends_on:
+  - ../validation/self_checklists/tool_discovery_checklist.md
+used_by:
+  - ROUTE-tool-discovery
+  - ROUTE-pr-review
+tags: [tool-boundary, permissions, risk, unverified-auto-draft]
+retrieval_keywords: [read-only default, risk_basis, unverified_auto_draft,
+  generated.yaml draft, no install, permission_level, Tier 4 human review]
+
+criteria:
+  - id: TB-1
+    name: discovery_without_execution
+    question: Is every discovered tool handled as metadata only - never
+      installed, executed, or downloaded-and-run as part of discovery or
+      recommendation?
+    anchors:
+      "1": The plan runs a candidate tool "to see what it does".
+      "3": No execution occurred, but nothing states or tests the invariant.
+      "5": '"Nothing discovered is ever installed or executed" is stated and
+        held (spec 9.5); download endpoints noted as NOT used.'
+  - id: TB-2
+    name: read_only_default
+    question: Do selected tools default to read-only permissions, with
+      write/execute/external_action requiring explicit escalation to human
+      review (Tier 4)?
+    anchors:
+      "1": Write/execute permissions granted by default or unstated.
+      "3": Read-only claimed but permission_level absent from cards.
+      "5": permission_safety is a tool test; any write-or-execute tool routes
+        to human review by policy.
+  - id: TB-3
+    name: computed_risk
+    question: Is risk_level COMPUTED from conservative registry proxy signals
+      with the computation shown in risk_basis - never ingested from vendor
+      self-description and never guessed?
+    anchors:
+      "1": risk_level copied from a marketing page or set to low by default.
+      "3": Risk assessed by judgment with no recorded basis.
+      "5": risk_basis shows the proxy computation; ambiguity resolves toward
+        the HIGHER risk tier.
+  - id: TB-4
+    name: draft_vs_governed_separation
+    question: Do machine-drafted artifacts stay in .generated.yaml siblings
+      (refusing to overwrite without --force), with promotion to the governed
+      filename a HUMAN act after review?
+    anchors:
+      "1": A generator writes capability_map.yaml / tool_cards.yaml /
+        eval_spec.yaml directly.
+      "3": Draft suffix used but overwrite behavior or promotion path
+        undefined.
+      "5": Non-destructive by default; TODO_FILL markers fail phc validate BY
+        DESIGN so unpromoted drafts cannot ship; shipped packages carry zero
+        drafts.
+  - id: TB-5
+    name: unvetted_status_propagation
+    question: Do recommender-drafted cards carry
+      verification_status unverified_auto_draft until a human vets them into
+      tools/tool_cards.yaml?
+    anchors:
+      "1": Auto-drafted cards presented as vetted/verified.
+      "3": Status field present but nothing prevents an unvetted card from
+        being consumed as trusted.
+      "5": Status shed ONLY on human vetting; downstream consumers treat
+        unverified_auto_draft as untrusted input.
+  - id: TB-6
+    name: capability_resolution
+    question: Do ToolCard capabilities resolve to capability_map ids (via the
+      runner's cross-reference layer), so a typo'd capability cannot validate
+      silently (N=2 friction F8)?
+    anchors:
+      "1": Free-string capabilities with no resolution check anywhere.
+      "3": Resolution enforced only by convention.
+      "5": Cross-reference check runs in the eval suite; unresolved
+        capabilities are recorded failures.
+
+verdict_rule: |
+  Score each criterion 1-5.
+  VIOLATION - TB-1 at 1 is an immediate boundary violation: stop, report, do
+              not proceed to scoring the rest as if severable.
+  REVISE    - any other criterion <= 2.
+  PASS      - all criteria >= 3 and mean >= 4.
+  When in doubt between two risk levels or two permission levels, the
+  conservative choice is the correct one.

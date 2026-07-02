@@ -1,0 +1,102 @@
+id: RUBRIC-harness-quality
+layer: rubric
+purpose: Score a Method Harness Package (or an external pack under audit, e.g.
+  docs/audits/ai_berkshire_audit_2026-07-01.md) on the standard's own quality
+  dimensions.
+read_when: Reviewing a new or changed harness package under examples/, or
+  auditing a third-party skill pack.
+depends_on:
+  - ../validation/self_checklists/package_quality_checklist.md
+used_by:
+  - ROUTE-phase-review
+  - ROUTE-pr-review
+tags: [harness, package-quality, evidence, scorecard, audit]
+retrieval_keywords: [evidence card, attribution type, computed scorecard,
+  UNSCORED, release_status, guardrails, package audit]
+
+criteria:
+  - id: HQ-1
+    name: evidence_attribution
+    question: Does every principle/rule trace to evidence cards with correct
+      attribution types, and are the caps respected (third-party compilations
+      never direct_quote; quoted_primary requires primary_artifact_locator)?
+    anchors:
+      "1": Uncited rules, or verbatim third-party-compilation text labeled
+        direct_quote.
+      "3": Cards exist but attribution types are confused or verified flags
+        missing on load-bearing cards.
+      "5": Full source-to-principle map; attribution caps enforced; archived
+        URL + last_verified_date on cards; unverifiable claims downgraded, not
+        upgraded.
+  - id: HQ-2
+    name: scorecard_honesty
+    question: Is the scorecard COMPUTED by the runner (scripts/run_evals.py),
+      never hand-edited, with unmeasured dimensions marked UNSCORED with a
+      recorded reason?
+    anchors:
+      "1": Self-assigned numbers nothing computed (the C2 "silent pass"
+        pattern), or uninformative-prior scores where the honest answer is
+        UNSCORED.
+      "3": Computed, but skipped/not-applicable checks pass silently instead of
+        being RECORDED.
+      "5": Regenerated on every eval run; UNSCORED never guessed; release_status
+        derived from gates, demotion automatic, safety a veto not a weight.
+  - id: HQ-3
+    name: eval_suite_completeness
+    question: Are all six MVP eval categories present, with baselines and
+      ablations at least DEFINED, and behavioral tests traceable to artifact
+      ids?
+    anchors:
+      "1": No evals/ directory or categories missing entirely.
+      "3": Categories present but tests do not cite the principle/rule ids they
+        derive from.
+      "5": Six categories, six baselines and five ablations defined, every
+        generated test records source artifact ids + pass criterion + severity.
+  - id: HQ-4
+    name: guardrails_and_disclosure
+    question: Are non-impersonation, domain-boundary, citation, and person
+      policies present, with the advisory footer PACKAGE-DECLARED (no runner
+      fallback) and degraded-mode honesty addressed?
+    anchors:
+      "1": Guardrail docs absent, or output silently degrades to model-knowledge
+        persona (C12).
+      "3": Policies present but not tested; footer hardcoded outside the
+        package.
+      "5": All guardrail docs present and exercised by safety tests;
+        advisory_footer declared in the manifest; capability-coverage
+        disclosure on degraded runs.
+  - id: HQ-5
+    name: memory_readiness
+    question: Does memory follow the five-file YAML+JSONL contract - append-only
+      streams, corrections referencing what they correct, no invented memory
+      files outside the standard?
+    anchors:
+      "1": Records rewritten in place, or ad-hoc memory files/backends invented
+        by the package.
+      "3": Files present but the toy update scenario (write / retrieve /
+        contradiction / staleness / correction traceability) is undefined.
+      "5": Append-only by rule, supersedes-links between thesis versions,
+        correction_memory traceable, memory lives outside the regenerable
+        package at runtime.
+  - id: HQ-6
+    name: runtime_installability
+    question: Is the package a valid installable plugin (manifest + SKILL.md +
+      commands derived from HARNESS.yaml workflow.commands), verified by a
+      fresh-install end-to-end run?
+    anchors:
+      "1": Package layout matches no runtime convention; nothing to type.
+      "3": Installs but commands are hard-coded elsewhere rather than derived
+        from the manifest.
+      "5": Fresh runtime install runs the flagship command end-to-end; install
+        smoke test exists (scripts/install_smoke.py pattern).
+
+verdict_rule: |
+  Score each criterion 1-5.
+  RELEASE-BLOCK  - HQ-2 or HQ-4 at 1 (fabrication/silent-pass or missing
+                   safety surface caps release_status regardless of other
+                   scores).
+  NEEDS-WORK     - any criterion <= 2; list per-criterion concrete fixes as
+                   next_actions.
+  PASS           - all criteria >= 3 and mean >= 4.
+  Never average away a safety or honesty failure; report FAILs verbatim even
+  when the package under review is our own.

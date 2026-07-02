@@ -1,0 +1,87 @@
+# id: OM-project-memory-policy
+# layer: operating_model
+# purpose: When and what to write into memory/ files, modeled on the memory
+#   discipline this project itself practices (append-only JSONL, friction
+#   ledgers, changelog-with-friction-IDs, correction notices).
+# read_when: Closing a session; after a phase transition, ratified decision,
+#   rejection, incident, or correction.
+# depends_on: [../memory/project_state.md, ./decision_rules.yaml]
+# used_by: [ROUTE-memory-update, ROUTE-phase-review]
+# tags: [memory, append-only, decisions, lessons, phase-history]
+# retrieval_keywords: memory policy, when to write memory, accepted decision,
+#   rejected idea, lesson learned, phase history, session close, append only
+
+backend: markdown_jsonl   # mirrors the standard's yaml_jsonl posture (docs/memory_strategy.md)
+
+invariants:
+  - JSONL files are APPEND-ONLY; a wrong record is superseded by a new record
+    that references the old id, never edited in place (DR-007).
+  - Every record carries a stable id (AD-### / RJ-### / LL-### / PH-###) and a
+    source_commit_or_doc so any observer can re-verify it.
+  - Never record a claim memory cannot cite to an artifact; if unverifiable,
+    mark it "synthesized" or do not record it.
+  - project_state.md is the ONLY rewrite-in-place file; it is a snapshot, and
+    it must be updated at every session close.
+
+write_triggers:
+  - trigger: phase_or_milestone_transition
+    write_to:
+      - ../memory/phase_history.jsonl        # one PH-### record: date, phase, outcome, commit
+      - ../memory/project_state.md           # refresh HEAD, suite count, phase statuses, next candidates
+    example: "M2b ships -> PH record citing 91b982b; project_state HEAD/test-count updated."
+  - trigger: decision_ratified
+    condition: a design choice is accepted and acted on (design-review tier item
+      applied, standard revision ratified, convention adopted)
+    write_to: [../memory/accepted_decisions.jsonl]   # AD-### with rationale + source
+    example: "roadmap inversion ratified (B1/B2/B12) -> AD record citing 046d0e3."
+  - trigger: idea_rejected
+    condition: an option was considered and explicitly declined, with a stated why
+    write_to: [../memory/rejected_ideas.jsonl]       # RJ-### with why_rejected
+    example: "badge-while-private declined -> RJ record citing 7134227."
+  - trigger: incident_or_catch
+    condition: a reviewer catch, grader bug, false positive/negative, defective
+      run, or production surprise — anything that changed behavior going forward
+    write_to: [../memory/lessons_learned.jsonl]      # LL-### with incident + prevention
+    example: "question-echo false positive -> LL record citing 2917804."
+  - trigger: friction_during_frozen_contract_round
+    condition: chafe against a frozen schema/standard during an N-gate round
+    write_to:
+      - the project's own friction ledger (docs/n2_gate_report.md pattern)
+      - ../memory/lessons_learned.jsonl   # only if it generalizes beyond the standard
+    note: friction is recorded verbatim-in-substance and resolved later via a
+      batched revision whose changelog maps each change to its friction ID.
+  - trigger: published_claim_found_wrong
+    write_to:
+      - correction notice prepended to the affected artifact (never deletion)
+      - ../memory/lessons_learned.jsonl
+    example: "rp04 contamination claim corrected publicly (2917804)."
+  - trigger: session_close
+    write_to: [../memory/project_state.md]
+    checklist:
+      - HEAD commit + date
+      - test-suite count and CI status as last observed
+      - phase/milestone statuses (including honestly-still-open gate arms)
+      - next-candidate work items pulled from the current development plan
+      - any new AD/RJ/LL/PH ids appended this session
+
+read_triggers:
+  - trigger: session_start
+    action: >-
+      Read ../memory/project_state.md first, then skim the last ~5 records of
+      each JSONL for recency.
+  - trigger: before_re-deciding_anything
+    action: >-
+      Grep accepted_decisions.jsonl and rejected_ideas.jsonl for the topic —
+      do not relitigate a ratified decision without new evidence; cite the
+      AD/RJ id when reaffirming or overturning.
+  - trigger: before_designing_a_gate_or_grader
+    action: >-
+      Read lessons_learned.jsonl entries tagged grader/gate (question-echo,
+      negation-window, marker-list classes).
+
+anti_patterns:
+  - Rewriting a JSONL line to "fix" it (breaks the audit trail).
+  - Recording a decision without its rationale and source artifact.
+  - Absorbing friction silently instead of recording it.
+  - Letting project_state.md drift stale across sessions (the stale-status-line
+    class of bug that the parity agent caught in e7f0fc6).

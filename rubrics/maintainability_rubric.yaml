@@ -1,0 +1,91 @@
+id: RUBRIC-maintainability
+layer: rubric
+purpose: Score repo-maintenance and memory-update work against the observable
+  discipline of CHANGELOG_STANDARD.md, the friction-ID pipeline, auto-discovery
+  in tests/conftest.py, and the append-only memory strategy.
+read_when: Reviewing standard revisions, changelog entries, test-infrastructure
+  changes, memory-file updates, or cleanup work.
+depends_on:
+  - ../validation/self_checklists/package_quality_checklist.md
+used_by:
+  - ROUTE-repo-maintenance
+  - ROUTE-memory-update
+tags: [maintainability, changelog, friction, regression-tests, memory]
+retrieval_keywords: [friction ID, CHANGELOG entry, auto-discovered packages,
+  clean break, append-only, correction memory, regression floor]
+
+criteria:
+  - id: MT-1
+    name: friction_to_changelog_traceability
+    question: Does every standard revision trace to recorded friction IDs
+      (N2-F*/N3-F*), with an item-by-item resolution mapping, and are open
+      items named as open?
+    anchors:
+      "1": Schema changed with no changelog entry or no motivating friction.
+      "3": Entry exists but doesn't say which friction it resolves or which
+        remain open.
+      "5": v0.6/v0.7 pattern - "resolves N3-F14", "N3-F2 and N3-F3 remain
+        open"; the friction record IS the deliverable.
+  - id: MT-2
+    name: regression_pinning
+    question: Is every fixed bug or measured floor pinned by a regression test
+      (mutation tests for schema edits, measured metrics locked as floors)?
+    anchors:
+      "1": Fix shipped with no test; nothing prevents recurrence.
+      "3": Tests exist but assert the happy path only, not that the old bug
+        still fails.
+      "5": test_v07_friction_regressions / generator-gate pattern - floors
+        locked to measured values, mutation tests assert catch AND
+        still-rejects.
+  - id: MT-3
+    name: auto_discovery_over_lists
+    question: Are enumerations auto-discovered (sorted glob + count assertion)
+      instead of manual lists that silently exclude new members?
+    anchors:
+      "1": Hard-coded lists that a new package/file can be silently missing
+        from.
+      "3": Mixed; some sweeps auto-discovered, others manual with no
+        assertion.
+      "5": conftest PACKAGES pattern - glob, asserted minimum count, named
+        roots retained only for content-specific tests.
+  - id: MT-4
+    name: clean_breaks
+    question: Are revisions clean breaks moved in one revision (schemas +
+      instances + runner + tests together), with deletions taking no fallback
+      rather than silent alias layers?
+    anchors:
+      "1": Old and new forms both accepted indefinitely with no decision
+        recorded.
+      "3": Break made but some consumers lag the revision.
+      "5": v0.7 advisory_footer pattern - hardcoded fallback DELETED, packages
+        declare the value, affected transcripts regraded, verdicts recorded.
+  - id: MT-5
+    name: scratch_hygiene
+    question: Are measurement artifacts kept out of shipped trees (drafts
+      written to scratch and deleted after measurement, verified by count) and
+      private material excluded by ignore rules?
+    anchors:
+      "1": Generated drafts or scratch outputs committed inside packages.
+      "3": Cleanup done but unverified.
+      "5": '"examples/**/*.generated.yaml count is 0" verified; agent_harness/
+        gitignored because private distillations must never ship.'
+  - id: MT-6
+    name: memory_update_discipline
+    question: Do memory updates append (new lines referencing prior lines) -
+      corrections never overwrite - and do new memory types enter through the
+      standard first, never invented per-package?
+    anchors:
+      "1": JSONL lines rewritten in place, or ad-hoc memory files/backends
+        added.
+      "3": Append-only followed but supersedes/correction links missing.
+      "5": Thesis versions supersede by reference with change_reason;
+        correction_traceability holds; five-file contract respected.
+
+verdict_rule: |
+  Score each criterion 1-5.
+  BLOCK  - MT-1 at 1 (untraceable standard change) or MT-6 at 1 (destructive
+           memory edit).
+  REVISE - any criterion <= 2.
+  PASS   - all criteria >= 3 and mean >= 4.
+  Prefer the smallest revision that resolves the recorded friction; deferring
+  an unforced generalization is a positive signal, not a gap.

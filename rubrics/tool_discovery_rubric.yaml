@@ -1,0 +1,90 @@
+id: RUBRIC-tool-discovery
+layer: rubric
+purpose: Score a tool/skill/registry discovery report against the discipline of
+  docs/tool_discovery_report.md (27 sources, metadata-only, every claim cites
+  its fetched URL, honesty ledger for the unverified).
+read_when: Reviewing a discovery report, registry survey, or source-comparison
+  document before its findings feed the tool-fit scorer or adapters.
+depends_on:
+  - ../validation/self_checklists/tool_discovery_checklist.md
+  - ./tool_boundary_rubric.yaml
+used_by:
+  - ROUTE-tool-discovery
+tags: [tool-discovery, registry, read-only, honesty-ledger]
+retrieval_keywords: [Q1-Q6 grid, unverified, honesty ledger, read-only fetch,
+  rate limit, machine-readable index, no signup]
+
+criteria:
+  - id: TD-1
+    name: read_only_discipline
+    question: Was the research conducted with read-only web fetches and public
+      API reads only - nothing installed, executed, cloned-and-run, or signed
+      up for (spec 9.5)?
+    anchors:
+      "1": A candidate skill was installed/run, or an account was created to
+        get richer fields.
+      "3": Read-only in practice but the method statement doesn't say so, so a
+        reader cannot audit the boundary.
+      "5": Method line states the boundary up front; gated fields are
+        explicitly SKIPPED with the reason ("requires free API key - skipped
+        per spec 9.5").
+  - id: TD-2
+    name: question_grid_coverage
+    question: Is every source answered against the same pre-registered question
+      grid (machine-readable index? formats? extractable fields? maintained?
+      license/security? read-only safe?)?
+    anchors:
+      "1": Free-form impressions per source; sources not comparable.
+      "3": Grid mostly followed but some questions silently skipped rather than
+        answered "unverified".
+      "5": Q1-Q6 answered for every source, including explicit NO answers;
+        grid stated in the plan before execution.
+  - id: TD-3
+    name: claim_url_traceability
+    question: Does every factual claim cite the URL/API call it was fetched
+      from, with the fetch date?
+    anchors:
+      "1": Counts and capabilities asserted with no source.
+      "3": Sources cited for headline claims only; secondhand figures presented
+        as observed.
+      "5": Every number carries its fetch provenance; live probes distinguished
+        from documentation claims ("verified live" vs "per llms.txt").
+  - id: TD-4
+    name: unverified_marking
+    question: Is anything not directly observed marked unverified, and does the
+      report ship a could-not-verify / not-investigated honesty ledger?
+    anchors:
+      "1": Gaps filled with plausible guesses.
+      "3": Some unverified markers but no consolidated ledger; a reader must
+        hunt for the holes.
+      "5": Dedicated honesty-ledger table listing every unprobed endpoint,
+        unread schema, and skipped auth tier with its status.
+  - id: TD-5
+    name: conflicting_figures_handling
+    question: When sources disagree (e.g. ClawHub 13k vs 71,006 skill counts),
+      are BOTH figures recorded as unresolved rather than one being picked?
+    anchors:
+      "1": The more impressive figure is reported as fact.
+      "3": Conflict mentioned but a winner is chosen without new evidence.
+      "5": Conflict recorded verbatim, marked unresolved, with the probe that
+        would resolve it named.
+  - id: TD-6
+    name: adapter_feasibility_signal
+    question: Does the report capture what a downstream adapter needs - rate
+      limits, auth tiers, field schemas, install-method vocabulary mapping -
+      not just existence?
+    anchors:
+      "1": '"Has an API" with no limits or field detail.'
+      "3": Limits noted for some sources; extractable-field schemas unstated.
+      "5": Per-source rate limits, guest caps, and field lists recorded;
+        sources ranked by adapter viability with reasons.
+
+verdict_rule: |
+  Score each criterion 1-5.
+  REJECT  - TD-1 at 1 (an execution/signup boundary violation poisons the
+            whole report) or TD-4 at 1.
+  REVISE  - any criterion <= 2; findings must name the exact source sections
+            to fix.
+  ACCEPT  - all criteria >= 3 and mean >= 4. A report full of "unverified"
+            markers with a complete ledger outscores a confident report with
+            unsourced claims.

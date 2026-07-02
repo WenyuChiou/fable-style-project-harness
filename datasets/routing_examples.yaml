@@ -1,0 +1,73 @@
+# ---
+# id: DATASET-routing-examples
+# layer: dataset
+# purpose: Worked routing decisions (request -> task_type -> route) in the pinned routing_example shape, including disambiguation cases.
+# read_when: Classifying a request whose route is not obvious; calibrating the router against precedent.
+# depends_on: [./task_type_examples.yaml]
+# used_by: [ROUTE-phase-review, ROUTE-tool-discovery, ROUTE-pr-review, ROUTE-eval-design, ROUTE-memory-update, ROUTE-runtime-export, ROUTE-repo-maintenance, ROUTE-ab-test-design]
+# tags: [routing, examples, disambiguation]
+# retrieval_keywords: [routing example, classified task type, route rationale, ambiguous request]
+# ---
+# Shape per record: {id, user_request_summary, classified_task_type, route, rationale}.
+
+routing_examples:
+  - id: RE-001
+    user_request_summary: "We just finished the Day-1 static build. Tear the spec apart before we commit to the roadmap."
+    classified_task_type: phase_review
+    route: ROUTE-phase-review
+    rationale: A completed unit of work needs adversarial multi-lens review producing a tiered change program; mirrors the real post-Day-1 design review (commit f4c826f).
+  - id: RE-002
+    user_request_summary: "Find out which skill/MCP registries have machine-readable indexes we could build adapters for - do not install anything."
+    classified_task_type: tool_discovery
+    route: ROUTE-tool-discovery
+    rationale: External-source research under the read-only rule with per-claim citations; mirrors M2a (commit 510b79f).
+  - id: RE-003
+    user_request_summary: "Six subagents finished the builder-primitives work; check the diff and the gate numbers before anything is committed."
+    classified_task_type: pr_review
+    route: ROUTE-pr-review
+    rationale: Delegate-returned diff triggers mandatory review with independent re-derivation of claimed numbers; mirrors the M2b review round (commit 91b982b).
+  - id: RE-004
+    user_request_summary: "I want an eval with real ground truth for the manuscript-review harness - retracted papers maybe - registered before we run anything."
+    classified_task_type: eval_design
+    route: ROUTE-eval-design
+    rationale: Corpus construction + deterministic grader + pre-registration-before-runs; mirrors the Category-7 pre-registration (commit 5d96fd6).
+  - id: RE-005
+    user_request_summary: "The N=3 dogfood surfaced a pile of friction; get it into the standing gate report and queue the v0.7 candidates."
+    classified_task_type: memory_update
+    route: ROUTE-memory-update
+    rationale: Appending structured friction to the project's accumulating record (append, never overwrite); mirrors the N=3 section appended to n2_gate_report.md (commit d7603e3).
+  - id: RE-006
+    user_request_summary: "Make /analyze-company actually runnable in stock Claude Code - manifests, frontmatter, install path, then prove it end-to-end."
+    classified_task_type: runtime_export
+    route: ROUTE-runtime-export
+    rationale: Package-to-runtime packaging plus fresh-user install verification; mirrors M1a (commit 046d0e3) and the E2E walkthrough (commit 7134227).
+  - id: RE-007
+    user_request_summary: "The READMEs are bloated and the diagrams are unreadable at GitHub width; tighten all three locales without dropping facts."
+    classified_task_type: repo_maintenance
+    route: ROUTE-repo-maintenance
+    rationale: Doc hygiene across locale mirrors with parity tests and asset verification; mirrors commit 490470d.
+  - id: RE-008
+    user_request_summary: "Show me harness vs plain persona prompt on the same tasks, transcripts included, warts and all."
+    classified_task_type: ab_test_design
+    route: ROUTE-ab-test-design
+    rationale: Two-arm comparison with published transcripts and honest confound reporting; mirrors the comparison docs (commits f8740f8, 2917804).
+  - id: RE-009
+    user_request_summary: "Audit that 8k-star competitor repo against our standard and publish what we find."
+    classified_task_type: pr_review
+    route: ROUTE-pr-review
+    rationale: Disambiguation - sounds like research (tool_discovery) but is an external READ-ONLY audit against the standard with a findings report and fairness review; the review lane owns audits (commit 9532648, phc audit / --external). Tool discovery is for sourcing tools, not judging packages.
+  - id: RE-010
+    user_request_summary: "The scope-refusal grader passed a transcript that clearly rendered a verdict in passive voice - fix this."
+    classified_task_type: eval_design
+    route: ROUTE-eval-design
+    rationale: Disambiguation - arrives as a bug report (repo_maintenance smell) but changes grading semantics, so it is grader/eval work with the extra constraint that the fix lands SEPARATELY from any change it would benefit (commit 9532648; FM-002).
+  - id: RE-011
+    user_request_summary: "Before Phase 2 starts, decide whether we are even allowed to start it."
+    classified_task_type: phase_review
+    route: ROUTE-phase-review
+    rationale: Gate-verdict request (GO/CONDITIONAL_GO/NO_GO) against pre-registered conditions - the B3 gate; NO_GO/halt is a legitimate outcome, not a failure.
+  - id: RE-012
+    user_request_summary: "Add a quoted_primary attribution type to the evidence schema - the N=3 friction showed the enum can't express verbatim primary posts."
+    classified_task_type: memory_update
+    route: ROUTE-memory-update
+    rationale: Disambiguation - a schema edit, but the METHOD routes standard changes through the friction-to-changelog pipeline (friction ID -> ratified revision -> sweep + mutation tests + CHANGELOG); the change program starts in the memory/records lane and its diff then goes to ROUTE-pr-review (commit 7134227 executed exactly this for N3-F4).

@@ -1,0 +1,134 @@
+# ---
+# id: DATASET-edge-cases
+# layer: dataset
+# purpose: Edge-case decision table - situations where the naive response differs from the method's correct response, in the pinned edge_case shape.
+# read_when: You hit an ambiguous situation mid-task and need the method's precedent.
+# depends_on: [./failure_modes.yaml, ../examples/golden]
+# used_by: [ROUTE-pr-review, ROUTE-eval-design, ROUTE-tool-discovery, ROUTE-phase-review, ROUTE-memory-update, ROUTE-repo-maintenance, ROUTE-runtime-export, ROUTE-ab-test-design]
+# tags: [edge-cases, decision-table, precedent]
+# retrieval_keywords: [edge case, what to do when, reviewer wrong, contradictory observations, 403, grader benefit, halt, unscored]
+# ---
+# Shape per record: {id, situation, wrong_response, correct_response, principle}.
+# Where an entry is grounded in a real episode, the principle cites it.
+
+edge_cases:
+  - id: EC-001
+    situation: A reviewer finding appears wrong or overstated.
+    wrong_response: Blindly apply the requested change to close the review, or silently ignore it.
+    correct_response: Re-verify the finding against the artifact (re-run, re-grep, read on disk); apply if confirmed, otherwise record skip-with-reason in the review log so the disagreement is auditable.
+    principle: Reviewer findings are re-verified, not obeyed (layered review; cf. commit 490470d cross-agent conflict resolved by on-disk verification).
+  - id: EC-002
+    situation: Two agents report contradictory observations about the same file (one says mermaid blocks exist, one says none).
+    wrong_response: Trust the more senior/confident agent, or average the claims.
+    correct_response: Verify on disk with a mechanical count; the disk is the arbiter (real resolution - 0/0/0 mermaid, 6/6/6 fences).
+    principle: On-disk verification beats testimony (commit 490470d).
+  - id: EC-003
+    situation: A grader fix would flip a FAIL to PASS in the change you are currently shipping.
+    wrong_response: Fold the grader fix into the current change ("it's obviously a grader bug").
+    correct_response: Ship the current change with the honest FAIL documented; land the grader fix in a SEPARATE change with frozen transcripts as regression fixtures.
+    principle: Grader fixes land separately from beneficiary changes (FM-002; commits f8740f8, 9532648).
+  - id: EC-004
+    situation: A source URL 403s or is paywalled, but you are confident of the content.
+    wrong_response: Cite it as verified anyway, or invent an alternative URL.
+    correct_response: Mark verified:false; if a verbatim mirror exists, put it in archived_url with the substitution disclosed; keep the honest failure in the ledger.
+    principle: UNVERIFIED is a first-class state (Day 1 six verified:false cards; n2_gate_report F6 mirror disclosure).
+  - id: EC-005
+    situation: User asks the agent to impersonate the target ("answer as Duan Yongping", including alias/CJK forms).
+    wrong_response: Comply for user experience; stay in character.
+    correct_response: Refuse and restate the framing - "an agent harness based on publicly available evidence about X's methodology"; the refusal itself is eval-tested.
+    principle: method_emulation_only; impersonation refusal is a graded behavior (safe_t01, alias-aware graders).
+  - id: EC-006
+    situation: A test asserts a pre-run state (excerpt_verified is False) that the sanctioned run lifecycle requires flipping.
+    wrong_response: Leave the assertion (keeping the repo asserting "no run happened" after a run) or delete the test.
+    correct_response: Update that one assertion with a comment explaining the lifecycle transition; keep all other honesty checks; flag the test-file touch in the gate report.
+    principle: Tests encode invariants, not moments (FM-022; n2_gate_report N3-F10).
+  - id: EC-007
+    situation: A registry publishes no permission/risk metadata for its tools.
+    wrong_response: Leave risk blank, guess "low", or trust the registry's safety badge.
+    correct_response: Compute risk from conservative proxies (credentials, hosting, transport, provenance); unknown maps to medium + read_only ASSUMED UNVERIFIED; every rule emits its basis.
+    principle: Conservative computed proxies over absent metadata (M2a key finding, commit 91b982b).
+  - id: EC-008
+    situation: A generator would write where a hand-vetted file already exists.
+    wrong_response: Overwrite (the generator is newer) or silently skip.
+    correct_response: Write to the non-destructive .generated.yaml convention; require --force for overwrite; regression-test the guard.
+    principle: Non-destructive by default (FM-007; commit 91b982b P1 fix).
+  - id: EC-009
+    situation: While authoring package N+1 under a zero-schema-edit gate, a schema turns out to be genuinely impossible to satisfy.
+    wrong_response: Quietly edit the schema and still claim the gate passed; or fabricate package content to fit.
+    correct_response: If discovered pre-gate - make a minimal, logged standard revision BEFORE authoring begins and disclose it in the verdict's honesty note; if mid-gate - record the friction, use the sanctioned workaround, leave schemas frozen.
+    principle: The friction record is the deliverable; honest verdicts narrow their own claims (n2_gate_report verdict + honesty note).
+  - id: EC-010
+    situation: A scorecard dimension was not measured this round.
+    wrong_response: Fill in a plausible mid-range number (0.5) as a placeholder score.
+    correct_response: UNSCORED with a reason (or a labeled uninformative prior only where the schema forces a number, with the label saying so); computed scorecards include ONLY measured dimensions.
+    principle: UNSCORED-never-guessed (FM-026; scorecard scoring_basis).
+  - id: EC-011
+    situation: The baseline beats the harness on one test, or the harness fails its own guardrail.
+    wrong_response: Rerun until it passes, drop the test, or bury the result.
+    correct_response: Publish as-is; wire the FAIL into major_failures; document the divergence; let it drive the next revision.
+    principle: Publish own FAILs (commit f8740f8 - mrh_t04 harness missed its own advisory footer, shipped documented).
+  - id: EC-012
+    situation: A popular incumbent occupies your niche and your demo looks derivative next to it.
+    wrong_response: Trash-talk it, ignore it, or clone its features.
+    correct_response: Audit it with your own instrument, read-only at a pinned commit, crediting its strengths; publish the reproducible audit - the incumbent becomes a test subject.
+    principle: Convert competitor into evidence (design review §3; ai-berkshire audit, commit 9532648).
+  - id: EC-013
+    situation: A new gate needs a pass bar and no precedent exists.
+    wrong_response: Invent a respectable-sounding bar (90%!) and declare victory when exceeded.
+    correct_response: Measure against the shipped artifacts, publish the observed numbers including misses, pin them as regression FLOORS, and name what the heuristic cannot do.
+    principle: No invented pass bar (FM-008; generator fixture gate, commit 91b982b).
+  - id: EC-014
+    situation: A later live probe contradicts a claim in an already-committed research report.
+    wrong_response: Silently rewrite the old report so it was always right.
+    correct_response: Append an honesty-ledger correction naming the old claim and the new observation; the original text stays.
+    principle: Corrections append, never overwrite (commit 91b982b - two M2a honesty-ledger corrections).
+  - id: EC-015
+    situation: Investigating a source requires a signup, execution, or install (research phase).
+    wrong_response: Sign up with a team account "just to check"; npx-install the tool to poke at it.
+    correct_response: Stop at the boundary; record "not exercised (per read-only rule)" and score only what metadata supports; leave the entry partially answered.
+    principle: Discovery without execution (spec 9.5; FM-025).
+  - id: EC-016
+    situation: CLI or script output must render on a Windows cp950 console.
+    wrong_response: Assume UTF-8; ship after testing only on your own terminal.
+    correct_response: Make console output codec-safe, force UTF-8 for file I/O, and add forced-codec tests.
+    principle: FM-021; commit 7134227 cp950-safe console.
+  - id: EC-017
+    situation: Committing while another workstream is concurrently editing the same repo.
+    wrong_response: git add -A and commit whatever is in the tree.
+    correct_response: Stage explicit paths, assert the staged file count against the expected list, and state the exclusion of the concurrent work in the commit body.
+    principle: Explicit-path staging with count assertions (FM-024; commits 510b79f, 490470d).
+  - id: EC-018
+    situation: A "quick" schema field rename is proposed with no recorded friction behind it.
+    wrong_response: Merge the one-line diff; instances can catch up later.
+    correct_response: File it as friction in the gate report; if later ratified, move schema + all instances + runner + tests + docs in one revision with mutation tests and a changelog entry citing the friction ID.
+    principle: Friction-driven standard evolution (n2_gate_report Resolutions; commit f8740f8).
+  - id: EC-019
+    situation: The domain-core item (the one requiring human judgment) systematically lands in the generator's TODO bucket, dragging recall to 0.50.
+    wrong_response: Tune the heuristic to guess the domain-core item so the number looks better.
+    correct_response: Report the 0.50 with the miss named ("naming it is human judgment"); keep uncertainty emitting TODO_FILL stubs; pin the honest number as the floor.
+    principle: Uncertainty emits stubs, never guesses (commit 91b982b).
+  - id: EC-020
+    situation: User asks for a rating, price target, or position size (or the domain equivalent of prohibited advice).
+    wrong_response: Provide it with a disclaimer attached.
+    correct_response: Refuse the recommendation-shaped output entirely; offer the educational analysis path; the refusal is eval-enforced (dom_t04).
+    principle: Domain hard lines are code-enforced, not disclaimer-softened.
+  - id: EC-021
+    situation: A deliberately-included high-famousness control case SURVIVES the leakage probe, contrary to pre-registered prediction.
+    wrong_response: Exclude the case or retrofit the prediction.
+    correct_response: Report the contrary-to-prediction result as-is; it is information about the probe, not an embarrassment to hide.
+    principle: Pre-registration honesty (commit 2917804 - rp03 survived contrary to prediction, published).
+  - id: EC-022
+    situation: The user explicitly says "skip review for this one".
+    wrong_response: Treat user permission as a standing exemption, or refuse outright.
+    correct_response: Skip per the explicit escape hatch, but log the user's instruction in the commit message body for traceability; the exemption is one-shot.
+    principle: Escape hatches are scoped and logged (review-gate discipline).
+  - id: EC-023
+    situation: An excerpt/artifact needed for an eval case carries an author-injected directive or a leakage identifier (pre-registration violation discovered late).
+    wrong_response: Score it anyway (the run happened) or quietly drop the case.
+    correct_response: Mark the case SURVIVED-but-UNSCORED with a top-of-file correction notice naming both violations; keep it in the corpus as documented history.
+    principle: UNSCORED with disclosure over convenient scoring (commit 2917804, rp04).
+  - id: EC-024
+    situation: Fresh-eyes tester reports the README quickstart fails (missing install step, command not found, namespacing).
+    wrong_response: Dismiss as user error since it works in the dev environment.
+    correct_response: Treat as P1; fix the doc in ALL locale mirrors; record remaining unverified paths in an honest UNVERIFIED list; add a self-check script where possible.
+    principle: Fresh-user walkthrough is a gate, not marketing (commit 7134227; docs/quality/fresh_user_walkthrough.md).

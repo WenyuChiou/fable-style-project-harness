@@ -1,0 +1,694 @@
+# ---
+# id: INDEX
+# layer: context
+# purpose: Complete file inventory - every content file with id, layer, purpose, tags, read_when, for targeted retrieval.
+# read_when: You know WHAT you need but not WHERE it lives; during repo-maintenance drift sweeps.
+# depends_on: [HARNESS.yaml, ROUTES.yaml]
+# used_by: [ROUTE-repo-maintenance, ROUTE-phase-review, ROUTE-tool-discovery, ROUTE-pr-review, ROUTE-eval-design, ROUTE-memory-update, ROUTE-runtime-export, ROUTE-ab-test-design]
+# tags: [index, inventory, retrieval]
+# retrieval_keywords: [file inventory, where does X live, index of files, path lookup, layer map]
+# ---
+# Regenerate check: every content file on disk must appear here exactly once
+# (a missing file in INDEX is a defect - see ROUTE-repo-maintenance self_check MT-5).
+
+files:
+
+  - path: .gitignore
+    id: GITIGNORE
+    layer: doc
+    purpose: "Never-commit list - secrets, env files, caches, scratch artifacts (see docs/private_repo_setup.md)."
+    tags: ["gitignore", "privacy", "hygiene"]
+    read_when: "Adding a new artifact class to the repo, or auditing the privacy posture."
+
+  - path: HARNESS.yaml
+    id: HARNESS-manifest
+    layer: doc
+    purpose: "Package manifest - name, version, entrypoint, provenance, layer vocabulary, pinned route list, constraints."
+    tags: ["manifest", "provenance", "routes", "constraints"]
+    read_when: "Orienting on what this package declares about itself; validating against schemas/harness_repo.schema.yaml."
+
+  - path: INDEX.yaml
+    id: INDEX
+    layer: context
+    purpose: "Complete file inventory - every content file with id, layer, purpose, tags, read_when, for targeted retrieval."
+    tags: ["index", "inventory", "retrieval"]
+    read_when: "You know WHAT you need but not WHERE it lives; during repo-maintenance drift sweeps."
+
+  - path: README.md
+    id: README
+    layer: doc
+    purpose: "Explain what this harness repo is, what it is not, and how to enter it"
+    tags: ["entrypoint", "overview", "privacy"]
+    read_when: "First contact with the repo, or when unsure how the pieces fit"
+
+  - path: ROUTES.yaml
+    id: ROUTES
+    layer: context
+    purpose: "The 8 pinned routes - per task type, the minimal file set, expected deliverable, and pre-return self-checks."
+    tags: ["routes", "routing", "file-sets", "progressive-disclosure"]
+    read_when: "Immediately after L3 classification, before opening any playbook/rubric/example file."
+
+  - path: context/L0_bootstrap.md
+    id: L0-bootstrap
+    layer: context
+    purpose: "Minimal first read — orient in under 300 words, then route"
+    tags: ["bootstrap", "entrypoint", "first-read"]
+    read_when: "Start of every session in this repo, before anything else"
+
+  - path: context/L1_project_constitution.md
+    id: L1-project-constitution
+    layer: context
+    purpose: "The source project's thesis, non-goals, and stable operating principles"
+    tags: ["constitution", "thesis", "non-goals", "principles"]
+    read_when: "A decision touches project identity, scope boundaries, or a principle conflict"
+
+  - path: context/L2_current_phase.md
+    id: L2-current-phase
+    layer: context
+    purpose: "The source project's real current phase — what is allowed and forbidden right now"
+    tags: ["phase", "current-state", "scope", "allowed", "forbidden"]
+    read_when: "Start of every task, immediately after L0 — before classifying or acting"
+
+  - path: context/L3_task_router.md
+    id: L3-task-router
+    layer: context
+    purpose: "Classify an incoming task into one of the 8 pinned routes"
+    tags: ["router", "classification", "task-type", "routes"]
+    read_when: "After L0 and L2, before opening any route or reference file"
+
+  - path: context/L4_progressive_disclosure_policy.md
+    id: L4-progressive-disclosure-policy
+    layer: context
+    purpose: "The rules for how much of this repo to load, and the exceptions"
+    tags: ["progressive-disclosure", "context-budget", "loading-policy"]
+    read_when: "Tempted to read beyond the routed file list, or unsure whether full-context load is justified"
+
+  - path: context/L5_full_context_map.md
+    id: L5-full-context-map
+    layer: context
+    purpose: "One-line map of every directory — for targeted lookup, not sequential reading"
+    tags: ["map", "directory", "layout", "where-is"]
+    read_when: "You know WHAT you need but not WHERE it lives; or during a sanctioned full-context load"
+
+  - path: datasets/edge_cases.yaml
+    id: DATASET-edge-cases
+    layer: dataset
+    purpose: "Edge-case decision table - situations where the naive response differs from the method's correct response, in the pinned edge_case shape."
+    tags: ["edge-cases", "decision-table", "precedent"]
+    read_when: "You hit an ambiguous situation mid-task and need the method's precedent."
+
+  - path: datasets/failure_modes.yaml
+    id: DATASET-failure-modes
+    layer: dataset
+    purpose: "Catalog of failure modes observed (or deliberately prevented) in the method-harness-compiler project, in the pinned failure_mode shape."
+    tags: ["failure-modes", "catalog", "no-silent-pass"]
+    read_when: "Reviewing a diff, designing a gate/eval, or diagnosing why something silently passed."
+
+  - path: datasets/routing_examples.yaml
+    id: DATASET-routing-examples
+    layer: dataset
+    purpose: "Worked routing decisions (request -> task_type -> route) in the pinned routing_example shape, including disambiguation cases."
+    tags: ["routing", "examples", "disambiguation"]
+    read_when: "Classifying a request whose route is not obvious; calibrating the router against precedent."
+
+  - path: datasets/task_type_examples.yaml
+    id: DATASET-task-type-examples
+    layer: dataset
+    purpose: "The eight task types with example request phrasings each, for router training/calibration."
+    tags: ["task-types", "router", "phrasings"]
+    read_when: "Classifying an incoming request into a route; writing or tuning the router."
+
+  - path: datasets/teacher_examples.jsonl
+    id: DATASET-teacher-examples
+    layer: dataset
+    purpose: "60 teacher-example records (TE-001..TE-060) in the pinned shape - observable method episodes grounded in source-repo artifacts and commits."
+    tags: ["teacher-examples", "episodes", "method-steps"]
+    read_when: "Retrieving a worked precedent for the current task type - grep by TE id or task_type, never bulk-read."
+
+  - path: docs/ab_test_protocol.md
+    id: DOC-ab-test-protocol
+    layer: doc
+    purpose: "Pre-registered design for testing whether this harness improves agent performance — FUTURE WORK, not to be run in this milestone"
+    tags: ["ab-test", "evaluation", "future-work", "pre-registration", "baseline"]
+    read_when: "Designing the harness-effectiveness experiment, or asked whether the harness \"works\""
+
+  - path: docs/codebase_memory_indexing.md
+    id: DOC-codebase-memory-indexing
+    layer: doc
+    purpose: "How to index and search this harness with the codebase-memory MCP"
+    tags: ["indexing", "retrieval", "mcp", "codebase-memory", "search"]
+    read_when: "Setting up retrieval for a new session, after an edit round, or when grep feels too slow"
+
+  - path: docs/private_repo_setup.md
+    id: DOC-private-repo-setup
+    layer: doc
+    purpose: "Privacy posture — private remote, never-include list, public-flip review checklist, gitignore"
+    tags: ["privacy", "security", "review-checklist", "gitignore", "private-remote"]
+    read_when: "Setting up the remote, before any push, and MANDATORY before any consideration of making this repo public"
+
+  - path: docs/retrieval_smoke_test.md
+    id: DOC-retrieval-smoke-test
+    layer: doc
+    purpose: "Post-edit verification that the routing and retrieval surface still works"
+    tags: ["smoke-test", "validation", "retrieval", "routing"]
+    read_when: "After any edit round, after re-indexing, and as a gate item before any public flip"
+
+  - path: examples/bad/bad_eval_free_feature.md
+    id: EXAMPLE-bad-eval-free-feature
+    layer: example
+    purpose: "NEGATIVE example — shipping a feature with no tests, no evals, and a self-assessed \"works great\" claim."
+    tags: ["negative-example", "no-tests", "self-assessed", "silent-pass", "synthetic"]
+    read_when: "Calibrating what NOT to accept as \"done\"; paired critique explains each violation."
+
+  - path: examples/bad/bad_memory_overbuild.md
+    id: EXAMPLE-bad-memory-overbuild
+    layer: example
+    purpose: "NEGATIVE example — a day-1 memory architecture with a vector DB and seven backends before a single record exists or a single retrieval need is demonstrated."
+    tags: ["negative-example", "memory-overbuild", "vector-db", "premature-infrastructure", "synthetic"]
+    read_when: "Calibrating what NOT to build for agent memory on day 1; paired critique explains each violation."
+
+  - path: examples/bad/bad_overengineered_plan.md
+    id: EXAMPLE-bad-overengineered-plan
+    layer: example
+    purpose: "NEGATIVE example — a development plan that defers proof to the end, prices the standard for adoption failure, and has no falsifiable gates."
+    tags: ["negative-example", "overengineering", "plan", "no-gates", "synthetic"]
+    read_when: "Calibrating what NOT to accept in a plan; paired critique explains each violation."
+
+  - path: examples/bad/bad_persona_agent_design.md
+    id: EXAMPLE-bad-persona-agent-design
+    layer: example
+    purpose: "NEGATIVE example — \"You are the expert\" persona-bot design, the exact pattern the observed method exists to replace."
+    tags: ["negative-example", "persona-bot", "impersonation", "unfalsifiable", "synthetic"]
+    read_when: "Calibrating what NOT to build when someone asks for an expert agent; paired critique explains each violation."
+
+  - path: examples/bad/bad_schema_breaking_change.md
+    id: EXAMPLE-bad-schema-breaking-change
+    layer: example
+    purpose: "NEGATIVE example — renaming a required schema field with no mutation tests, no changelog entry, no instance sweep, and no friction record."
+    tags: ["negative-example", "schema-change", "breaking-change", "no-changelog", "synthetic"]
+    read_when: "Calibrating what NOT to do when a schema/contract must change; paired critique explains each violation."
+
+  - path: examples/bad/bad_tool_execution_plan.md
+    id: EXAMPLE-bad-tool-execution-plan
+    layer: example
+    purpose: "NEGATIVE example — a tool-discovery plan that auto-installs and executes discovered MCP servers during research, crossing the trust boundary."
+    tags: ["negative-example", "auto-install", "tool-execution", "trust-boundary", "synthetic"]
+    read_when: "Calibrating what NOT to do during tool/registry research; paired critique explains each violation."
+
+  - path: examples/critiques/critique_bad_eval_free_feature.md
+    id: CRIT-eval-free-feature
+    layer: example
+    purpose: "Critique of bad_eval_free_feature.md — feature shipped with no tests/evals and a hand-edited score; with the eval-first correction."
+    tags: ["critique", "tests-with-change", "computed-scorecard", "fabrication"]
+    read_when: "You read the eval-free feature PR, or a diff claims \"done\" without a regression net."
+
+  - path: examples/critiques/critique_bad_memory_overbuild.md
+    id: CRIT-memory-overbuild
+    layer: example
+    purpose: "Critique of bad_memory_overbuild.md — seven backends on day 1, overwrite-on-contradiction, ungoverned record shapes; with the file-based correction."
+    tags: ["critique", "memory", "append-only", "premature-infrastructure"]
+    read_when: "You read the memory overbuild example, or a design proposes retrieval infrastructure before records exist."
+
+  - path: examples/critiques/critique_bad_overengineered_plan.md
+    id: CRIT-overengineered-plan
+    layer: example
+    purpose: "Critique of bad_overengineered_plan.md — names every violated decision rule, failure mode, and rubric criterion, with the corrected approach."
+    tags: ["critique", "plan-review", "overengineering", "gates"]
+    read_when: "You read the bad plan example, or you are reviewing a plan that smells framework-first."
+
+  - path: examples/critiques/critique_bad_persona_agent_design.md
+    id: CRIT-persona-agent-design
+    layer: example
+    purpose: "Critique of bad_persona_agent_design.md — the \"You are the expert\" pattern, with every violated rule and the harness-shaped correction."
+    tags: ["critique", "persona", "impersonation", "evidence"]
+    read_when: "You read the persona-bot example, or someone requests an agent that \"is\" a named expert."
+
+  - path: examples/critiques/critique_bad_schema_breaking_change.md
+    id: CRIT-schema-breaking-change
+    layer: example
+    purpose: "Critique of bad_schema_breaking_change.md — unswept rename of a required field; with the friction-mapped, mutation-tested correction."
+    tags: ["critique", "schema-change", "mutation-tests", "changelog"]
+    read_when: "You read the bad schema-change PR, or any diff touches a governed schema."
+
+  - path: examples/critiques/critique_bad_tool_execution_plan.md
+    id: CRIT-tool-execution-plan
+    layer: example
+    purpose: "Critique of bad_tool_execution_plan.md — auto-installing discovered tools during research, with every violated rule and the read-only correction."
+    tags: ["critique", "tool-safety", "read-only", "trust-boundary"]
+    read_when: "You read the bad tool plan, or a research plan proposes installing/executing candidates."
+
+  - path: examples/golden/good_eval_spec.yaml
+    id: EXAMPLE-good-eval-spec
+    layer: example
+    purpose: "Golden condensed eval spec — six declared categories, referenced test ids, deterministic graders, no silent pass."
+    tags: ["eval-spec", "test-categories", "graders", "baselines", "golden"]
+    read_when: "Designing or reviewing an evaluation spec for a package or feature."
+
+  - path: examples/golden/good_go_no_go_decision.md
+    id: EXAMPLE-good-go-no-go-decision
+    layer: example
+    purpose: "Golden example of a falsifiable gate verdict — the N=2 zero-schema-edit gate — where the friction record IS the deliverable and the honesty note narrows the claim."
+    tags: ["gate", "go-no-go", "n2-gate", "friction-inventory", "honesty-note", "golden"]
+    read_when: "You must decide GO / CONDITIONAL_GO / NO_GO at a phase gate, or you are writing up a gate result."
+
+  - path: examples/golden/good_harness_yaml.yaml
+    id: EXAMPLE-good-harness-yaml
+    layer: example
+    purpose: "Golden condensed HARNESS.yaml manifest with commentary on why each block earns its place."
+    tags: ["harness-manifest", "package-standard", "guardrails", "golden"]
+    read_when: "Authoring or reviewing a package manifest; deciding what a manifest must declare vs what lives elsewhere."
+
+  - path: examples/golden/good_phase_review.md
+    id: EXAMPLE-good-phase-review
+    layer: example
+    purpose: "Golden example of a multi-lens adversarial phase review that produced a tiered, ratifiable change program instead of a vague thumbs-up."
+    tags: ["phase-review", "adversarial-panel", "design-review", "tiered-changes", "golden"]
+    read_when: "You are about to review a completed phase, spec, or milestone before committing to the next one."
+
+  - path: examples/golden/good_pr_review.md
+    id: EXAMPLE-good-pr-review
+    layer: example
+    purpose: "Golden example of a pre-commit code review — findings table with evidence, independent re-verification, verdict that gates the commit, and grader-benefit separation."
+    tags: ["code-review", "findings-table", "request-changes", "re-verification", "golden"]
+    read_when: "You are reviewing a diff before commit, or acting as an adversarial reviewer on another agent's output."
+
+  - path: examples/golden/good_project_state_update.md
+    id: EXAMPLE-good-project-state-update
+    layer: example
+    purpose: "Golden example of a development-plan status update — per-phase states with evidence pointers, recorded drift fixes, and honest PARTIAL markers."
+    tags: ["status-update", "development-plan", "drift-fix", "partial-status", "golden"]
+    read_when: "You are updating a plan/status document after a milestone, or reporting project state to the owner."
+
+  - path: examples/golden/good_tool_discovery_report.md
+    id: EXAMPLE-good-tool-discovery-report
+    layer: example
+    purpose: "Golden example of read-only tool/registry discovery — fixed investigation questions, per-claim citations, explicit unverified ledger, zero installs or signups."
+    tags: ["tool-discovery", "read-only", "registry-research", "unverified-ledger", "golden"]
+    read_when: "You are researching external tools, registries, MCP servers, or data sources before any integration decision."
+
+  - path: memory/accepted_decisions.jsonl
+    id: MEM-accepted-decisions
+    layer: memory
+    purpose: "Append-only log of ratified decisions (AD-###) with dates and rationale, distilled from source-repo commits and docs."
+    tags: ["memory", "decisions", "append-only"]
+    read_when: "Checking whether a proposed direction was already decided; before re-litigating a settled question."
+
+  - path: memory/lessons_learned.jsonl
+    id: MEM-lessons-learned
+    layer: memory
+    purpose: "Append-only log of lessons (LL-###) - each a friction or failure converted into a standing insight."
+    tags: ["memory", "lessons", "friction", "append-only"]
+    read_when: "Starting work in an area where the project has previously been burned; after any incident."
+
+  - path: memory/phase_history.jsonl
+    id: MEM-phase-history
+    layer: memory
+    purpose: "Append-only log of phase transitions (PH-###) with outcomes and gate verdicts."
+    tags: ["memory", "phases", "gates", "append-only"]
+    read_when: "Auditing how a phase actually closed; grounding a phase-review in real precedent."
+
+  - path: memory/project_state.md
+    id: MEM-project-state
+    layer: memory
+    purpose: "Current-state snapshot of method-harness-compiler — HEAD, suite, packages, phase statuses, open gate arms, next candidates. Rewritten at every session close."
+    tags: ["state", "snapshot", "status"]
+    read_when: "At session start, before planning any work; before quoting any status number."
+
+  - path: memory/rejected_ideas.jsonl
+    id: MEM-rejected-ideas
+    layer: memory
+    purpose: "Append-only log of rejected ideas (RJ-###) with the observable reason each was declined."
+    tags: ["memory", "rejections", "append-only"]
+    read_when: "Before proposing a new direction - check it was not already considered and rejected."
+
+  - path: operating_model/decision_rules.yaml
+    id: OM-decision-rules
+    layer: operating_model
+    purpose: "Standing decision rules distilled from observable behavior in method-harness-compiler commits and docs. Each rule cites a real instance."
+    tags: ["rules", "discipline", "honesty", "no-fabrication"]
+    read_when: "Any judgment call during execution, review, or publication."
+
+  - path: operating_model/model_routing_policy.yaml
+    id: OM-model-routing-policy
+    layer: operating_model
+    purpose: "Cost-aware routing as the OPERATING HABIT actually observed in this project (mirrors docs/model_routing_policy.md, grounded in commit trailers: subagent workflows for mechanical bulk, orchestrator/strong reasoning for design and synthesis, human gate last, review always layered)."
+    tags: ["routing", "cost", "tiers", "delegation"]
+    read_when: "Deciding who/what executes a task; budgeting a round."
+
+  - path: operating_model/operating_model.md
+    id: OM-operating-model
+    layer: operating_model
+    purpose: "The standard task loop observed across all 17 commits of method-harness-compiler — restate, phase-check, scope-check, pin plan, execute minimally, self-check, review, record."
+    tags: ["task-loop", "method", "discipline", "evidence"]
+    read_when: "Starting any non-trivial task in this project; onboarding a new session; deciding what \"done\" means."
+
+  - path: operating_model/phase_gates.md
+    id: OM-phase-gates
+    layer: operating_model
+    purpose: "The falsifiable phase-gate discipline this project actually ran — gate definitions, verdict semantics (GO / CONDITIONAL_GO / NO_GO), and what each verdict requires."
+    tags: ["gates", "falsifiability", "phase-transition", "pre-registration"]
+    read_when: "Deciding whether a phase may begin or end; designing a new gate; reviewing whether a claimed PASS is honest."
+
+  - path: operating_model/project_memory_policy.yaml
+    id: OM-project-memory-policy
+    layer: operating_model
+    purpose: "When and what to write into memory/ files, modeled on the memory discipline this project itself practices (append-only JSONL, friction ledgers, changelog-with-friction-IDs, correction notices)."
+    tags: ["memory", "append-only", "decisions", "lessons", "phase-history"]
+    read_when: "Closing a session; after a phase transition, ratified decision, rejection, incident, or correction."
+
+  - path: operating_model/review_protocol.md
+    id: OM-review-protocol
+    layer: operating_model
+    purpose: "The five-layer review pipeline observed on every shipping commit — adversarial orthogonal-lens review, independent re-verification, code-review verdict gate, explicit-path staging with count assertion, CI watch — with the real catches as evidence."
+    tags: ["review", "adversarial", "verification", "staging", "ci"]
+    read_when: "Preparing any commit; reviewing a delegate's output; deciding whether a change is ready to ship."
+
+  - path: playbooks/phase0_static_package_standard.md
+    id: PLAYBOOK-phase0-static-package-standard
+    layer: playbook
+    purpose: "Procedure for the Day-1 \"spec-first static standard\" phase — schemas and a static demo package before any automation, closed by an adversarial design-review panel."
+    tags: ["phase0", "schemas-first", "static-demo", "design-review", "spec-first"]
+    read_when: "Starting a new standard/spec-first project phase, or reviewing whether a Phase-0 build is complete and gate-ready."
+
+  - path: playbooks/phase1_tool_discovery.md
+    id: PLAYBOOK-phase1-tool-discovery
+    layer: playbook
+    purpose: "Procedure for metadata-only tool/registry discovery research — per-claim fetched-URL citations, per-dimension scored source registry, honest unverified ledgers, zero execution."
+    tags: ["tool-discovery", "metadata-only", "read-only", "source-scoring", "no-execution", "research"]
+    read_when: "Running any external tool/source discovery or research-survey task, or reviewing one for citation integrity."
+
+  - path: playbooks/phase2_builder_primitives.md
+    id: PLAYBOOK-phase2-builder-primitives
+    layer: playbook
+    purpose: "Procedure for building the first automation over a hand-authored standard — deterministic-first generators, TODO-on-uncertainty, non-destructive drafts, offline-fixture adapters, and a falsifiable fixture-regeneration gate."
+    tags: ["generators", "deterministic-first", "TODO_FILL", "fixture-gate", "offline-fixtures", "regression-floors"]
+    read_when: "Building generators/adapters that automate any part of a previously hand-authored artifact, or reviewing generator coverage claims."
+
+  - path: playbooks/phase3_evidence_method_extraction.md
+    id: PLAYBOOK-phase3-evidence-method-extraction
+    layer: playbook
+    purpose: "Prospective procedure for automating evidence-card and principle extraction from sources — the highest-fabrication-risk phase; no-fabrication must be CODE gates, not prose."
+    tags: ["evidence-extraction", "attribution", "no-fabrication", "prospective", "primary-source", "verified-flag"]
+    read_when: "Planning or building source-discovery, evidence-card, principle-extraction, or attribution-classification automation."
+
+  - path: playbooks/phase4_memory_update.md
+    id: PLAYBOOK-phase4-memory-update
+    layer: playbook
+    purpose: "Procedure for file-based longitudinal memory — append-only JSONL, contradiction/staleness/correction semantics, and on-disk verification of memory writes."
+    tags: ["memory", "append-only", "jsonl", "contradiction", "staleness", "correction", "on-disk-verification"]
+    read_when: "Designing, implementing, or verifying memory-update behavior; handling contradictions or corrections in any longitudinal store."
+
+  - path: playbooks/phase5_runtime_export.md
+    id: PLAYBOOK-phase5-runtime-export
+    layer: playbook
+    purpose: "Procedure for making packages installable in a real runtime — plugin-superset design, export verification tooling, and honest E2E install verification with explicit UNVERIFIED lists."
+    tags: ["runtime-export", "plugin", "install-verification", "E2E", "unverified-ledger", "smoke-check"]
+    read_when: "Exporting artifacts to a runtime (plugin, CLI, marketplace), or verifying an install path end-to-end."
+
+  - path: playbooks/phase6_evaluation_runner.md
+    id: PLAYBOOK-phase6-evaluation-runner
+    layer: playbook
+    purpose: "Procedure for computed evaluation — scorecards computed never claimed, deterministic grader registry with UNSCORED-never-guessed, transcript authenticity rules, and pre-registered outcome evals."
+    tags: ["evaluation", "computed-scorecard", "grader-registry", "transcripts", "pre-registration", "UNSCORED", "outcome-eval"]
+    read_when: "Designing or running any evaluation, grading transcripts, building graders, or planning an outcome/A-B comparison."
+
+  - path: playbooks/phase7_public_release.md
+    id: PLAYBOOK-phase7-public-release
+    layer: playbook
+    purpose: "Prospective procedure for flipping the repo public — content review gates, no-secrets scan, audit-article fairness review, non-affiliation and licensing checks, human sign-off."
+    tags: ["public-release", "prospective", "secrets-scan", "licensing", "non-affiliation", "human-gate", "audit-fairness"]
+    read_when: "Preparing any public release, publishing an audit of a third party, or reviewing pre-flip readiness."
+
+  - path: playbooks/pr_review_playbook.md
+    id: PLAYBOOK-pr-review
+    layer: playbook
+    purpose: "The layered review protocol as a PR/commit checklist — orthogonal adversarial lenses, independent re-verification by re-running, regression-tests-with-contract-changes, explicit-path staging, and traceable commit trailers."
+    tags: ["review", "adversarial-reviewers", "re-verification", "commit-trailers", "staging-discipline", "regression-tests"]
+    read_when: "Reviewing any diff/PR/commit, or preparing a change for review; before EVERY commit that ships work."
+
+  - path: playbooks/repo_maintenance_playbook.md
+    id: PLAYBOOK-repo-maintenance
+    layer: playbook
+    purpose: "Procedure for keeping repo docs/status truthful over time — docs-accuracy sweeps, grep-old-value after renames, status-line sync, locale parity tests, CI-green discipline, honest re-marking of stale plan statuses."
+    tags: ["maintenance", "docs-drift", "rename-sweep", "locale-parity", "status-sync", "CI"]
+    read_when: "After any rename, doc update, locale edit, status change, or when auditing the repo for drift between docs and reality."
+
+  - path: prompts/boundary_review_prompt.md
+    id: PROMPT-boundary-review
+    layer: prompt
+    purpose: "Ready-to-use instruction for auditing a tool plan, recommender output, or ToolCard set for execution-boundary violations."
+    tags: ["boundary", "permissions", "risk", "audit"]
+    read_when: "Executing the boundary-audit leg of ROUTE-tool-discovery or ROUTE-pr-review on anything that selects or configures tools."
+
+  - path: prompts/phase_review_prompt.md
+    id: PROMPT-phase-review
+    layer: prompt
+    purpose: "Ready-to-use instruction for running a phase/plan/design review the way the 2026-07-01 design review and the N=2/N=3 gates were run."
+    tags: ["phase-review", "gate", "GO NO_GO", "adversarial-lenses"]
+    read_when: "Executing ROUTE-phase-review on a plan, spec revision, or gate decision."
+
+  - path: prompts/pr_review_prompt.md
+    id: PROMPT-pr-review
+    layer: prompt
+    purpose: "Ready-to-use instruction for reviewing a diff / commit range / PR with the repo's layered-review discipline (re-verify by re-running, mutation tests for schema edits, computed artifacts, staged-commit hygiene)."
+    tags: ["pr-review", "diff-review", "verification"]
+    read_when: "Executing ROUTE-pr-review on any diff before commit or merge, including delegate output."
+
+  - path: prompts/project_state_update_prompt.md
+    id: PROMPT-project-state-update
+    layer: prompt
+    purpose: "Instruction for updating the harness's memory/ files after completing work - append-only, friction-fed, changelog-linked - mirroring the repo's observable memory discipline."
+    tags: ["memory", "state-update", "corrections", "friction"]
+    read_when: "After any task that changed project state, produced a decision, hit friction, or corrected an earlier record."
+
+  - path: prompts/self_check_prompt.md
+    id: PROMPT-self-check
+    layer: prompt
+    purpose: "Instruction for scoring your OWN output with the relevant rubric and failure-mode list before returning it - the harness's local form of the author-agnostic review gate."
+    tags: ["self-check", "quality-gate", "rubric-scoring"]
+    read_when: "After producing any deliverable, before returning it."
+
+  - path: prompts/task_router_prompt.md
+    id: PROMPT-task-router
+    layer: prompt
+    purpose: "Classify an incoming request into exactly one of the eight routes and name the minimal file set to execute it."
+    tags: ["routing", "classification", "task-type"]
+    read_when: "Immediately after bootstrap, whenever a new user request arrives."
+
+  - path: prompts/tool_discovery_prompt.md
+    id: PROMPT-tool-discovery
+    layer: prompt
+    purpose: "Ready-to-use instruction for running metadata-only tool/registry research the way docs/tool_discovery_report.md was produced."
+    tags: ["tool-discovery", "read-only", "honesty-ledger", "registry-research"]
+    read_when: "Executing ROUTE-tool-discovery on a registry survey or tool recommendation task."
+
+  - path: prompts/weak_model_bootstrap_prompt.md
+    id: PROMPT-weak-model-bootstrap
+    layer: prompt
+    purpose: "The first instruction a smaller/cheaper model receives when operating inside this harness - defines the bounded reading order and the standing invariants, so it never needs (and must not attempt) to read the whole repo."
+    tags: ["bootstrap", "reading-order", "invariants", "weak-model"]
+    read_when: "At session start, before any task is attempted."
+
+  - path: rubrics/architecture_review_rubric.yaml
+    id: RUBRIC-architecture-review
+    layer: rubric
+    purpose: "Score an architecture / phase-plan / design-review artifact the way the 2026-07-01 four-lens design review scored spec v0.5.1 (34 findings, Tier A/B/C change program)."
+    tags: ["architecture", "design-review", "phase-gate", "adversarial-review"]
+    read_when: "Reviewing a development plan, phase plan, spec revision, or any proposal that sequences build phases or changes the standard's surface."
+
+  - path: rubrics/eval_quality_rubric.yaml
+    id: RUBRIC-eval-quality
+    layer: rubric
+    purpose: "Score an eval spec, grader, or outcome-eval design against docs/evaluation_framework.md (six categories, baselines/ablations, scorecard gates, Category-7 outcome doctrine, grader-hardening discipline)."
+    tags: ["evaluation", "graders", "baselines", "ablations", "outcome-eval", "pre-registration"]
+    read_when: "Designing or reviewing eval_spec.yaml, graders, outcome-eval pre-registrations, or scorecard gating logic."
+
+  - path: rubrics/harness_quality_rubric.yaml
+    id: RUBRIC-harness-quality
+    layer: rubric
+    purpose: "Score a Method Harness Package (or an external pack under audit, e.g. docs/audits/ai_berkshire_audit_2026-07-01.md) on the standard's own quality dimensions."
+    tags: ["harness", "package-quality", "evidence", "scorecard", "audit"]
+    read_when: "Reviewing a new or changed harness package under examples/, or auditing a third-party skill pack."
+
+  - path: rubrics/maintainability_rubric.yaml
+    id: RUBRIC-maintainability
+    layer: rubric
+    purpose: "Score repo-maintenance and memory-update work against the observable discipline of CHANGELOG_STANDARD.md, the friction-ID pipeline, auto-discovery in tests/conftest.py, and the append-only memory strategy."
+    tags: ["maintainability", "changelog", "friction", "regression-tests", "memory"]
+    read_when: "Reviewing standard revisions, changelog entries, test-infrastructure changes, memory-file updates, or cleanup work."
+
+  - path: rubrics/pr_review_rubric.yaml
+    id: RUBRIC-pr-review
+    layer: rubric
+    purpose: "Score a PR / commit-range review against the repo's layered-review discipline - work-order scope match, mutation tests for schema edits, computed artifacts, independent re-verification, staged-commit hygiene."
+    tags: ["pr-review", "diff", "verification", "commit-hygiene", "schema-change"]
+    read_when: "Reviewing any diff before commit or merge, including delegate output."
+
+  - path: rubrics/progressive_disclosure_rubric.yaml
+    id: RUBRIC-progressive-disclosure
+    layer: rubric
+    purpose: "Score a harness/docs layout (including this harness itself) on whether a weaker model can orient cheaply - layered entry, small focused files, routing frontmatter, stable cross-links - instead of reading the whole repo."
+    tags: ["progressive-disclosure", "context-budget", "frontmatter", "routing"]
+    read_when: "Reviewing harness exports, documentation restructures, or any change to context/, operating_model/, playbooks/, prompts/ layout."
+
+  - path: rubrics/tool_boundary_rubric.yaml
+    id: RUBRIC-tool-boundary
+    layer: rubric
+    purpose: "Score whether a tool plan, recommender output, or generated ToolCard set respects the execution boundary - discovery without execution, read-only defaults, computed risk, human vetting before trust (CHANGELOG v0.7.1 conventions)."
+    tags: ["tool-boundary", "permissions", "risk", "unverified-auto-draft"]
+    read_when: "Reviewing any change that selects, recommends, or configures tools; reviewing phc recommend-tools output or a ToolCard PR."
+
+  - path: rubrics/tool_discovery_rubric.yaml
+    id: RUBRIC-tool-discovery
+    layer: rubric
+    purpose: "Score a tool/skill/registry discovery report against the discipline of docs/tool_discovery_report.md (27 sources, metadata-only, every claim cites its fetched URL, honesty ledger for the unverified)."
+    tags: ["tool-discovery", "registry", "read-only", "honesty-ledger"]
+    read_when: "Reviewing a discovery report, registry survey, or source-comparison document before its findings feed the tool-fit scorer or adapters."
+
+  - path: schemas/failure_mode.schema.yaml
+    id: SCHEMA-failure-mode
+    layer: schema
+    purpose: "JSON Schema (draft 2020-12) for one failure_mode record (FM-###) in datasets/failure_modes.yaml."
+    tags: ["schema", "dataset", "failure-mode"]
+    read_when: "Adding or validating failure-mode records, or building tooling over the catalog."
+
+  - path: schemas/harness_repo.schema.yaml
+    id: SCHEMA-harness-repo
+    layer: schema
+    purpose: "JSON Schema (draft 2020-12) for the shape of HARNESS.yaml, this repo's package manifest."
+    tags: ["schema", "manifest", "harness-yaml"]
+    read_when: "Authoring or reviewing HARNESS.yaml, or validating the manifest in a maintenance sweep."
+
+  - path: schemas/route.schema.yaml
+    id: SCHEMA-route
+    layer: schema
+    purpose: "JSON Schema (draft 2020-12) for one route entry in ROUTES.yaml."
+    tags: ["schema", "route", "routing", "progressive-disclosure"]
+    read_when: "Adding or editing a route in ROUTES.yaml, or validating the routing surface."
+
+  - path: schemas/teacher_example.schema.yaml
+    id: SCHEMA-teacher-example
+    layer: schema
+    purpose: "JSON Schema (draft 2020-12) for one teacher_example record (TE-###) in datasets/teacher_examples.jsonl."
+    tags: ["schema", "dataset", "teacher-example"]
+    read_when: "Adding or validating teacher-example records, or building tooling over the dataset."
+
+  - path: validation/expected_outputs/T01_expected.md
+    id: EXPECT-T01
+    layer: validation
+    purpose: "Reference answer for T01_phase0_review - the violations that must be caught and the acceptable rubric-score range."
+    tags: ["expected-output", "grading-key"]
+    read_when: "Grading a model's answer to T01, never before attempting it."
+
+  - path: validation/expected_outputs/T02_expected.md
+    id: EXPECT-T02
+    layer: validation
+    purpose: "Reference answer for T02_tool_boundary_review - the boundary violations that must be caught, and the step that must NOT be flagged."
+    tags: ["expected-output", "grading-key"]
+    read_when: "Grading a model's answer to T02, never before attempting it."
+
+  - path: validation/expected_outputs/T03_expected.md
+    id: EXPECT-T03
+    layer: validation
+    purpose: "Reference answer for T03_memory_scope_review - the overbuild and destructive-update violations that must be caught, and the legitimate needs that must be re-channeled."
+    tags: ["expected-output", "grading-key"]
+    read_when: "Grading a model's answer to T03, never before attempting it."
+
+  - path: validation/expected_outputs/T04_expected.md
+    id: EXPECT-T04
+    layer: validation
+    purpose: "Reference answer for T04_evalspec_critique - the eval-spec deficiencies that must be caught and the required treatment of the outcome claim."
+    tags: ["expected-output", "grading-key"]
+    read_when: "Grading a model's answer to T04, never before attempting it."
+
+  - path: validation/expected_outputs/T05_expected.md
+    id: EXPECT-T05
+    layer: validation
+    purpose: "Reference answer for T05_pr_schema_review - the PR violations that must be caught, the required commit split, and what is acceptable as scoped."
+    tags: ["expected-output", "grading-key"]
+    read_when: "Grading a model's answer to T05, never before attempting it."
+
+  - path: validation/regression_tasks/T01_phase0_review.md
+    id: TASK-T01-phase0-review
+    layer: validation
+    purpose: "Regression task - review a phase-0 plan snippet that violates the proof-before-automation, falsifiable-gate, and honesty disciplines. Used to test whether a model operating in this harness catches the planted violations."
+    tags: ["regression-task", "phase-review", "synthetic"]
+    read_when: "Running harness regression validation, or calibrating a new model on ROUTE-phase-review."
+
+  - path: validation/regression_tasks/T02_tool_boundary_review.md
+    id: TASK-T02-tool-boundary-review
+    layer: validation
+    purpose: "Regression task - spot the execution-boundary violations planted in a tool-research plan. Tests the discovery-without-execution, computed-risk, and draft-vs-governed disciplines."
+    tags: ["regression-task", "tool-boundary", "synthetic"]
+    read_when: "Running harness regression validation, or calibrating a new model on ROUTE-tool-discovery boundary audits."
+
+  - path: validation/regression_tasks/T03_memory_scope_review.md
+    id: TASK-T03-memory-scope-review
+    layer: validation
+    purpose: "Regression task - spot memory overbuild and destructive-update violations in a proposed memory upgrade. Tests the append-only, five-file-contract, and standard-first disciplines."
+    tags: ["regression-task", "memory", "overbuild", "synthetic"]
+    read_when: "Running harness regression validation, or calibrating a new model on ROUTE-memory-update."
+
+  - path: validation/regression_tasks/T04_evalspec_critique.md
+    id: TASK-T04-evalspec-critique
+    layer: validation
+    purpose: "Regression task - critique an eval spec that is missing categories, graders, baselines, and honesty discipline. Tests the six-category, grader-specification, and UNSCORED rules."
+    tags: ["regression-task", "eval-spec", "synthetic"]
+    read_when: "Running harness regression validation, or calibrating a new model on ROUTE-eval-design."
+
+  - path: validation/regression_tasks/T05_pr_schema_review.md
+    id: TASK-T05-pr-schema-review
+    layer: validation
+    purpose: "Regression task - review a PR that changes a schema without mutation tests, hand-edits a computed scorecard, and bundles a grader fix with its beneficiaries. Tests the PR-review gates."
+    tags: ["regression-task", "pr-review", "schema-change", "synthetic"]
+    read_when: "Running harness regression validation, or calibrating a new model on ROUTE-pr-review."
+
+  - path: validation/self_checklists/package_quality_checklist.md
+    id: CHECK-package-quality
+    layer: validation
+    purpose: "Binary pre-return checks for harness-package work (authoring, auditing, exporting, memory updates), drawn from RUBRIC-harness-quality, RUBRIC-eval-quality, and RUBRIC-maintainability."
+    tags: ["checklist", "package-quality", "honesty"]
+    read_when: "After producing or auditing package content, before returning it."
+
+  - path: validation/self_checklists/phase_review_checklist.md
+    id: CHECK-phase-review
+    layer: validation
+    purpose: "Binary pre-return checks for a phase/plan/design review, drawn from RUBRIC-architecture-review and the observed gate discipline (design review 2026-07-01, N=2/N=3 gates)."
+    tags: ["checklist", "phase-review", "gate"]
+    read_when: "After drafting a phase review, before returning it."
+
+  - path: validation/self_checklists/pr_review_checklist.md
+    id: CHECK-pr-review
+    layer: validation
+    purpose: "Binary pre-return checks for diff/PR reviews, drawn from RUBRIC-pr-review and the eval-quality separation rules."
+    tags: ["checklist", "pr-review", "verification"]
+    read_when: "After drafting a PR review verdict, before returning it."
+
+  - path: validation/self_checklists/tool_discovery_checklist.md
+    id: CHECK-tool-discovery
+    layer: validation
+    purpose: "Binary pre-return checks for tool/registry discovery work and boundary audits, drawn from RUBRIC-tool-discovery and RUBRIC-tool-boundary."
+    tags: ["checklist", "tool-discovery", "boundary"]
+    read_when: "After drafting a discovery report, ToolCard set, or boundary audit, before returning it."
+
+  # --- entry files (runtime-convention launchers; added 2026-07-02) ---
+  - path: BOOTSTRAP.md
+    id: BOOTSTRAP
+    layer: entry
+    purpose: "Shortest universal entry - startup ladder, never-optional rules, output contract (decision/risks/required changes/next actions)."
+    tags: ["entrypoint", "bootstrap", "startup"]
+    read_when: "The very first file in any runtime without an auto-loaded entry convention."
+
+  - path: AGENTS.md
+    id: AGENTS
+    layer: entry
+    purpose: "Repository agent instructions (8 rules) - auto-read by AGENTS.md-convention coding agents; forces the L0->L2->L3->ROUTES ladder."
+    tags: ["entrypoint", "agent-instructions", "conventions"]
+    read_when: "Auto-loaded at session start by convention-following agents; humans read to see what agents are told."
+
+  - path: SKILL.md
+    id: SKILL
+    layer: entry
+    purpose: "Skill-style runtime wrapper (name/description frontmatter) - launches the harness in skill-aware runtimes; rules stay in routed files."
+    tags: ["entrypoint", "skill", "runtime-wrapper"]
+    read_when: "Auto-discovered by skill-convention runtimes; read manually when wiring a new runtime."

@@ -1,0 +1,76 @@
+# ---
+# id: SCHEMA-harness-repo
+# layer: schema
+# purpose: JSON Schema (draft 2020-12) for the shape of HARNESS.yaml, this repo's package manifest.
+# read_when: Authoring or reviewing HARNESS.yaml, or validating the manifest in a maintenance sweep.
+# depends_on: [../HARNESS.yaml]
+# used_by: [ROUTE-repo-maintenance, ROUTE-runtime-export, ROUTE-pr-review]
+# tags: [schema, manifest, harness-yaml]
+# retrieval_keywords: [HARNESS.yaml shape, manifest schema, provenance, layers, routes list, constraints]
+# ---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "fable-style-project-harness/schemas/harness_repo.schema.yaml"
+title: Harness repo manifest (HARNESS.yaml)
+description: >-
+  Shape of the top-level HARNESS.yaml manifest. Permissive by design
+  (additionalProperties true) so the manifest can grow without a
+  breaking schema change; required keys are the load-bearing minimum.
+type: object
+additionalProperties: true
+required: [name, version, entrypoint, provenance, layers, routes_file, routes]
+properties:
+  name:
+    type: string
+    minLength: 1
+  version:
+    type: string
+    description: Semver-ish version string, e.g. "0.1.0".
+    pattern: "^[0-9]+\\.[0-9]+\\.[0-9]+"
+  entrypoint:
+    type: string
+    description: Repo-relative path of the first file to read (L0 bootstrap).
+  provenance:
+    type: object
+    additionalProperties: true
+    required: [distilled_from, date]
+    properties:
+      distilled_from:
+        type: string
+        description: Source repo identifier, optionally pinned to a commit (repo@sha).
+      date:
+        description: >-
+          Distillation date, YYYY-MM-DD. No type constraint: YAML loaders
+          parse unquoted dates into native date objects, quoted ones into
+          strings — both are acceptable.
+      sources:
+        type: string
+        description: One-line statement of the source discipline (observable artifacts only).
+      source_classes:
+        type: array
+        items: { type: string }
+  layers:
+    type: array
+    description: The layer vocabulary used by frontmatter and INDEX.yaml.
+    minItems: 1
+    items:
+      type: string
+      enum: [context, operating_model, playbook, rubric, example, dataset,
+             prompt, validation, memory, schema, doc]
+  routes_file:
+    type: string
+    description: Repo-relative path to ROUTES.yaml.
+  routes:
+    type: array
+    description: The pinned route ids; must match ROUTES.yaml entries 1:1.
+    minItems: 1
+    uniqueItems: true
+    items:
+      type: string
+      pattern: "^ROUTE-[a-z0-9-]+$"
+  portability_targets:
+    type: array
+    items: { type: string }
+  constraints:
+    type: array
+    description: Standing constraints (privacy, no-secrets, no-hidden-reasoning).
+    items: { type: string }
