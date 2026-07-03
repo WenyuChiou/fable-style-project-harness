@@ -785,6 +785,13 @@ files:
   - path: scripts/check_agent_artifacts.py
     id: SCRIPT-check-agent-artifacts
     layer: validation
-    purpose: "Tier-0 deterministic presence + keyword check for the 8 markdown overlay artifacts; exits nonzero if any is missing or missing a required keyword (DR-011 no-silent-pass, DR-021 verify-on-disk)."
+    purpose: "Tier-0 deterministic check for the 8 markdown overlay artifacts - existence + required keywords + every depends_on frontmatter path resolves on disk; exits nonzero on any gap (DR-011 no-silent-pass, DR-021 verify-on-disk). Pure-stdlib, offline."
     tags: ["validation", "script", "tier-0", "no-silent-pass", "overlay"]
     read_when: "After editing any overlay artifact; as a cheap CI / pre-commit gate item."
+
+  - path: scripts/test_check_agent_artifacts.py
+    id: TEST-check-agent-artifacts
+    layer: validation
+    purpose: "Regression tests pinning check_agent_artifacts.py's depends_on frontmatter parser (block-list + inline + edge cases) so a future refactor that silently breaks depends_on checking fails loudly. Pure-stdlib asserts, no pytest."
+    tags: ["validation", "test", "regression", "parser", "overlay"]
+    read_when: "After changing check_agent_artifacts.py's frontmatter parsing; run to confirm the parser contract holds."

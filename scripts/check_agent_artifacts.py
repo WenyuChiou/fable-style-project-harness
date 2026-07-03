@@ -1,25 +1,30 @@
 #!/usr/bin/env python3
-"""Tier-0 presence + keyword check for the 8 markdown agent-binding overlay artifacts.
+"""Tier-0 presence + keyword + depends_on check for the agent-binding overlay.
 
 This validator confirms that the concrete agent-binding overlay authored on top of
-this harness actually exists on disk and contains its load-bearing keywords. It is a
-deterministic, offline, standard-library-only check (no network, no LLM) so it can run
-in CI or a pre-commit gate as the cheapest layer of the author-agnostic review gate
-(operating_model/review_protocol.md). It enforces DR-011 no-silent-pass and DR-021
-verify-agent-observations-on-disk: a claim that these files were written is only true
-if they read back with their required substrings.
+this harness (a) exists on disk, (b) contains its load-bearing keywords, and (c) has
+every ``depends_on:`` frontmatter path resolving to a real file. It is a deterministic,
+offline, standard-library-only check (no network, no LLM, no third-party imports) so it
+can run in CI or a pre-commit gate as the cheapest layer of the author-agnostic review
+gate (operating_model/review_protocol.md). It enforces DR-011 no-silent-pass and DR-021
+verify-agent-observations-on-disk: a claim that these files are wired up correctly is
+only true if they read back with their required substrings AND every declared dependency
+exists on disk.
 
-For each of the 8 relative paths in REQUIRED it checks the file exists, is readable, and
-(case-insensitively) contains every required substring, then prints a per-file status
-line and a summary.
+For each of the 8 markdown overlay artifacts it checks:
+    1. the file exists and is readable;
+    2. it contains (case-insensitively) every required substring in REQUIRED;
+    3. every path in its ``depends_on:`` frontmatter list resolves on disk, relative to
+       the file's own directory.
 
 Run:
     python scripts/check_agent_artifacts.py
 
 Exit codes:
-    0  all 8 artifacts present and every required keyword found
-    1  any artifact missing, unreadable, or missing a required keyword
+    0  all artifacts present, every keyword found, every depends_on path resolves
+    1  any artifact missing/unreadable, any keyword missing, or any depends_on broken
 """
+import re
 import sys
 from pathlib import Path
 
@@ -64,29 +69,77 @@ REQUIRED = {
 }
 
 
-def check_file(rel_path, required_subs):
-    """Return (status, missing_subs). status is 'OK', 'FAIL', or 'MISSING'."""
-    path = repo_root / rel_path
+def read_text(rel_path):
+    """Return the file's text, or None if it is missing/unreadable."""
     try:
-        text = path.read_text(encoding="utf-8").lower()
+        return (repo_root / rel_path).read_text(encoding="utf-8")
     except (FileNotFoundError, OSError):
-        return "MISSING", []
-    missing = [sub for sub in required_subs if sub.lower() not in text]
-    return ("OK" if not missing else "FAIL"), missing
+        return None
+
+
+def missing_keywords(text, required_subs):
+    """Return the required substrings (case-insensitive) absent from text."""
+    low = text.lower()
+    return [sub for sub in required_subs if sub.lower() not in low]
+
+
+def parse_depends_on(text):
+    """Extract the depends_on list from a `---`-delimited YAML frontmatter block.
+
+    Pure string parsing (no yaml dependency, keeping this check standard-library
+    only). Handles the block-list style used across this repo
+    (``depends_on:`` then ``  - path`` lines) plus an inline ``[a, b]`` fallback.
+    """
+    if not text.startswith("---"):
+        return []
+    parts = text.split("---", 2)
+    if len(parts) < 3:
+        return []
+    deps = []
+    in_block = False
+    for line in parts[1].splitlines():
+        if not in_block:
+            stripped = line.strip()
+            if stripped == "depends_on:" or stripped.startswith("depends_on:"):
+                after = stripped[len("depends_on:"):].strip()
+                if after.startswith("["):  # inline list: depends_on: [a, b]
+                    inner = after.strip("[]")
+                    return [x.strip().strip("\"'") for x in inner.split(",") if x.strip()]
+                in_block = True
+            continue
+        if re.match(r"^\s+-\s+", line):
+            deps.append(re.sub(r"^\s+-\s+", "", line).strip().strip("\"'"))
+        elif line.strip() == "":
+            continue
+        else:  # a new top-level key ends the depends_on block
+            break
+    return deps
+
+
+def unresolved_depends_on(rel_path, text):
+    """Return depends_on entries that do NOT resolve on disk (relative to the file)."""
+    base = (repo_root / rel_path).parent
+    return [dep for dep in parse_depends_on(text) if not (base / dep).resolve().exists()]
 
 
 def main():
     total = len(REQUIRED)
     passed = 0
     for rel_path, required_subs in REQUIRED.items():
-        status, missing = check_file(rel_path, required_subs)
-        if status == "OK":
-            passed += 1
-            print("OK {} ({} keywords)".format(rel_path, len(required_subs)))
-        elif status == "MISSING":
+        text = read_text(rel_path)
+        if text is None:
             print("MISSING FILE {}".format(rel_path))
-        else:
-            print("FAIL {}: missing {}".format(rel_path, missing))
+            continue
+        missing = missing_keywords(text, required_subs)
+        broken = unresolved_depends_on(rel_path, text)
+        if not missing and not broken:
+            passed += 1
+            print("OK {} ({} keywords, depends_on resolves)".format(rel_path, len(required_subs)))
+            continue
+        if missing:
+            print("FAIL {}: missing keywords {}".format(rel_path, missing))
+        if broken:
+            print("FAIL {}: unresolved depends_on {}".format(rel_path, broken))
     print("{}/{} artifacts OK".format(passed, total))
     return 0 if passed == total else 1
 

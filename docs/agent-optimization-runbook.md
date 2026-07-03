@@ -67,6 +67,13 @@ The quality invariant is the **author-agnostic layered review gate**
 | [`prompts/codex-task-brief-template.md`](../prompts/codex-task-brief-template.md) (`PROMPT-codex-task-brief-template`) | Brief a scoped mechanical job for Codex |
 | [`scripts/check_agent_artifacts.py`](../scripts/check_agent_artifacts.py) (`SCRIPT-check-agent-artifacts`) | Grep-verifies this overlay's cross-refs on disk |
 
+> **On `used_by:` values.** Four `used_by:` markers in this overlay's frontmatter —
+> `operator-session`, `hermes-runtime`, `claude-code-runtime`, `codex-runtime` — name
+> external runtime *consumers*, not harness-internal ids. Unlike `DOC-*` / `PROMPT-*` /
+> `ROUTE-*` ids they resolve to no file, and `grep "id: hermes-runtime"` finds nothing
+> **by design**. They record which real surface loads the artifact at runtime; a drift
+> sweep should treat them as informational, not as dangling references.
+
 ## 2. The loop
 
 Five steps. Each hands off to a named artifact — follow the cross-reference,
@@ -184,9 +191,9 @@ run the on-disk verifier before you consider the change done:
 python scripts/check_agent_artifacts.py
 ```
 
-- It greps every overlay cross-reference and `must_contain` literal against the
-  files on disk — the single source of truth for these checks
-  (`DR-020` single-source-of-truth-for-checks).
+- For each overlay file it checks: the file exists, it contains its `must_contain`
+  literals, and every `depends_on:` path in its frontmatter resolves on disk — the
+  single source of truth for these checks (`DR-020` single-source-of-truth-for-checks).
 - **A nonzero exit blocks.** Treat a nonzero exit exactly like a failed test:
   do not commit, do not report "done", fix the broken reference and re-run
   until it exits 0. This is the overlay-local form of
