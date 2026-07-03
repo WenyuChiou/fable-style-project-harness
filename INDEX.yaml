@@ -721,3 +721,70 @@ files:
     purpose: "Project-agnostic subset of operating_model/decision_rules.yaml - original DR-### ids preserved with portable: true markers; excluded project-bound rules listed with reasons."
     tags: ["core", "portable", "rules", "discipline", "honesty"]
     read_when: "Any judgment call during execution, review, or publication in a NON-mhc project."
+
+  # --- agent-optimization overlay (concrete Hermes/Claude Code/Codex bindings; added 2026-07-03) ---
+  # Overlay authored on top of the harness: binds OM-model-routing-policy's ABSTRACT
+  # tiers to the operator's real three-surface stack. Source: model-routing-benchmark
+  # universal_agent_optimization_prompt.md. NOT distilled from method-harness-compiler.
+  - path: docs/agent-routing-policy.md
+    id: DOC-agent-routing-policy
+    layer: doc
+    purpose: "Concrete routing matrix binding the harness abstract tiers to the operator three-surface stack (Hermes / Claude Code Opus baseline / Opus + distilled / Fable + distilled / Codex)."
+    tags: ["routing", "agent-stack", "hermes", "claude-code", "codex", "escalation"]
+    read_when: "Deciding which agent surface and mode executes an incoming task; when a surface should escalate or delegate."
+
+  - path: docs/completion-honesty-gate.md
+    id: DOC-completion-honesty-gate
+    layer: doc
+    purpose: "Checklist any surface must pass before claiming done/fixed/tests-pass/benchmark-succeeded/ready-to-commit/ready-to-release; distinguishes raw process evidence from derived reports."
+    tags: ["completion-honesty", "verification", "no-silent-pass", "raw-vs-derived", "gate"]
+    read_when: "Before emitting any completion or success claim; before commit or release; when a report and the raw artifacts might disagree."
+
+  - path: docs/agent-optimization-runbook.md
+    id: DOC-agent-optimization-runbook
+    layer: doc
+    purpose: "Day-to-day operator guide for using the Hermes / Claude Code / Codex stack with this overlay - worked examples end to end."
+    tags: ["runbook", "workflow", "examples", "daily-use", "agent-stack"]
+    read_when: "Onboarding to the stack, or deciding how to run a specific real task across the three surfaces."
+
+  - path: prompts/hermes-router.md
+    id: PROMPT-hermes-router
+    layer: prompt
+    purpose: "Concise routing prompt for Hermes - classify the task, use tools, verify, and route to Claude Code or Codex only when it adds value; keep user replies concise."
+    tags: ["prompt", "hermes", "routing", "classification"]
+    read_when: "A request lands on Hermes (Telegram/CLI) and Hermes must decide handle-directly vs route."
+
+  - path: prompts/claude-code-debug.md
+    id: PROMPT-claude-code-debug
+    layer: prompt
+    purpose: "Evidence-first diagnostic prompt for Claude Code Opus baseline - observed facts before hypotheses, verification commands, no unsupported claims."
+    tags: ["prompt", "claude-code", "debug", "evidence-first", "root-cause"]
+    read_when: "A clear-scope bug / OAuth / provider / plugin / log-diagnosable failure is handed to Claude Code Opus baseline."
+
+  - path: prompts/claude-code-orchestration.md
+    id: PROMPT-claude-code-orchestration
+    layer: prompt
+    purpose: "Complex-task / phase-gated planning prompt for Claude Code Opus + distilled - phases, executor split, stop conditions, rollback, verification gates, commit boundaries."
+    tags: ["prompt", "claude-code", "orchestration", "phases", "multi-agent"]
+    read_when: "A task is large / multi-phase / multi-agent and needs an orchestration plan before execution."
+
+  - path: prompts/claude-code-completion-integrity.md
+    id: PROMPT-claude-code-completion-integrity
+    layer: prompt
+    purpose: "Fable-style completion-honesty / process-integrity prompt - prioritize raw process results over summary reports; detect artifact laundering, premature success, unjoined background jobs, canonical/derived mismatch, missing tests."
+    tags: ["prompt", "claude-code", "fable", "completion-integrity", "process-integrity"]
+    read_when: "Before any release/completion claim, or auditing whether a done claim is honest."
+
+  - path: prompts/codex-task-brief-template.md
+    id: PROMPT-codex-task-brief-template
+    layer: prompt
+    purpose: "Fill-in template for scoped Codex execution - context, goal, in/out of scope, allowed files, constraints, acceptance criteria, verification commands, output contract; Codex must not commit unless explicitly asked."
+    tags: ["prompt", "codex", "delegation", "task-brief", "template", "scoped"]
+    read_when: "Before delegating any mechanical multi-file / boilerplate / migration / test-skeleton task to Codex."
+
+  - path: scripts/check_agent_artifacts.py
+    id: SCRIPT-check-agent-artifacts
+    layer: validation
+    purpose: "Tier-0 deterministic presence + keyword check for the 8 markdown overlay artifacts; exits nonzero if any is missing or missing a required keyword (DR-011 no-silent-pass, DR-021 verify-on-disk)."
+    tags: ["validation", "script", "tier-0", "no-silent-pass", "overlay"]
+    read_when: "After editing any overlay artifact; as a cheap CI / pre-commit gate item."
