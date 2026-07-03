@@ -16,8 +16,7 @@ retrieval_keywords: current state, HEAD, test count, packages shipped, phase sta
 
 # Project State — method-harness-compiler
 
-**Snapshot date:** 2026-07-02 · **HEAD:** `965c68e` (chore: gitignore
-agent_harness/) · **Standard version:** v0.7.1 · **Visibility:** private
+**Snapshot date:** 2026-07-02 · **HEAD:** `801ce17` (chore: gitignore CLAUDE.local.md) · **Standard version:** v0.7.1 · **Visibility:** private
 (open-source-ready; MIT + NOTICE carve-out; no badges while private)
 
 ## Health
@@ -77,3 +76,16 @@ agent_harness/) · **Standard version:** v0.7.1 · **Visibility:** private
 Never commit `agent_harness/` (gitignored, 965c68e). No fabricated evidence;
 TODO_FILL fails validation. Discovered tools are never executed. Repo goes
 public only on the owner's word.
+
+## Session-close note (2026-07-02, Fable -> Opus handoff)
+
+- This harness itself shipped and was wired GLOBALLY this session: thin
+  pointer skill `~/.claude/skills/fable-harness/`, global CLAUDE.md section
+  (user-authorized), `CLAUDE.local.md` in the main repo, codebase-memory
+  index live. First real consumer expected: an Opus session continuing the
+  main project.
+- Main-project state is UNCHANGED since `91b982b` (the two commits after it
+  are gitignore guards only). Next candidates: M2c Phase 3 evidence
+  extraction (fabrication risk -> code gates), B3 blinded full-suite arm,
+  Phase 4 longitudinal memory exercise, ai-berkshire article (user review
+  first), public flip (user's word).
