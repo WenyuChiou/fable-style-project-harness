@@ -211,6 +211,21 @@ python scripts/check_agent_artifacts.py
 
   Bypass a specific commit with `git commit --no-verify` (justify it in the body).
 
+## Fan-out / multi-agent operations (rate-limit ops)
+
+Learned from the 2026-07-03 incidents (96 concurrent agents → total rate-limit
+failure, 0 data; a throttle to ≤4 completed). Standing ops for any Workflow fan-out:
+
+- **Batch concurrency ≤ 4 by default.** Chunk large fan-outs (`parallel` in slices,
+  await between); never launch 15+ heavy agents at once.
+- **Cheap model for light work.** Use Haiku (or a cheaper/lighter model) for
+  draft / label / grade / classification agents; reserve Opus 4.8 for synthesis,
+  adversarial critique, and final protocol decisions.
+- **Checkpoint intermediate output** so a failed fan-out does not lose the whole run
+  (return partials; resume from the run id).
+- **Log concurrency, failures, retries, and model per agent**, and publish attrition
+  (rate-limited / ACTIVATION_FAILED) rather than silently dropping it (`DR-009`/`DR-011`).
+
 ## 5. Anti-patterns
 
 | ❌ Anti-pattern | ✓ Instead | Anchor |

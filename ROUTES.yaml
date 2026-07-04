@@ -1,18 +1,19 @@
 # ---
 # id: ROUTES
 # layer: context
-# purpose: The 8 pinned project-bound routes plus 1 portable core route - per task type, the exact minimal file set to load, the expected deliverable, and the pre-return self-checks.
+# purpose: The 8 pinned project-bound routes plus 2 portable core routes - per task type, the exact minimal file set to load, the expected deliverable, and the pre-return self-checks.
 # read_when: Immediately after L3 classification, before opening any playbook/rubric/example file.
 # depends_on: [context/L3_task_router.md, context/L4_progressive_disclosure_policy.md, schemas/route.schema.yaml]
-# used_by: [ROUTE-phase-review, ROUTE-tool-discovery, ROUTE-pr-review, ROUTE-eval-design, ROUTE-memory-update, ROUTE-runtime-export, ROUTE-repo-maintenance, ROUTE-ab-test-design, ROUTE-global-orchestration]
+# used_by: [ROUTE-phase-review, ROUTE-tool-discovery, ROUTE-pr-review, ROUTE-eval-design, ROUTE-memory-update, ROUTE-runtime-export, ROUTE-repo-maintenance, ROUTE-ab-test-design, ROUTE-global-orchestration, ROUTE-completion-integrity]
 # tags: [routes, routing, file-sets, progressive-disclosure]
 # retrieval_keywords: [route file list, which files to load, required optional, expected output, self check, ROUTE ids]
 # ---
 # Each entry validates against schemas/route.schema.yaml.
-# start is ALWAYS the L0 -> L2 -> L3 context ladder — with ONE exception:
-# ROUTE-global-orchestration starts at core/GLOBAL_BOOTSTRAP.md only, because
-# the ladder is project-bound (see the comment on that route). Load required
-# in full; open optional only with a stated one-line reason (L4 rule 3).
+# start is ALWAYS the L0 -> L2 -> L3 context ladder — EXCEPT the portable routes
+# (ROUTE-global-orchestration, ROUTE-completion-integrity) which start at
+# core/GLOBAL_BOOTSTRAP.md only, because the ladder is project-bound (see the
+# comment on those routes). Load required in full; open optional only with a
+# stated one-line reason (L4 rule 3).
 
 # Entry files that lead INTO the start ladder (runtime-convention launchers;
 # they are pre-route entrypoints, not route members — all three converge on
@@ -306,4 +307,31 @@ routes:
       - "DR-011 (no-silent-pass): skipped or inapplicable checks are recorded with a reason; unknowns yield UNSCORED/TODO, never a guess."
       - "Orchestrator duties never delegated: verification re-RUN (not re-read), explicit-path staging with count assertion, review verdict gates the commit (core/workflow_orchestration_playbook.md section 4)."
       - "DR-003/DR-004: no check was loosened in the change that benefits from it; every reported number was computed by a runner/script, never hand-asserted."
+      - "Output ends with Decision / Risks / Required changes / Next actions (core/GLOBAL_BOOTSTRAP.md output contract)."
+
+  - id: ROUTE-completion-integrity
+    task_type: completion_integrity
+    status: active
+    start:
+      - core/GLOBAL_BOOTSTRAP.md
+    required:
+      - docs/completion-honesty-gate.md
+      - prompts/claude-code-completion-integrity.md
+    optional:
+      - docs/agent-routing-policy.md
+      - prompts/claude-code-debug.md
+      - operating_model/decision_rules.yaml
+    expected_output: >-
+      A completion / "done" claim (or artifact-validation, release-readiness, or
+      false-done-risk check) resolved by the completion-honesty gate: raw process
+      evidence weighed over derived reports; canonical vs derived reconciled;
+      exit code / stderr / test count / background jobs / required files checked
+      on disk; an honest "I cannot honestly claim completion because ..." where
+      evidence is missing — closing with Decision / Risks / Required changes /
+      Next actions.
+    self_check:
+      - "completion-honesty-gate.md boxes: exit code, stderr, timeout, background jobs, canonical-vs-derived, tests-with-count, and file-existence were each checked or recorded not-applicable (DR-011 no-silent-pass)."
+      - "DR-004 computed-not-claimed: every reported number came from a runner/artifact, not hand-asserted; the canonical artifact was inspected, not just its derived report."
+      - "DR-010 halt-is-success: on missing/contradictory evidence, a published 'cannot honestly claim completion because ...' was emitted rather than a guessed done."
+      - "DR-009 publish-own-failures: any gap or failure is surfaced with equal prominence, not buried under a green summary."
       - "Output ends with Decision / Risks / Required changes / Next actions (core/GLOBAL_BOOTSTRAP.md output contract)."

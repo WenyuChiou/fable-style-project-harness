@@ -51,7 +51,7 @@ files:
   - path: ROUTES.yaml
     id: ROUTES
     layer: context
-    purpose: "The 8 pinned project-bound routes plus 1 portable core route - per task type, the minimal file set, expected deliverable, and pre-return self-checks."
+    purpose: "The 8 pinned project-bound routes plus 2 portable core routes - per task type, the minimal file set, expected deliverable, and pre-return self-checks."
     tags: ["routes", "routing", "file-sets", "progressive-disclosure"]
     read_when: "Immediately after L3 classification, before opening any playbook/rubric/example file."
 

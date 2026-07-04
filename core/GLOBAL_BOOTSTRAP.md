@@ -66,6 +66,24 @@ not apply here).
 Read only what the task needs; the rubrics are per-artifact-type, not
 per-session.
 
+## Route triggers (explicit — take the route, do not improvise)
+
+The portable reading set above is the DEFAULT for general large / multi-agent
+work. For these higher-risk task classes, take the named route and load its
+full `required:` set — do not rely on those files self-loading:
+
+- Completion / "done" / "ready to ship / commit / release" claim, false-done
+  risk, or artifact validation → **ROUTE-completion-integrity**, which makes the
+  completion overlay REQUIRED (not optional): `docs/completion-honesty-gate.md`
+  + `prompts/claude-code-completion-integrity.md`.
+- Benchmark / eval / grader / A-B design → **ROUTE-eval-design** or
+  **ROUTE-ab-test-design** (see `docs/ab_test_protocol.md`,
+  `docs/ab_skill_effect_protocol.md`).
+- Post-run / postmortem / policy or memory update → **ROUTE-memory-update**.
+
+Trigger -> action, not "load more if unsure": if no trigger fires, stay on the
+portable core and do NOT pull the overlay.
+
 ## Output contract
 
 Every substantive deliverable ends with four short sections:

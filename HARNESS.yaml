@@ -40,6 +40,7 @@ routes:
   - ROUTE-repo-maintenance
   - ROUTE-ab-test-design
   - ROUTE-global-orchestration   # portable core; start = core/GLOBAL_BOOTSTRAP.md, not the L0/L2/L3 ladder
+  - ROUTE-completion-integrity   # portable; completion/done-claim/artifact-validation — overlay REQUIRED
 portability_targets:
   - claude_code
   - codex

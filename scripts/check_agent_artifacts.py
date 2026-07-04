@@ -122,6 +122,24 @@ def unresolved_depends_on(rel_path, text):
     return [dep for dep in parse_depends_on(text) if not (base / dep).resolve().exists()]
 
 
+# Bare `- <path>.<ext>` list items (start/required/optional). Matches ANY file
+# extension, not a hardcoded allowlist, so a broken .jsonl/.json/... route
+# reference cannot slip past this drift check (quoted self_check items and `#`
+# comments do not start with a bare word, so they are not matched).
+_ROUTE_PATH_RE = re.compile(r"^\s+-\s+([\w./-]+\.[A-Za-z0-9]+)\s*$", re.MULTILINE)
+
+
+def route_path_refs(text):
+    """Return the sorted, de-duped path-like list items in a ROUTES.yaml text."""
+    return sorted({m.group(1) for m in _ROUTE_PATH_RE.finditer(text)})
+
+
+def check_route_paths():
+    """Wiring-drift catch: every path-like list item in ROUTES.yaml resolves on disk."""
+    text = read_text("ROUTES.yaml") or ""
+    return sorted(p for p in route_path_refs(text) if not (repo_root / p).exists())
+
+
 def main():
     total = len(REQUIRED)
     passed = 0
@@ -141,7 +159,16 @@ def main():
         if broken:
             print("FAIL {}: unresolved depends_on {}".format(rel_path, broken))
     print("{}/{} artifacts OK".format(passed, total))
-    return 0 if passed == total else 1
+
+    # Lightweight wiring-drift + protocol coverage (added 2026-07-03).
+    broken_routes = check_route_paths()
+    proto = "docs/ab_skill_effect_protocol.md"
+    proto_ok = (repo_root / proto).exists()
+    print("OK ROUTES.yaml path references all resolve" if not broken_routes
+          else "FAIL ROUTES.yaml references missing paths: {}".format(broken_routes))
+    print(("OK " if proto_ok else "MISSING FILE ") + proto)
+
+    return 0 if (passed == total and not broken_routes and proto_ok) else 1
 
 
 if __name__ == "__main__":

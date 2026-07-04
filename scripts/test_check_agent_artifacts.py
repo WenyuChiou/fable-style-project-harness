@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Regression tests for check_agent_artifacts.py's frontmatter depends_on parser.
+"""Regression tests for check_agent_artifacts.py's parsers.
 
-Pins the parser behavior the 2026-07-03 depends_on extension relies on, so a future
-refactor that silently breaks block-list parsing (and thus quietly stops checking
-depends_on resolution) fails loudly instead of passing green. Pure-stdlib asserts,
-no pytest / third-party dependency, mirroring the checker it guards.
+Pins two behaviors so a future refactor that silently breaks them fails loudly
+instead of passing green: (1) the frontmatter depends_on block-list parser the
+2026-07-03 depends_on extension relies on; (2) route_path_refs, whose extension
+match must stay broad enough to catch a broken .jsonl/.json route reference (the
+old md|yaml|py-only regex silently skipped memory/phase_history.jsonl). Pure-stdlib
+asserts, no pytest / third-party dependency, mirroring the checker it guards.
 
 Run:
     python scripts/test_check_agent_artifacts.py
@@ -50,6 +52,23 @@ CASES = [
      ["../a/one.md", "./two.yaml"]),
 ]
 
+# (name, ROUTES.yaml snippet, expected route_path_refs) — pins the broadened
+# extension match: a .jsonl path MUST be captured (the exact false-negative the
+# old md|yaml|py regex produced), while quoted self_check items and # comments
+# must NOT be matched (no false positives that would trip on non-paths).
+ROUTE_PATH_CASES = [
+    ("captures .jsonl (the extension the old md|yaml|py regex missed)",
+     "    required:\n      - memory/phase_history.jsonl\n      - docs/x.md\n",
+     ["docs/x.md", "memory/phase_history.jsonl"]),
+    ("captures md/yaml/py; ignores quoted self_check items and # comments",
+     "  self_check:\n    - \"cite DR-004 not a.file\"\n  # used_by: foo.md\n"
+     "    start:\n      - core/GLOBAL_BOOTSTRAP.md\n    required:\n      - a/b.yaml\n      - c/d.py\n",
+     ["a/b.yaml", "c/d.py", "core/GLOBAL_BOOTSTRAP.md"]),
+    ("prose expected_output with a period -> no path-like items",
+     "  expected_output: >-\n    a sentence with a period. no list items here\n",
+     []),
+]
+
 
 def main():
     failures = 0
@@ -83,7 +102,31 @@ def main():
     else:
         print("ok   unresolved_depends_on clean on a real overlay file")
 
-    total = len(CASES) + 2
+    for name, text, expected in ROUTE_PATH_CASES:
+        got = chk.route_path_refs(text)
+        if got != expected:
+            failures += 1
+            print("FAIL route_path_refs [{}]: expected {} got {}".format(name, expected, got))
+        else:
+            print("ok   route_path_refs [{}]".format(name))
+
+    # Live coverage: the real ROUTES.yaml's .jsonl route path is now captured
+    # (regression guard for issue #2 of the 2026-07-03 review).
+    routes_text = (_here.parent / "ROUTES.yaml").read_text(encoding="utf-8")
+    if "memory/phase_history.jsonl" not in chk.route_path_refs(routes_text):
+        failures += 1
+        print("FAIL route_path_refs misses memory/phase_history.jsonl on real ROUTES.yaml")
+    else:
+        print("ok   route_path_refs captures the real .jsonl route path")
+
+    # And the real file has zero broken route paths (matches check_route_paths()).
+    if chk.check_route_paths() != []:
+        failures += 1
+        print("FAIL check_route_paths reports broken paths on real ROUTES.yaml")
+    else:
+        print("ok   check_route_paths clean on real ROUTES.yaml")
+
+    total = len(CASES) + 2 + len(ROUTE_PATH_CASES) + 2
     print("{} passed, {} failed".format(total - failures, failures))
     return 1 if failures else 0
 
