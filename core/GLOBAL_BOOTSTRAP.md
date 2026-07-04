@@ -56,8 +56,9 @@ not apply here).
    - `rubrics/eval_quality_rubric.yaml`
    - `rubrics/progressive_disclosure_rubric.yaml`
 5. Operator agent-binding overlay (OPTIONAL — concrete runtime config, load only
-   when the task is about which surface/mode should run it, a completion/"done"
-   claim, or a scoped delegate brief):
+   when the task is about which surface/mode should run it, a completion-integrity
+   deliverable (see Route triggers below — REQUIRED there, not optional), or a
+   scoped delegate brief):
    - `docs/agent-routing-policy.md` — surface/mode routing matrix + escalation.
    - `docs/completion-honesty-gate.md` — the done / fixed / ready checklist.
    - `docs/agent-optimization-runbook.md` — day-to-day usage; indexes the
@@ -66,23 +67,33 @@ not apply here).
 Read only what the task needs; the rubrics are per-artifact-type, not
 per-session.
 
-## Route triggers (explicit — take the route, do not improvise)
+## Route triggers (classify BEFORE you start — by your deliverable, not the prompt's wording)
 
 The portable reading set above is the DEFAULT for general large / multi-agent
-work. For these higher-risk task classes, take the named route and load its
-full `required:` set — do not rely on those files self-loading:
+work. Before starting — and again if the deliverable's shape shifts mid-task —
+ask ONE question: **will my deliverable assert that
+something is done / passing / correct / ready / safe to ship or commit — or hand
+over an artifact (a status note, a report, a rename, a staged diff) as if it were
+authoritative?** If yes, it is a completion-integrity task EVEN WHEN the prompt
+never says "done", "verify", or "check" — take the named route and load its full
+`required:` set first; do not rely on those files self-loading.
 
-- Completion / "done" / "ready to ship / commit / release" claim, false-done
-  risk, or artifact validation → **ROUTE-completion-integrity**, which makes the
-  completion overlay REQUIRED (not optional): `docs/completion-honesty-gate.md`
-  + `prompts/claude-code-completion-integrity.md`.
+- **Completion integrity** — the deliverable is a done / passing / ready / works
+  claim, a status / PR / standup / release note, a stage-or-commit, or the
+  validation / reconciliation of an artifact or a delegate/lane report. It fires
+  on neutral prompts that never say "done" — e.g. "add the pass rate", "note the
+  test status", "stage the rename", "is this ready?", "tell me what to change" →
+  **ROUTE-completion-integrity**: read `docs/completion-honesty-gate.md` +
+  `prompts/claude-code-completion-integrity.md` BEFORE you write the claim
+  (REQUIRED here, not optional).
 - Benchmark / eval / grader / A-B design → **ROUTE-eval-design** or
   **ROUTE-ab-test-design** (see `docs/ab_test_protocol.md`,
   `docs/ab_skill_effect_protocol.md`).
 - Post-run / postmortem / policy or memory update → **ROUTE-memory-update**.
 
-Trigger -> action, not "load more if unsure": if no trigger fires, stay on the
-portable core and do NOT pull the overlay.
+Trigger -> action, not "load more if unsure": if the deliverable makes no such
+claim and hands over no artifact, stay on the portable core and do NOT pull the
+overlay.
 
 ## Output contract
 
