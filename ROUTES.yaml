@@ -286,6 +286,15 @@ routes:
       - rubrics/eval_quality_rubric.yaml
       - rubrics/progressive_disclosure_rubric.yaml
       - datasets/failure_modes.yaml
+      # Operator agent-binding overlay (concrete Hermes/Claude Code/Codex runtime
+      # config). Load with a stated reason when the task is about WHICH surface/
+      # mode should run it, a completion/"done" claim, or a scoped delegate brief.
+      # agent-optimization-runbook.md indexes all 5 matching prompts
+      # (prompts/claude-code-*.md + prompts/codex-task-brief-template.md via its
+      # depends_on + link table), so the prompts are reachable from here.
+      - docs/agent-routing-policy.md
+      - docs/completion-honesty-gate.md
+      - docs/agent-optimization-runbook.md
     expected_output: >-
       A large or multi-agent (Workflow/ultracode) task in ANY non-mhc project
       executed under the portable discipline: pinned work orders, disjoint

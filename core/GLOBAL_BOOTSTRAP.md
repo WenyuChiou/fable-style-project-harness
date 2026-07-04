@@ -55,6 +55,13 @@ not apply here).
    - `rubrics/maintainability_rubric.yaml`
    - `rubrics/eval_quality_rubric.yaml`
    - `rubrics/progressive_disclosure_rubric.yaml`
+5. Operator agent-binding overlay (OPTIONAL — concrete runtime config, load only
+   when the task is about which surface/mode should run it, a completion/"done"
+   claim, or a scoped delegate brief):
+   - `docs/agent-routing-policy.md` — surface/mode routing matrix + escalation.
+   - `docs/completion-honesty-gate.md` — the done / fixed / ready checklist.
+   - `docs/agent-optimization-runbook.md` — day-to-day usage; indexes the
+     `prompts/claude-code-*.md` and `prompts/codex-task-brief-template.md` prompts.
 
 Read only what the task needs; the rubrics are per-artifact-type, not
 per-session.
