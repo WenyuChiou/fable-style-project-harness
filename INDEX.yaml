@@ -401,7 +401,7 @@ files:
   - path: docs/publication_status.md
     id: DOC-publication-status
     layer: doc
-    purpose: "Publication status (PUBLIC, verified 2026-07-06) + public-safe posture - never-include list checked on every commit, repeatable public-safety review checklist, honest ledger of outstanding items (license pending)"
+    purpose: "Publication status (PUBLIC, verified 2026-07-06) + public-safe posture - never-include list checked on every commit, repeatable public-safety review checklist, honest outstanding-items ledger (license: MIT, decided 2026-07-06)"
     tags: ["publication", "public-safe", "security", "review-checklist", "gitignore"]
     read_when: "Before any push or release, when a file mentions visibility posture, and MANDATORY before any major publication event"
 
