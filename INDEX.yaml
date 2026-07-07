@@ -1209,6 +1209,13 @@ files:
     tags: ["doc", "model-tiers", "test-plan", "unverified-ledger"]
     read_when: "Re-running tier validation, executing the outstanding Codex live test, or grading a tier-test transcript."
 
+  - path: docs/evidence.md
+    id: DOC-evidence
+    layer: doc
+    purpose: "The honest evidence ledger: measured-positive (context economics, tier operability, defect catches, loop closure), measured-NEGATIVE (8 ceiling experiments - no capability gain, published deliberately), and untested (14 pre-registered A/Bs); every claim cites a re-runnable artifact."
+    tags: ["doc", "evidence", "evaluation", "negative-results", "adoption"]
+    read_when: "Deciding whether to adopt this system, telling someone about it, or auditing whether a claim about it is supported."
+
   - path: docs/integration_test_matrix.md
     id: DOC-integration-test-matrix
     layer: doc
