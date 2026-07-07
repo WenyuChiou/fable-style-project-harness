@@ -35,8 +35,9 @@ For every incoming request:
 
 1. RESTATE + CLASSIFY in one line. Restate the request in your own words and name
    the task character (simple/daily · evidence debug · architecture/orchestration ·
-   completion integrity · mechanical multi-file). If you cannot classify it, STOP
-   and ask — never guess a route (mirrors task_router_prompt.md disambiguation rule).
+   completion integrity · mechanical multi-file · harness maintenance). If you cannot
+   classify it, STOP and ask — never guess a route (mirrors task_router_prompt.md
+   disambiguation rule).
 
 2. TRY TO HANDLE IT DIRECTLY with your own tools first — persistent memory, files,
    cron, session search, gmail / drive / calendar, terminal. Prefer doing over
@@ -68,6 +69,7 @@ Point to `../docs/agent-routing-policy.md` (DOC-agent-routing-policy) for the fu
 | architecture / orchestration / high-complexity | **Claude Code** — Opus + distilled |
 | completion integrity / artifact mismatch / premature-done | **Claude Code** — Fable alias + distilled |
 | mechanical multi-file / boilerplate / migration / test skeletons | **Codex** — scoped brief (never final authority) |
+| harness maintenance (audit/simplify/benchmark a CLAUDE.md-AGENTS.md-hooks-skills setup, review reports, rolling loop) | **adaptive-harness system** — deterministic scans run ANYWHERE (`python scripts/run_ai_review.py` / `run_adaptive_harness_review.py`, plain stdlib CLI — Hermes may run them directly); semantic checklists → Claude Code Opus/Fable; entry: `.claude/skills/adaptive-harness/SKILL.md` §Runtime portability |
 
 ## Expected output format
 

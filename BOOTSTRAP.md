@@ -19,6 +19,11 @@ survives model and session changes.
 
 > **Not working on `method-harness-compiler`?** Use the portable path
 > instead: read `core/GLOBAL_BOOTSTRAP.md` (core/ only — skip the ladder below).
+>
+> **Maintaining a harness itself** (audit/simplify/benchmark CLAUDE.md,
+> hooks, skills, scheduled reviews — this repo's or another)? Read
+> `.claude/skills/adaptive-harness/SKILL.md` — runtime-agnostic entry; the
+> runners are plain Python CLIs any agent can execute.
 
 ## Startup sequence (mandatory, in order)
 

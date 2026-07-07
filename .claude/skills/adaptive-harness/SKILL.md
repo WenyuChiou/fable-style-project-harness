@@ -18,7 +18,7 @@ depends_on:
   - ../../../docs/ai_review_adaptive_harness_integration.md
   - ../../../schemas/review_report.schema.yaml
   - ../../../schemas/recommendation.schema.yaml
-used_by: [claude-code-skill-runtime]
+used_by: [claude-code-skill-runtime, AGENTS, PROMPT-hermes-router]
 tags: [entrypoint, skill, adaptive-harness, ai-review, rolling-improvement, report-only]
 retrieval_keywords: [adaptive harness skill, rolling improvement loop, harness inventory, skill fit review, patch proposal mode, scheduled harness review, ai review integration, harness cleanup]
 ---
@@ -102,3 +102,32 @@ Deterministic runners: any tier (code — Haiku or cron can invoke).
 `harness_cleanup_review`, `rolling_improvement_review` interpretation,
 `patch_proposal` judgment: Opus/Fable-class. Codex: mechanical scoped work
 only, never final authority (docs/codex-delegation-policy.md).
+Executed tier evidence: `benchmarks/model_compatibility_cases.yaml` (Haiku
+4/4, Sonnet 2/2 real runs; Codex live compliance UNVERIFIED — plan in
+`docs/model_compatibility_test_plan.md`).
+
+## Runtime portability (this skill is NOT Claude-Code-only)
+
+The system's contracts are plain files + stdlib-Python CLIs; the skill
+format is just one discovery wrapper. Entry per runtime:
+
+| Runtime | Entry | Notes |
+|---|---|---|
+| Claude Code | this SKILL.md via the skill system | full loop incl. semantic checklists |
+| Codex / Cursor / AGENTS.md-convention agents | `AGENTS.md` §Harness-maintenance path → this file as markdown | may RUN runners, draft findings JSON, execute scoped mechanical fixes under docs/codex-delegation-policy.md; NEVER final authority, never applies proposals |
+| Hermes (or any router surface) | `prompts/hermes-router.md` routing row "harness maintenance" | runs deterministic scans directly; routes semantic checklist work to a strong reasoning surface |
+| Human / cron / any shell | the CLIs directly | `python scripts/run_ai_review.py --mode … `; scheduled = report-only by code |
+
+What travels with any runtime: the runners (stdlib, offline), the schemas
+(`--ingest` validation is runtime-blind), the checklists (markdown), the
+safety invariants (coded in the runners, not in this wrapper).
+
+## Scenario matrix (適用不同場景)
+
+| Scenario | Invocation | What degrades gracefully |
+|---|---|---|
+| This repo self-audit (default) | runners with no flags | nothing — full collector set |
+| Any OTHER repo / project harness | `--target <repo-path>` | INDEX/ROUTES/benchmark collectors mark `skipped` when those files don't exist; report stays schema-valid |
+| Operator's global harness (~/.claude) | default `--home` telemetry collectors; target stays a repo | missing ~/.claude scripts mark `unavailable`, never fabricated |
+| Headless / scheduled | `--mode scheduled_review` / `scheduled_harness_review` | report-only BY CODE: --ingest rejected, no ledger writes, no proposals |
+| Hermetic / CI | `--no-home --dry-run` | zero machine-specific dependencies, zero writes |

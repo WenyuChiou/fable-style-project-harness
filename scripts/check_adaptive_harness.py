@@ -66,6 +66,11 @@ REQUIRED = {
     "benchmarks/ai_review_cases.yaml": ["case_name", "linked_recommendation_id"],
     "benchmarks/harness_cases.yaml": ["case_name", "linked_recommendation_id"],
     "SKILL.md": ["adaptive-harness"],  # root launcher documents the adapter relationship
+    # Universal-entry wiring (2026-07-06, user request): every non-Claude
+    # runtime's entry file must point at the adaptive-harness system.
+    "AGENTS.md": ["adaptive-harness", "Harness-maintenance path"],
+    "BOOTSTRAP.md": ["adaptive-harness"],
+    "prompts/hermes-router.md": ["harness maintenance", "adaptive-harness"],
 }
 
 # Posture claims that must not reappear on the world-facing surface.

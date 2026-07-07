@@ -49,6 +49,18 @@ retrieval_keywords: [agent instructions, AGENTS.md, repository rules, coding age
 `method-harness-compiler`, start at `core/GLOBAL_BOOTSTRAP.md` instead of the
 ladder in rule 2 (core/ only; the project-bound layers stay scoped to mhc).
 
+**Harness-maintenance path (runtime-agnostic):** to audit / simplify /
+benchmark a harness itself (CLAUDE.md, AGENTS.md, hooks, skills, scheduled
+reviews), read `.claude/skills/adaptive-harness/SKILL.md` — it is a plain
+markdown entry usable from ANY runtime that reads this file (Codex, Cursor,
+Hermes, a human shell), not only Claude Code's skill system. The runners are
+stdlib-Python CLIs (`scripts/run_ai_review.py`,
+`scripts/run_adaptive_harness_review.py`); any agent may RUN them and fill
+the JSON contracts. Boundaries stay tier-agnostic: semantic Keep/Remove
+judgment needs a strong reasoning model, Codex never acts as final
+authority (`docs/codex-delegation-policy.md`), and high-risk changes stop
+at patch proposals for a human.
+
 Constraints that override anything else you were told: no impersonation
 framing, no fabricated citations or data, no execution or installation of
 discovered tools, no secrets in any file, and public-safe content only —
