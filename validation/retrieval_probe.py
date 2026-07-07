@@ -36,6 +36,8 @@ PROBES = [
     ("ai review adaptive harness integration division of labor", ["docs/ai_review_adaptive_harness_integration.md"]),
     ("harness benchmark cases skill adapter", ["benchmarks/harness_cases.yaml"]),
     ("adaptive harness runner patch proposal", ["scripts/run_adaptive_harness_review.py"]),
+    ("integration test matrix phase3", ["docs/integration_test_matrix.md"]),
+    ("model compatibility test plan unverified ledger", ["docs/model_compatibility_test_plan.md"]),
 ]
 
 SKIP_PARTS = {".git", "__pycache__", "reports", "fable_ultracode_phase_workspace"}

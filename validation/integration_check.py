@@ -1,0 +1,228 @@
+#!/usr/bin/env python3
+"""Phase-3 integration check - the re-runnable half of docs/integration_test_matrix.md.
+
+Executes the full deterministic verification matrix for the AI-review +
+adaptive-harness system: CLI surface, all modes dry-run, JSON validity,
+dry-run zero-mutation, the E2E data flow (AI-review -> rolling loop ->
+REC-id linkage), scheduled report-only invariants, validators, posture,
+graph build, and all four test suites. Emits one PASS/FAIL row per check
+plus a JSON blob; docs/integration_test_matrix.md records executed
+snapshots of this output (computed, never hand-written).
+
+Run:
+    python validation/integration_check.py [--json]
+
+Exit codes: 0 all rows PASS; 1 any FAIL.
+"""
+import io
+import json
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+PY = sys.executable
+ROWS = []
+
+
+def utf8():
+    for n in ("stdout", "stderr"):
+        s = getattr(sys, n)
+        if hasattr(s, "buffer"):
+            setattr(sys, n, io.TextIOWrapper(s.buffer, encoding="utf-8", errors="replace"))
+
+
+def run(cmd, timeout=600):
+    p = subprocess.run(cmd, cwd=str(REPO), capture_output=True, text=True,
+                       encoding="utf-8", errors="replace", timeout=timeout)
+    return p.returncode, p.stdout, p.stderr
+
+
+QUIET = False
+
+
+def row(name, layer, ok, evidence, command=""):
+    ROWS.append({"test": name, "layer": layer, "status": "PASS" if ok else "FAIL",
+                 "evidence": evidence[:300], "command": command})
+    if not QUIET:
+        print(("PASS " if ok else "FAIL ") + name + ("" if ok else f"  <- {evidence[:160]}"))
+
+
+def git_state():
+    """Mutation-detection surface. -uall expands files inside untracked dirs
+    (plain porcelain collapses them to one '?? dir/' line) and
+    --ignored=matching includes gitignored paths - reports/ is the runners'
+    DEFAULT output dir, so without it a dry-run regression that wrote
+    reports/ would pass the safety rows vacuously (2026-07-06 review-pair
+    finding)."""
+    rc, out, _ = run(["git", "status", "--porcelain", "-uall", "--ignored=matching"])
+    return out
+
+
+AI_MODES = ["standard_review", "harness_cleanup_review", "code_invocation_review",
+            "codex_delegation_review", "scheduled_review", "diff_review",
+            "experiment_review"]
+AH_MODES = ["harness_inventory", "harness_cleanup_review", "code_invocation_review",
+            "ai_review_integration", "skill_fit_review", "diff_only_review",
+            "scheduled_harness_review", "experiment_design", "patch_proposal",
+            "rolling_improvement_review"]
+
+
+def main():
+    utf8()
+    import argparse
+    global QUIET
+    ap = argparse.ArgumentParser(prog="integration_check.py",
+                                 description="Phase-3 integration instrument (51 checks).")
+    ap.add_argument("--json", action="store_true",
+                    help="Emit ONLY the JSON blob on stdout (human rows suppressed).")
+    args = ap.parse_args()
+    as_json = args.json
+    QUIET = as_json
+
+    # 1. CLI surface
+    for script in ("scripts/run_ai_review.py", "scripts/run_adaptive_harness_review.py"):
+        rc, out, err = run([PY, script, "--help"])
+        row(f"{script} --help", "CLI", rc == 0, err or "exit 0",
+            f"python {script} --help")
+
+    # 2. Every mode dry-runs to valid JSON, dry_run flag true, correct source
+    before = git_state()
+    for script, modes, sched in (
+            ("scripts/run_ai_review.py", AI_MODES, "scheduled_review"),
+            ("scripts/run_adaptive_harness_review.py", AH_MODES, "scheduled_harness_review")):
+        for mode in modes:
+            rc, out, err = run([PY, script, "--mode", mode, "--dry-run", "--no-home"])
+            ok, ev = rc == 0, f"exit {rc}"
+            if ok:
+                try:
+                    r = json.loads(out)
+                    ok = (r["dry_run"] is True and r["mode"] == mode
+                          and r["source"] == ("scheduled_runner" if mode == sched
+                                              else ("ai_review" if "ai_review" in script
+                                                    else "adaptive_harness")))
+                    ev = f"json ok; source={r['source']}"
+                except (json.JSONDecodeError, KeyError) as exc:
+                    ok, ev = False, f"bad JSON: {exc}"
+            row(f"dry-run {mode}", "runner-modes", ok, ev,
+                f"python {script} --mode {mode} --dry-run --no-home")
+    row("dry-run zero mutation (all modes above)", "dry-run-safety",
+        git_state() == before, "git status identical before/after 17 dry-runs")
+
+    # 3. E2E data flow in a hermetic temp output
+    with tempfile.TemporaryDirectory() as tmp:
+        air_out = Path(tmp) / "ai-review"
+        rc, out, err = run([PY, "scripts/run_ai_review.py", "--mode",
+                            "harness_cleanup_review", "--no-home",
+                            "--output", str(air_out)])
+        latest = air_out / "latest.json"
+        ok = rc == 0 and latest.is_file() and (air_out / "latest.md").is_file()
+        row("AI-review real run writes latest.json+md", "data-flow", ok, f"exit {rc}")
+        hist = air_out / "history" / "review-log.jsonl"
+        row("AI-review history JSONL appended", "data-flow",
+            hist.is_file() and len(hist.read_text(encoding='utf-8').splitlines()) == 1,
+            "1 row after 1 run")
+        # feed findings so linkage is testable
+        finding = {
+            "recommendation_id": "REC-20260706-900", "component_name": "e2e-probe",
+            "component_type": "rule", "file_path": "X.md", "current_purpose": "p",
+            "evidence_it_still_helps": "none found", "evidence_it_may_be_obsolete": "e",
+            "recommendation": "Simplify", "expected_impact": "i",
+            "risk_if_changed": "low", "suggested_test": "t", "confidence": "high",
+            "priority": "P2", "source_review_id": "pending"}
+        air_report = json.loads(latest.read_text(encoding="utf-8"))
+        finding["source_review_id"] = air_report["review_id"]
+        fpath = Path(tmp) / "f.json"
+        fpath.write_text(json.dumps({"recommendations": [finding]}), encoding="utf-8")
+        rc, out, err = run([PY, "scripts/run_ai_review.py", "--mode",
+                            "harness_cleanup_review", "--no-home",
+                            "--output", str(air_out), "--ingest", str(fpath)])
+        row("AI-review ingest merges validated findings", "data-flow", rc == 0, f"exit {rc}")
+
+        ah_out = Path(tmp) / "harness"
+        rc, out, err = run([PY, "scripts/run_adaptive_harness_review.py", "--mode",
+                            "rolling_improvement_review", "--no-home",
+                            "--read-ai-review", str(latest), "--output", str(ah_out)])
+        ah_latest = ah_out / "latest.json"
+        ok = rc == 0 and ah_latest.is_file() and (ah_out / "latest.md").is_file()
+        row("adaptive-harness reads AI-review + writes latest.json+md", "data-flow", ok, f"exit {rc}")
+        if ok:
+            ah_report = json.loads(ah_latest.read_text(encoding="utf-8"))
+            recs = ah_report["recommendations"]
+            row("rolling loop carries the AI-review recommendation", "data-flow",
+                any(r.get("recommendation_id") == "REC-20260706-900" for r in recs),
+                f"{len(recs)} recs in harness report")
+            row("recommendations link back to source review id", "traceability",
+                any(r.get("source_review_id") == air_report["review_id"] for r in recs),
+                "source_review_id matches AI-review review_id")
+            row("shared schema: same required keys in both reports", "shared-schema",
+                all(k in ah_report and k in air_report for k in
+                    ("review_id", "source", "mode", "recommendations", "metrics",
+                     "next_review_trigger", "unresolved_questions")),
+                "review_report core keys present in both")
+            row("adaptive-harness history JSONL appended", "data-flow",
+                (ah_out / "history" / "review-log.jsonl").is_file(), "history exists")
+
+        # scheduled real runs: report-only (repo untouched, ledger untouched).
+        # The ledger guard must not go vacuous when the ledger is absent
+        # (fresh machine): existence-state must be unchanged either way.
+        ledger = Path.home() / ".claude" / "audits" / "proposals.jsonl"
+        ledger_existed = ledger.is_file()
+        ledger_mtime = ledger.stat().st_mtime if ledger_existed else None
+        pre = git_state()
+        rc1, _, _ = run([PY, "scripts/run_ai_review.py", "--mode", "scheduled_review",
+                         "--output", str(Path(tmp) / "s1")])
+        rc2, _, _ = run([PY, "scripts/run_adaptive_harness_review.py", "--mode",
+                         "scheduled_harness_review", "--output", str(Path(tmp) / "s2")])
+        ok = rc1 == 0 and rc2 == 0 and git_state() == pre
+        ok = ok and ledger.is_file() == ledger_existed
+        if ledger_existed:
+            ok = ok and ledger.stat().st_mtime == ledger_mtime
+            ledger_ev = "proposals.jsonl mtime unchanged"
+        else:
+            ledger_ev = "proposals.jsonl absent before AND after (not created)"
+        row("scheduled modes: report-only (repo + ledger untouched)", "scheduled-safety",
+            ok, f"exit 0 both; tree unchanged; {ledger_ev}")
+
+    # 4. Validators, probes, graph
+    for name, cmd, layer in (
+            ("check_agent_artifacts", [PY, "scripts/check_agent_artifacts.py"], "validators"),
+            ("check_adaptive_harness (incl. posture)", [PY, "scripts/check_adaptive_harness.py"], "validators"),
+            ("retrieval_probe", [PY, "validation/retrieval_probe.py"], "retrieval"),
+            ("harness graph build (0 broken deps)", [PY, "scripts/build_harness_graph.py", "--dry-run"], "knowledge-graph")):
+        rc, out, err = run(cmd)
+        row(name, layer, rc == 0, (out + err).strip().splitlines()[-1] if (out or err) else f"exit {rc}",
+            " ".join(c if c != PY else "python" for c in cmd))
+
+    # 5. Test suites
+    for suite in ("scripts/test_run_ai_review.py", "scripts/test_run_adaptive_harness_review.py",
+                  "scripts/test_build_harness_graph.py", "scripts/test_check_agent_artifacts.py"):
+        rc, out, err = run([PY, suite])
+        last = out.strip().splitlines()[-1] if out.strip() else err[:100]
+        row(f"suite {suite}", "tests", rc == 0, last, f"python {suite}")
+
+    # 6. Artifact presence inventory (Phase-3 section 1)
+    for path in (".claude/skills/adaptive-harness/SKILL.md", "SKILL.md",
+                 "scripts/run_ai_review.py", "scripts/run_adaptive_harness_review.py",
+                 "schemas/review_report.schema.yaml", "schemas/recommendation.schema.yaml",
+                 "benchmarks/ai_review_cases.yaml", "benchmarks/harness_cases.yaml",
+                 "benchmarks/retrieval_cases.yaml", "docs/codex-delegation-policy.md",
+                 "docs/ai_review_adaptive_harness_integration.md",
+                 "docs/publication_status.md", "prompts/ai-review-modes.md"):
+        row(f"exists {path}", "inventory", (REPO / path).is_file(), "on disk")
+    row("no GitHub Actions workflow (CI intentionally absent; proposal-only)",
+        "scheduled-safety", not (REPO / ".github").exists(),
+        ".github/ not present - no CI can auto-run anything")
+
+    passed = sum(1 for r in ROWS if r["status"] == "PASS")
+    if as_json:
+        print(json.dumps({"rows": ROWS, "passed": passed, "total": len(ROWS)},
+                         indent=1, ensure_ascii=False))
+    else:
+        print(f"\n{passed}/{len(ROWS)} checks PASS")
+    return 0 if passed == len(ROWS) else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

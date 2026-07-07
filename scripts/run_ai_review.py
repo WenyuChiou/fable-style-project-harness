@@ -352,18 +352,27 @@ def collect_codex_policy(target, home):
 
 def collect_experiments(target):
     """Parse benchmarks/*.yaml (flat controlled format - line-based, stdlib-only)
-    and report cases by status; 'proposed'/'running' cases are open experiments."""
+    and report cases by status; 'proposed'/'running' cases are open experiments.
+    Model-compatibility cases carry their OWN status vocabulary
+    (executed/unverified/...) and are excluded here so experiment reports stay
+    valid against the review_report schema's experiment enum - excluded count
+    is reported, never silently dropped (2026-07-06 review-pair finding)."""
     bench_dir = target / "benchmarks"
     if not bench_dir.is_dir():
         return {"status": "skipped", "reason": "no benchmarks/ dir"}
-    cases = []
+    cases, excluded = [], 0
     for f in sorted(bench_dir.glob("*.yaml")):
-        cases.extend(parse_benchmark_cases(f.read_text(encoding="utf-8", errors="replace"),
-                                           str(f.relative_to(target)).replace("\\", "/")))
+        for c in parse_benchmark_cases(f.read_text(encoding="utf-8", errors="replace"),
+                                       str(f.relative_to(target)).replace("\\", "/")):
+            if c.get("task_type") == "model_compatibility":
+                excluded += 1
+            else:
+                cases.append(c)
     by_status = {}
     for c in cases:
         by_status.setdefault(c.get("status", "unknown"), []).append(c["case_name"])
     return {"status": "ok", "case_count": len(cases), "cases": cases,
+            "excluded_model_compatibility_cases": excluded,
             "by_status": {k: sorted(v) for k, v in by_status.items()}}
 
 

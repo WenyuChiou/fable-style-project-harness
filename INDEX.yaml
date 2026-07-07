@@ -956,3 +956,31 @@ files:
     purpose: "Pre-registered retrieval / knowledge-graph query cases (overlay 04) - 10 queries with expected files/sources, must-not-include, and model-tier annotations; the Phase-3 retrieval-quality checklist."
     tags: ["dataset", "retrieval", "knowledge-graph", "queries", "model-tiers"]
     read_when: "Testing retrieval quality after graph/index changes, or running Phase-3 model-tier validation."
+
+  - path: validation/integration_check.py
+    id: SCRIPT-integration-check
+    layer: validation
+    purpose: "Phase-3 re-runnable integration instrument: 51 deterministic checks - CLI surface, all 17 runner modes dry-run to valid JSON, dry-run zero-mutation, E2E data flow with REC-id traceability, scheduled report-only (tree + ledger untouched), validators, probes, graph build, all 4 test suites, artifact inventory. Exit 0/1."
+    tags: ["validation", "script", "integration", "phase3", "matrix"]
+    read_when: "Re-validating the whole adaptive harness system after any change; refreshing docs/integration_test_matrix.md."
+
+  - path: benchmarks/model_compatibility_cases.yaml
+    id: DATASET-model-compatibility-cases
+    layer: dataset
+    purpose: "Model-tier compatibility cases (mc01-mc10): Haiku routing/filling/exec/escalation + Sonnet dry-run/cross-report EXECUTED 2026-07-06 (real Haiku/Sonnet agents, orchestrator-reverified), Opus/Fable session-evidence rows with self-grading caveat, Codex rows honestly UNVERIFIED with runnable plan."
+    tags: ["dataset", "benchmark", "model-tiers", "compatibility", "executed"]
+    read_when: "Phase-3 style validation, after a model upgrade, or before routing harness work to a cheaper tier."
+
+  - path: docs/model_compatibility_test_plan.md
+    id: DOC-model-compatibility-test-plan
+    layer: doc
+    purpose: "Repeatable manual test plan per model tier - exact prompts/commands, PASS transcript markers, the Codex live-test recipe (scratch repo + fence + HEAD-sha assertion), and grader rules (executed = transcript exists; deterministic markers re-run, never trusted)."
+    tags: ["doc", "model-tiers", "test-plan", "unverified-ledger"]
+    read_when: "Re-running tier validation, executing the outstanding Codex live test, or grading a tier-test transcript."
+
+  - path: docs/integration_test_matrix.md
+    id: DOC-integration-test-matrix
+    layer: doc
+    purpose: "Executed Phase-3 matrix snapshot: 51/51 instrument checks + posture context judgments + model-tier rows (8 PASS, 2 UNVERIFIED Codex) with per-row evidence; the readiness record behind the CONDITIONAL_READY->READY verdict."
+    tags: ["doc", "integration", "test-matrix", "phase3"]
+    read_when: "Judging system usability or refreshing the snapshot after re-running the instrument."

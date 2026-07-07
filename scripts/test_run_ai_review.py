@@ -319,6 +319,21 @@ def test_benchmark_scaffold_parses_with_cases():
         assert "linked_recommendation_id" in c, c
 
 
+def test_benchmark_status_vocabularies_consistent():
+    """Review finding (2026-07-06 Phase-3 pair): model-compat cases use their
+    own status enum and must be excluded from experiment collection so
+    experiment_review reports stay schema-valid."""
+    proc = run_runner("--mode", "experiment_review", "--dry-run", "--no-home")
+    assert proc.returncode == 0, proc.stderr
+    report = json.loads(proc.stdout)
+    bad = [e for e in report["experiments_proposed"]
+           if e.get("status") not in rar.EXPERIMENT_STATUS_ENUM]
+    assert not bad, f"experiment report carries out-of-enum statuses: {bad[:3]}"
+    names = {e.get("case_name", "") for e in report["experiments_proposed"]}
+    assert not any(n.startswith("mc0") or n.startswith("mc1") for n in names), \
+        "model-compatibility cases must not appear as experiments"
+
+
 def test_mode_prompts_doc_covers_all_modes():
     doc = REPO_ROOT / "prompts" / "ai-review-modes.md"
     assert doc.is_file(), "prompts/ai-review-modes.md missing"
