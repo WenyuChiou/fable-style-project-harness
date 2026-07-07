@@ -142,6 +142,17 @@ future capability claim.** The NULL results themselves stand unchanged.
 
 ## Required outputs of the next phase (Phase 3, per `development_plan.md` — design-only CONDITIONAL_GO per AD-022; do NOT build until the frozen criteria pass)
 
+**Design deliverables COMMITTED 2026-07-07 (mhc `c316113`, CI green;
+PH-031):** `docs/design/phase3_evidence_extraction_design.md` (S0–S5
+pure-code gates, V1–V9), `phase3_source_set_protocol.md` (commit-A
+freeze, no-swap), `phase3_adversarial_audit_harness.md` (check 0 + A–D,
+C_raw/C_shipped population pins). Twice adversarially reviewed; 3 P1 +
+7 sentence-level findings all closed. **Next gate step: human architect
+ratifies the three designs; then the audit instrument + calibration
+dry-run (audit doc §10) may be built FIRST — it precedes and is
+independent of any extractor build.** The build items below stay
+UNCHECKED until the frozen criteria pass:
+
 - [ ] Source discovery
 - [ ] Evidence card builder
 - [ ] Principle extractor

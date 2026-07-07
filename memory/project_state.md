@@ -16,13 +16,13 @@ retrieval_keywords: current state, HEAD, test count, packages shipped, phase sta
 
 # Project State — method-harness-compiler
 
-**Snapshot date:** 2026-07-06 · **HEAD:** `0b8e4f8` (eval: N=2 gate v2 RUN → NULL on both claims) · **Standard version:** v0.7.1 · **Visibility:** private
+**Snapshot date:** 2026-07-07 · **HEAD:** `c316113` (Phase-3 three-lane design docs committed, CI green; prior: `8281b3d` repositioning round, `0b8e4f8` N=2 gate v2 NULL) · **Standard version:** v0.7.1 · **Visibility:** private
 (open-source-ready; MIT + NOTICE carve-out; no badges while private)
 
 ## Health
 
-- **Test suite:** 768 passing, 2 skipped (571e9de; growth: 98 → … → 747 →
-  759 → 768)
+- **Test suite:** 792 passing, 2 skipped (at `8281b3d`; growth: 98 → … →
+  759 → 768 → 792; `c316113` is docs-only)
 - **CI:** green — `.github/workflows/ci.yml` — ubuntu + windows × py3.11/3.13,
   full pytest + `phc validate` on all three packages (added in 7134227)
 - **E2E:** fresh-user plugin install + headless `/analyze-company` verified
@@ -144,3 +144,20 @@ word.
   rule). Source repo still at `0b8e4f8` at write time; the mhc
   repositioning ADR lands via Lane 1 of this orchestrated round —
   orchestrator should confirm the ADR path/commit when it lands.
+  (CONFIRMED 2026-07-07: ADR at
+  `docs/decisions/2026-07-06-reposition-evidence-bundle.md`, in `8281b3d`
+  lineage.)
+
+## Session-close note (2026-07-07, Phase-3 design round — PH-031 / LL-023)
+
+- Three design-only lane docs committed to mhc `docs/design/`
+  (`c316113`, CI green run 28852950023): extraction pipeline (V1–V9),
+  source-set protocol (commit-A freeze, no-swap), adversarial audit
+  harness (check 0 + A–D; §7.0 pins criterion 2 on C_raw / criteria 1&3
+  on C_shipped). Twice adversarially reviewed: round-1 3 P1s fixed
+  (fixer agent died mid-round — LL-023: per-finding disk triage found
+  P1-1 already applied); round-2 closed all 3 P1s + 7 sentence-level
+  items (incl. the fix-introduced post-S4 TODO contradiction).
+- BUILD stays NO_GO. Next: human architect ratifies the three designs;
+  audit instrument + calibration dry-run (audit §10) may then be built
+  FIRST, independent of any extractor.
