@@ -51,9 +51,11 @@ are expensive, work is long, or several agents run at once.
   one: does the rolling loop justify its complexity vs standalone review
   (`ai_review_only_vs_ai_review_plus_adaptive_harness`)? All carry
   pre-stated success criteria and known ceiling-risk warnings.
-- Codex live scoped-edit compliance (mc08/mc09) and the multi-delegate
-  splitter pipeline efficiency — runnable plans exist
-  (`docs/model_compatibility_test_plan.md` §4); never executed.
+- ~~Codex live scoped-edit compliance (mc08/mc09)~~ — EXECUTED 2026-07-07,
+  both PASS n=1 (fence honored incl. an out-of-fence decoy; HEAD/staging
+  untouched); see `benchmarks/model_compatibility_cases.yaml`. Still
+  untested: the multi-delegate splitter pipeline efficiency A/B
+  (`docs/model_compatibility_test_plan.md` §4).
 - Longitudinal value: no multi-week usage data yet (drift caught per month,
   rework avoided). The scheduled report-only scan exists to start
   accumulating exactly this.
