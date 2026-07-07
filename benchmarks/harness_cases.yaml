@@ -56,6 +56,16 @@ cases:
     status: proposed
     linked_recommendation_id: REC-20260706-036
 
+  - case_name: task_splitter_vs_handrolled_multi_delegate
+    task_type: multi_delegate_coordination
+    variant_a: "agent-task-splitter → per-delegate briefs → agent-output-reconciler → agent-acceptance-gate (the mandated .coord/ pipeline)"
+    variant_b: "Hand-rolled: orchestrator writes 2 codex briefs directly, reviews both outputs itself, no .coord/ artifacts"
+    expected_metrics: "end-to-end wall-clock; total tokens incl. splitter/reconciler overhead; conflicts or drift caught by the reconciler; rework rounds; rollback granularity (one commit per agent boundary); audit-trail completeness"
+    success_criteria: "A justifies its overhead iff (reconciler catches >=1 real conflict/drift OR rework drops) at <=1.3x the token cost of B; if A only adds ceremony on clean runs, propose downgrading the mandate to >=3-delegate rounds"
+    manual_review_notes: "HONEST STATUS: the pipeline has NEVER fired in real use (0/7 repos per AGENTS.md) - efficiency is UNVERIFIED, not established. Cross-AI scope today = Codex xN (Gemini lane dead); any future delegate CLI reuses the same task-file contract, so the case stays valid. Needs a real >=2-delegate round + quota; run alongside mc08/mc09 to amortize the Codex spend."
+    status: proposed
+    linked_recommendation_id: REC-20260706-012
+
   - case_name: context_reset_vs_continuous_context
     task_type: long_session_strategy
     variant_a: "Forced context reset / handoff between review phases (fresh session per phase)"

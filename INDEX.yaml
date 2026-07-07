@@ -925,7 +925,7 @@ files:
   - path: benchmarks/harness_cases.yaml
     id: DATASET-harness-cases
     layer: dataset
-    purpose: "A/B benchmark scaffold for the adaptive-harness system itself - 5 pre-registered cases (skill adapter value, rolling loop vs one-shot, cadence, invocation-path simplification, context reset) complementing ai_review_cases.yaml without duplication."
+    purpose: "A/B benchmark scaffold for the adaptive-harness system itself - 6 pre-registered cases (skill adapter value, rolling loop vs one-shot, cadence, invocation-path simplification, multi-delegate splitter pipeline, context reset) complementing ai_review_cases.yaml without duplication."
     tags: ["dataset", "benchmark", "ab-test", "adaptive-harness", "pre-registration"]
     read_when: "experiment_design mode, or when an adaptive-harness recommendation is classified Experiment."
 
