@@ -152,11 +152,15 @@ C_raw/C_shipped population pins). Twice adversarially reviewed; 3 P1 +
 `d687dec`, CI green; PH-032): 17/17 §10.2 assertions, zero
 fabrication-class false positives, criterion 1 UNSCORED by design →
 NO_GO, no GO claimed. Spec-vs-spec collision resolved strict (AD-024
-machine-readable-verbatim convention). Next gate step: the source-set
-FREEZE (commit A — maintainer sets n + caps, runs I1 probes); only
-after a frozen set exists does the extractor-build question return.**
+machine-readable-verbatim convention). SOURCE SET NOW FROZEN 2026-07-07
+(commit A `d0fb3ef`, tag `phase3-freeze-A`, CI green; AD-025/PH-033):
+held-out subject Jeff Bezos, 35 sources (cal 22 + Bezos 13, 10F/3U),
+every I1 probe orchestrator-run via real WebFetch; NO-SWAP binding.
+Next gate step: the extractor-build GO/NO_GO decision — needs a build
+plan; the audit instrument (0.2.0, calibrated 17/17 clean) is ready to
+point at real output the moment an extractor exists.**
 The build items below stay
-UNCHECKED until the frozen criteria pass:
+UNCHECKED until the frozen criteria pass ON A REAL RUN against the frozen set:
 
 - [ ] Source discovery
 - [ ] Evidence card builder

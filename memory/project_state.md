@@ -16,7 +16,7 @@ retrieval_keywords: current state, HEAD, test count, packages shipped, phase sta
 
 # Project State — method-harness-compiler
 
-**Snapshot date:** 2026-07-07 (late) · **HEAD:** `d687dec` (Phase-3 audit instrument 0.2.0 + calibration 17/17; lineage `c316113` designs → `55087ab`/`3cc5c5d` design amendments → `6fd6f61` fpe_ev007 data → `d687dec` grader) · **Standard version:** v0.7.1 (v0.8 proposals §12.1–12.5 recorded, unapplied) · **Visibility:** private
+**Snapshot date:** 2026-07-07 (freeze) · **HEAD:** `d0fb3ef` (Phase-3 source-set FREEZE = commit A, tag `phase3-freeze-A`; lineage `d687dec` audit instrument 0.2.0 → `d0fb3ef` freeze) · **Standard version:** v0.7.1 (v0.8 proposals §12.1–12.5 recorded, unapplied) · **Visibility:** private
 (open-source-ready; MIT + NOTICE carve-out; no badges while private)
 
 ## Health
@@ -174,3 +174,17 @@ word.
 - NEXT: source-set freeze (commit A — maintainer sets n + caps + runs I1
   probes) is the remaining precondition; extractor M3a–M3e stays NO_GO
   until the frozen criteria pass on a real run.
+
+## Session-close note (2026-07-07 freeze, commit A — AD-025 / PH-033)
+
+- Opus took over (「由opus接手」) and shipped the source-set FREEZE:
+  mhc `d0fb3ef`, tag `phase3-freeze-A`, CI green. Held-out subject =
+  Jeff Bezos (user pick, domain-generality stress); 35 sources
+  (cal 22 + Bezos held-out 13, 10 FETCHABLE / 3 UNFETCHABLE, 6 classes);
+  every held-out I1 probe orchestrator-executed via real read-only
+  WebFetch, status verbatim. NO-SWAP now binding. Seed = SHA-256(S) =
+  `5aa65ee0…c5ce034d`.
+- NEXT gate: the extractor-build GO/NO_GO (needs a build plan; the audit
+  instrument is already calibrated 17/17 clean at `d687dec` and ready to
+  point at real output). BUILD stays NO_GO until the 3 frozen criteria
+  pass on a real run against the frozen set.
