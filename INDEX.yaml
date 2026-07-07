@@ -935,3 +935,24 @@ files:
     purpose: "Scripted retrieval smoke probes (computed form of docs/retrieval_smoke_test.md step 2) + INDEX ghost sweep - committed so smoke runs are re-runnable from the repo instead of reconstructed per session. Exit 0/1."
     tags: ["validation", "script", "smoke-test", "retrieval", "probes"]
     read_when: "After any edit round touching retrieval surface (frontmatter, INDEX, new content files); extend PROBES per round."
+
+  - path: scripts/build_harness_graph.py
+    id: SCRIPT-build-harness-graph
+    layer: validation
+    purpose: "Deterministic export of the EXISTING explicit harness graph (frontmatter depends_on/used_by + INDEX + ROUTES membership) to reports/index/knowledge_graph.json; full-coverage dependency validation (exit 1 on broken refs); impact queries (changed files -> transitive dependents + routes). git-ls-files scoped, stdlib-only, offline."
+    tags: ["validation", "script", "knowledge-graph", "impact", "retrieval", "overlay"]
+    read_when: "Computing a diff's impact set, validating frontmatter dependencies repo-wide, or regenerating the graph export after an edit round."
+
+  - path: scripts/test_build_harness_graph.py
+    id: TEST-build-harness-graph
+    layer: validation
+    purpose: "Regression tests pinning the graph builder: both frontmatter forms parse, file-relative + root-relative dependency resolution (the repo's mixed convention), gitignored files excluded, broken refs exit 1, transitive impact closure, dry-run writes nothing, real repo builds clean. Dual-runnable."
+    tags: ["validation", "test", "regression", "knowledge-graph"]
+    read_when: "After changing build_harness_graph.py; run to confirm the contract holds."
+
+  - path: benchmarks/retrieval_cases.yaml
+    id: DATASET-retrieval-cases
+    layer: dataset
+    purpose: "Pre-registered retrieval / knowledge-graph query cases (overlay 04) - 10 queries with expected files/sources, must-not-include, and model-tier annotations; the Phase-3 retrieval-quality checklist."
+    tags: ["dataset", "retrieval", "knowledge-graph", "queries", "model-tiers"]
+    read_when: "Testing retrieval quality after graph/index changes, or running Phase-3 model-tier validation."

@@ -1,0 +1,115 @@
+# ---
+# id: DATASET-retrieval-cases
+# layer: dataset
+# purpose: Pre-registered retrieval / knowledge-graph query cases (overlay 04) - what a model at each tier should be able to find via the graph export + retrieval keywords instead of bulk-reading the repo.
+# read_when: Testing retrieval quality after graph/index changes; Phase-3 model-tier validation; extending validation/retrieval_probe.py coverage.
+# depends_on: [../scripts/build_harness_graph.py, ../validation/retrieval_probe.py, ./ai_review_cases.yaml]
+# used_by: [SCRIPT-build-harness-graph, SCRIPT-retrieval-probe]
+# tags: [dataset, retrieval, knowledge-graph, queries, model-tiers, pre-registration]
+# retrieval_keywords: [retrieval cases, kg queries, where is ai review defined, what depends on routes, which files affect adaptive harness, model tier retrieval, must not include]
+# ---
+# Format contract: flat blocks parseable by run_ai_review.py::parse_benchmark_cases
+# (case_name first, flat 4-space keys). status: proposed | running | completed | rejected.
+# success_criteria for graph-answerable cases name the deterministic query; the
+# others need retrieval_keywords grep (validation/retrieval_probe.py form).
+
+cases:
+  - case_name: rq_where_is_ai_review_defined
+    task_type: retrieval_query
+    variant_a: "Query: Where is AI-review defined?"
+    variant_b: "n/a (single-arm retrieval case)"
+    expected_metrics: "expected_files: scripts/run_ai_review.py, prompts/ai-review-modes.md, ~/.claude/commands/ai-review.md; must_not_include: whole-repo read"
+    success_criteria: "grep 'ai review runner' retrieval keywords surfaces the runner + modes doc in top hits"
+    manual_review_notes: "model_tier: haiku (metadata lookup)"
+    status: proposed
+    linked_recommendation_id: REC-20260706-034
+
+  - case_name: rq_which_files_affect_adaptive_harness
+    task_type: retrieval_query
+    variant_a: "Query: Which files affect adaptive-harness?"
+    variant_b: "n/a"
+    expected_metrics: "expected via graph: reverse deps of scripts/run_adaptive_harness_review.py include scripts/run_ai_review.py (engine), schemas/*, prompts/ai-review-modes.md"
+    success_criteria: "build_harness_graph.py --impact scripts/run_ai_review.py lists run_adaptive_harness_review's skill + docs among impacted"
+    manual_review_notes: "model_tier: haiku (deterministic graph query)"
+    status: proposed
+    linked_recommendation_id: REC-20260706-034
+
+  - case_name: rq_which_scripts_generate_reports
+    task_type: retrieval_query
+    variant_a: "Query: Which scripts generate reports?"
+    variant_b: "n/a"
+    expected_metrics: "expected_files: scripts/run_ai_review.py, scripts/run_adaptive_harness_review.py, scripts/build_harness_graph.py; must_not_include: validators (report-free)"
+    success_criteria: "grep 'report' over scripts/ INDEX purposes returns exactly the three writers"
+    manual_review_notes: "model_tier: haiku"
+    status: proposed
+    linked_recommendation_id: REC-20260706-034
+
+  - case_name: rq_what_depends_on_routes_yaml
+    task_type: retrieval_query
+    variant_a: "Query: What depends on ROUTES.yaml?"
+    variant_b: "n/a"
+    expected_metrics: "graph reverse-deps of ROUTES.yaml; expected >= 5 (entry files, schema, checkers)"
+    success_criteria: "build_harness_graph.py --impact ROUTES.yaml returns the dependent set with zero misses vs a manual grep"
+    manual_review_notes: "model_tier: haiku (deterministic)"
+    status: proposed
+    linked_recommendation_id: REC-20260706-034
+
+  - case_name: rq_which_recommendations_unresolved
+    task_type: retrieval_query
+    variant_a: "Query: Which recommendations are unresolved?"
+    variant_b: "n/a"
+    expected_metrics: "expected source: reports/harness/rolling_state.json recommendations with status open/repeated"
+    success_criteria: "answerable from rolling_state.json alone without reading any report MD"
+    manual_review_notes: "model_tier: haiku (JSON field read); local-only file - answer is UNVERIFIED on a fresh clone until a rolling run exists"
+    status: proposed
+    linked_recommendation_id: REC-20260706-034
+
+  - case_name: rq_which_findings_repeated
+    task_type: retrieval_query
+    variant_a: "Query: Which findings repeated across reviews?"
+    variant_b: "n/a"
+    expected_metrics: "expected source: rolling_state.json records with status=repeated + metrics.rolling.repeated_count"
+    success_criteria: "answer matches the runner-computed repeated set exactly (no LLM re-derivation)"
+    manual_review_notes: "model_tier: haiku"
+    status: proposed
+    linked_recommendation_id: REC-20260706-034
+
+  - case_name: rq_which_components_safe_for_haiku
+    task_type: retrieval_query
+    variant_a: "Query: Which components are safe for Haiku?"
+    variant_b: "n/a"
+    expected_metrics: "expected_files: docs/ai_review_adaptive_harness_integration.md (model-tier section), prompts/ai-review-modes.md (Model tiers)"
+    success_criteria: "grep 'model tier' surfaces both; the answer lists deterministic runners + JSON field fills only"
+    manual_review_notes: "model_tier: haiku"
+    status: proposed
+    linked_recommendation_id: REC-20260706-034
+
+  - case_name: rq_codex_policy_for_mechanical_edits
+    task_type: retrieval_query
+    variant_a: "Query: Which Codex policy controls mechanical edits?"
+    variant_b: "n/a"
+    expected_metrics: "expected_files: docs/codex-delegation-policy.md (canonical); must_not_include: stale >=5-file snippets"
+    success_criteria: "probe 'codex delegation policy tripwire' passes (already in validation/retrieval_probe.py)"
+    manual_review_notes: "model_tier: haiku"
+    status: proposed
+    linked_recommendation_id: REC-20260706-016
+
+  - case_name: rq_files_before_public_release
+    task_type: retrieval_query
+    variant_a: "Query: Which files must be checked before public release?"
+    variant_b: "n/a"
+    expected_metrics: "expected_files: docs/publication_status.md (checklist), docs/retrieval_smoke_test.md (gate item), .gitignore"
+    success_criteria: "probe 'publication status public safety review checklist' passes"
+    manual_review_notes: "model_tier: sonnet (multi-file synthesis)"
+    status: proposed
+    linked_recommendation_id: REC-20260706-034
+
+  - case_name: rq_benchmark_cases_planning_vs_direct
+    task_type: retrieval_query
+    variant_a: "Query: Which benchmark cases test planning vs direct execution?"
+    variant_b: "n/a"
+    expected_metrics: "expected: benchmarks/ai_review_cases.yaml case planning_vs_direct_execution (and its linked_recommendation_id)"
+    success_criteria: "parse_benchmark_cases + case_name filter answers deterministically"
+    manual_review_notes: "model_tier: haiku"
+    status: proposed
+    linked_recommendation_id: REC-20260706-026

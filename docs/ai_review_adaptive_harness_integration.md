@@ -71,6 +71,31 @@ run_ai_review.py --mode <m>                      (deterministic collect)
 - changing permissions / settings.json / CI; merging patch proposals
 - public release decisions
 
+## Retrieval / graph support (overlay 04)
+
+The harness graph already exists explicitly (frontmatter `depends_on`/
+`used_by`, INDEX.yaml, ROUTES.yaml). `scripts/build_harness_graph.py`
+EXPORTS it to `reports/index/knowledge_graph.json` (gitignored, regenerable),
+validates every frontmatter dependency repo-wide (previously only the 8
+overlay artifacts were machine-checked), and answers impact queries
+(`--since-ref` / `--impact`: changed files → transitive dependents +
+member routes). The adaptive runner's `diff_only_review` and
+`rolling_improvement_review` modes consume it as the `graph_impact`
+collector; broken dependencies surface as P1 issues. The codebase-memory
+MCP stays what CLAUDE.md says it is — an ADVISORY code-exploration index —
+and is neither duplicated nor treated as truth. Source of truth remains
+the repo files. Pre-registered retrieval queries:
+`benchmarks/retrieval_cases.yaml`.
+
+## Model-tier routing
+
+| Tier | Safe for | Not for |
+|---|---|---|
+| Haiku / low | run any deterministic script (runners, builder, validators, probes); graph/JSON lookups (rolling_state, knowledge_graph.json); fill schema-valid JSON fields; mark UNVERIFIED and escalate | judging whether a rule should be deleted; interpreting benchmarks; any high-risk change |
+| Sonnet / mid | summaries over retrieved files; dry-run comparisons of AI-review vs harness reports; obvious drift / stale-ref triage; low-risk cleanup proposals; `standard_review` / `diff_review` semantic checklists | harness refactors; safety-boundary decisions |
+| Opus / Fable | semantic judgment, tradeoff reasoning, harness simplification, benchmark interpretation, rolling diagnosis, safety-boundary decisions, `harness_cleanup_review` / `codex_delegation_review` checklists | — |
+| Codex | scoped mechanical edits under docs/codex-delegation-policy.md (brief-first, fence, never commits); graph/index regeneration scripts; test scaffolds | any final authority, review verdicts, "done" claims |
+
 ## Design decisions (recorded)
 
 1. **AI-review does not call adaptive-harness** (and vice versa) at the

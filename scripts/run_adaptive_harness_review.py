@@ -53,13 +53,14 @@ MODES = {
     "code_invocation_review": ["inventory", "home_telemetry"],
     "ai_review_integration": ["integration_wiring", "ai_review_input"],
     "skill_fit_review": ["inventory", "integration_wiring"],
-    "diff_only_review": ["diff", "inventory"],
+    "diff_only_review": ["diff", "inventory", "graph_impact"],
     "scheduled_harness_review": ["inventory", "index_integrity", "artifact_check",
                                  "deprecated_markers", "ai_review_input"],
     "experiment_design": ["experiments"],
     "patch_proposal": ["ai_review_input"],
     "rolling_improvement_review": ["inventory", "index_integrity", "diff",
-                                   "ai_review_input", "rolling_state"],
+                                   "ai_review_input", "rolling_state",
+                                   "graph_impact"],
 }
 
 MODE_PROMPTS = "prompts/ai-review-modes.md"
@@ -197,10 +198,41 @@ def collect_rolling_state(ctx):
             "carried_open": still_open, "source_review_id": ai.get("review_id")}
 
 
+def collect_graph_impact(ctx):
+    """Changed-files -> impacted files/routes via the explicit harness graph
+    (scripts/build_harness_graph.py, overlay 04). Subprocess reuse, dry-run
+    form so THIS collector never writes; unavailable-graceful."""
+    builder = _HERE / "build_harness_graph.py"
+    if not builder.is_file():
+        return {"status": "unavailable", "reason": "build_harness_graph.py not found"}
+    argv = [sys.executable, str(builder), "--target", str(ctx["target"]), "--dry-run"]
+    if ctx["since_ref"]:
+        argv += ["--since-ref", ctx["since_ref"]]
+    elif ctx["scoped_files"]:
+        argv += ["--impact"] + sorted(ctx["scoped_files"])
+    else:
+        argv += ["--since-ref", "HEAD"]
+    rc, out, err = rar.run_cmd(argv, cwd=ctx["target"], timeout=180)
+    if rc not in (0, 1) or not out.strip():
+        return {"status": "unavailable", "reason": f"builder failed: {err.strip()[:200]}"}
+    try:
+        g = json.loads(out)
+    except json.JSONDecodeError as exc:
+        return {"status": "unavailable", "reason": f"unparseable graph output: {exc}"}
+    return {"status": "ok",
+            "node_count": g.get("node_count"),
+            "edge_count": g.get("edge_count"),
+            "stale_edge_count": g.get("stale_edge_count"),
+            "stale_routes_to_count": g.get("stale_routes_to_count", 0),
+            "broken_depends_on": g.get("broken_depends_on", []),
+            "impact": g.get("impact")}
+
+
 LOCAL_COLLECTORS = {
     "integration_wiring": collect_integration_wiring,
     "ai_review_input": collect_ai_review_input,
     "rolling_state": collect_rolling_state,
+    "graph_impact": collect_graph_impact,
 }
 
 
@@ -236,6 +268,15 @@ def derive_issues(collected):
     if rolling.get("status") == "unavailable":
         add("P1", "rolling_state",
             f"Rolling loop did NOT run: {rolling.get('reason', '')} - state preserved, not reset.")
+    graph = collected.get("graph_impact", {})
+    if graph.get("status") == "unavailable":
+        add("P2", "graph_integrity",
+            f"Graph impact computation did NOT run: {graph.get('reason', '')}")
+    for b in graph.get("broken_depends_on", []):
+        add("P1", "graph_integrity", f"Broken frontmatter dependency: {b}")
+    if graph.get("stale_routes_to_count"):
+        add("P2", "graph_integrity",
+            f"{graph['stale_routes_to_count']} stale routes_to edge(s) (route-listed files missing on disk).")
     for name in ("index_integrity", "artifact_check", "deprecated_markers", "codex_policy"):
         if name in collected:
             issues.extend(_reuse_ai_review_issue_rules(collected, name, len(issues)))
@@ -366,6 +407,12 @@ def assemble_report(mode, args, collected, ingest, started):
                         ("new_count", "repeated_count", "resolved_count", "carried_open_count")
                         } if rolling.get("status") == "ok" else {"status": rolling.get("status", "not_run")},
             "resolved_issues": rolling.get("resolved", []),
+            "graph": ({"node_count": collected["graph_impact"].get("node_count"),
+                       "edge_count": collected["graph_impact"].get("edge_count"),
+                       "stale_edge_count": collected["graph_impact"].get("stale_edge_count"),
+                       "impacted_components": collected["graph_impact"].get("impact")}
+                      if collected.get("graph_impact", {}).get("status") == "ok"
+                      else {"status": collected.get("graph_impact", {}).get("status", "not_run")}),
         },
         "next_review_trigger": next_trigger_for(mode),
         "dry_run": bool(args.dry_run),
