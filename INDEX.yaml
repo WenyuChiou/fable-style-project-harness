@@ -952,6 +952,20 @@ files:
     tags: ["entrypoint", "skill", "runtime-wrapper"]
     read_when: "Auto-discovered by skill-convention runtimes; read manually when wiring a new runtime."
 
+  - path: SETUP.md
+    id: SETUP
+    layer: entry
+    purpose: "AI-executable post-clone setup runbook - a user hands this to ANY agent (Claude Code / Codex / Cursor / Hermes / shell) and says 'set it up'; the agent runs the idempotent setup script per its runtime and reports honestly."
+    tags: ["entrypoint", "setup", "onboarding", "ai-runbook", "cross-runtime"]
+    read_when: "Immediately after cloning, on any machine, by whichever agent the user has."
+
+  - path: scripts/setup_harness.py
+    id: SCRIPT-setup-harness
+    layer: validation
+    purpose: "Idempotent stdlib post-clone setup: enables pre-commit gates, runs the 51-check verification, optionally installs the global Claude Code skill stub (path baked at install), wires the CLAUDE.md pointer (duplicate-safe), registers the weekly report-only scan, and prints per-runtime wiring for Codex/Cursor/Hermes/cron."
+    tags: ["validation", "script", "setup", "onboarding", "idempotent"]
+    read_when: "Right after clone (any agent), or when the clone moves and the global stub needs re-pointing."
+
   - path: scripts/register_scheduled_scan.bat
     id: SCRIPT-register-scheduled-scan
     layer: validation

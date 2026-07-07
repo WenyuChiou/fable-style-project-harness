@@ -48,6 +48,10 @@ git config core.hooksPath scripts/hooks     # enable the pre-commit gates (recom
 python validation/integration_check.py      # 51 self-checks; all-PASS = your clone works
 ```
 
+Or simply tell whatever AI you use — Claude Code, Codex, Cursor, Hermes —
+*"read `SETUP.md` and set this up"*: one idempotent script wires everything
+for its own runtime (`python scripts/setup_harness.py`, flags per runtime).
+
 Two ways to use it, pick per task:
 
 **A. Run big tasks the Fable way** — tell Claude Code: *"read
