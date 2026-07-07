@@ -1,24 +1,43 @@
 ---
 id: README
 layer: doc
-purpose: Explain what this harness repo is, what it is not, and how to enter it
+purpose: Explain what this adaptive harness system is, what it is not, and how to enter it
 read_when: First contact with the repo, or when unsure how the pieces fit
-depends_on: [context/L0_bootstrap.md, HARNESS.yaml]
+depends_on: [context/L0_bootstrap.md, HARNESS.yaml, docs/publication_status.md]
 used_by: [ROUTE-phase-review, ROUTE-tool-discovery, ROUTE-pr-review, ROUTE-eval-design, ROUTE-memory-update, ROUTE-runtime-export, ROUTE-repo-maintenance, ROUTE-ab-test-design]
-tags: [entrypoint, overview, privacy]
-retrieval_keywords: [what is this repo, harness overview, how to use, entrypoint, privacy status, progressive disclosure]
+tags: [entrypoint, overview, publication, adaptive-harness]
+retrieval_keywords: [what is this repo, harness overview, how to use, entrypoint, publication status, progressive disclosure, adaptive harness skill system]
 ---
 
 # fable-style-project-harness
 
-A **private operating harness** distilled from the observable working method
-of the `method-harness-compiler` project (distilled at commit `965c68e`,
-2026-07-02). It packages that project's demonstrated procedures — phase
-gates, falsifiable evaluation gates, honest-failure publishing, layered
-review, no-fabrication code gates, discovery-without-execution tool
-boundaries, cost-aware routing, and append-only memory — into a
-progressive-disclosure context system an agent can load incrementally
-instead of reading the whole source repo.
+A **Fable-style Adaptive Harness Skill System**: an operating harness
+distilled from the observable working method of the
+`method-harness-compiler` project (distilled at commit `965c68e`,
+2026-07-02), plus the maintenance system that keeps a harness alive —
+reviewed, simplified, benchmarked, and rolled forward instead of rotting as
+a static prompt collection.
+
+Two layers, one discipline:
+
+- **The distilled harness** packages the source project's demonstrated
+  procedures — phase gates, falsifiable evaluation gates, honest-failure
+  publishing, layered review, no-fabrication code gates,
+  discovery-without-execution tool boundaries, cost-aware routing, and
+  append-only memory — into a progressive-disclosure context system an
+  agent loads incrementally instead of reading the whole source repo.
+- **The adaptive layer** (Phase 1–2, 2026-07-06) keeps any harness honest
+  over time: a deterministic AI-review runner
+  (`scripts/run_ai_review.py`, 7 modes), an adaptive rolling-loop runner
+  (`scripts/run_adaptive_harness_review.py`, 10 modes), shared report/
+  recommendation schemas (`schemas/review_report.schema.yaml`,
+  `schemas/recommendation.schema.yaml`), semantic checklists
+  (`prompts/ai-review-modes.md`), a canonical Codex delegation policy
+  (`docs/codex-delegation-policy.md`), pre-registered A/B benchmarks
+  (`benchmarks/`), and a skill adapter
+  (`.claude/skills/adaptive-harness/SKILL.md`). Contract:
+  `docs/ai_review_adaptive_harness_integration.md` — deterministic scripts
+  compute, LLMs judge, humans approve, scheduled runs stay report-only.
 
 ## What this repo IS
 
@@ -40,7 +59,10 @@ instead of reading the whole source repo.
   chain-of-thought, or internal model instruction. Everything is
   reconstructed from published artifacts.
 - **Not hidden internals.** No API keys, tokens, personal contact info, or
-  private chat content — see [`docs/private_repo_setup.md`](docs/private_repo_setup.md).
+  private chat content — see [`docs/publication_status.md`](docs/publication_status.md).
+- **Not a static skill package.** The adaptive layer exists precisely so the
+  harness gets reviewed and pruned on a cadence; a growing pile of unreviewed
+  rules is a defect the system itself must flag.
 - **Not the method-harness-compiler itself.** The source project compiles
   expert-methodology packages; this repo distills *how that project is
   operated* so the same working method can be applied elsewhere.
@@ -82,14 +104,16 @@ and `context/L5_full_context_map.md` (one-line directory map) are reference
 layers: load them when a route file points to them or when ambiguity
 survives the routed files.
 
-## Privacy status
+## Publication status
 
-**PRIVATE.** This repo must live behind a private remote and must never be
-made public without a human content review. The review checklist, the
-required `.gitignore`, and the never-include list are in
-[`docs/private_repo_setup.md`](docs/private_repo_setup.md). The
-`HARNESS.yaml` constraints block (`private_until_reviewed`, `no_secrets`,
-`no_hidden_reasoning`) is binding on every future edit.
+**PUBLIC** (visibility verified 2026-07-06). Public-safe posture: no
+secrets, no hidden reasoning, no private chat exports, no credentials, no
+local telemetry; generated review reports stay gitignored. The repeatable
+public-safety review checklist and the honest ledger of outstanding items
+(license decision pending) are in
+[`docs/publication_status.md`](docs/publication_status.md). The
+`HARNESS.yaml` constraints block (`public_safe_after_human_review`,
+`no_secrets`, `no_hidden_reasoning`) is binding on every future edit.
 
 ## Provenance discipline
 

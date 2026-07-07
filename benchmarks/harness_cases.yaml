@@ -1,0 +1,67 @@
+# ---
+# id: DATASET-harness-cases
+# layer: dataset
+# purpose: A/B benchmark scaffold for the adaptive-harness system itself - pre-registered cases (DR-016) covering skill activation, rolling loop value, invocation paths, and context strategies; complements ai_review_cases.yaml (which owns the AI-review-side cases).
+# read_when: experiment_design mode; when an adaptive-harness recommendation is classified Experiment; after any case completes, to record the verdict.
+# depends_on: [../schemas/recommendation.schema.yaml, ../docs/ab_test_protocol.md, ./ai_review_cases.yaml]
+# used_by: [SCRIPT-run-adaptive-harness-review, SKILL-adaptive-harness]
+# tags: [dataset, benchmark, ab-test, adaptive-harness, pre-registration]
+# retrieval_keywords: [harness benchmark cases, skill adapter vs root skill, rolling loop vs one time review, context reset vs continuous, invocation path benchmark, ai review plus adaptive harness]
+# ---
+# Format contract: flat blocks parseable by run_ai_review.py::parse_benchmark_cases.
+# status enum: proposed | running | completed | rejected.
+# Overlapping case classes (planning, todo, scan scope, subagent, codex, report
+# generation) are owned by benchmarks/ai_review_cases.yaml - NOT duplicated here.
+# Same ceiling caveat applies (memory: harness-ab-ceilings-on-opus): use tasks
+# with headroom or the arms tie at ceiling.
+
+cases:
+  - case_name: root_skill_only_vs_adaptive_skill_adapter
+    task_type: skill_activation
+    variant_a: "Harness maintenance task started from root SKILL.md only (repo-level launcher)"
+    variant_b: "Same task started via .claude/skills/adaptive-harness/SKILL.md adapter"
+    expected_metrics: "correct mode selection rate, files loaded before first action, time-to-first-runner-call, safety-boundary violations"
+    success_criteria: "Keep the adapter if it reduces files-loaded and mis-mode rate with zero safety regressions; else fold its table into the root file"
+    manual_review_notes: "Run with a fresh session per arm; the adapter's narrow description should also reduce false-trigger rate on non-harness tasks - probe that separately."
+    status: proposed
+    linked_recommendation_id: REC-20260706-033
+
+  - case_name: ai_review_only_vs_ai_review_plus_adaptive_harness
+    task_type: review_system_composition
+    variant_a: "AI-review runs alone; findings tracked manually across weeks"
+    variant_b: "AI-review + rolling_improvement_review linking new/repeated/resolved via REC-id commits"
+    expected_metrics: "findings lost between runs, re-derivation cost per session, time from finding to applied fix, repeated-finding detection rate"
+    success_criteria: "B justifies its complexity iff repeated findings are detected mechanically (A misses them) AND per-session re-derivation drops measurably; otherwise simplify B away"
+    manual_review_notes: "This is the load-bearing case for the whole Phase-2 system - if B loses, the rolling loop should be reduced to a script that greps history."
+    status: proposed
+    linked_recommendation_id: REC-20260706-034
+
+  - case_name: one_time_skill_review_vs_rolling_improvement_loop
+    task_type: maintenance_cadence
+    variant_a: "Quarterly one-shot deep harness review (current /ai-review quarterly tier alone)"
+    variant_b: "Weekly light rolling loop (diff_only + rolling_improvement) + quarterly deep"
+    expected_metrics: "drift caught per month, mean staleness age of caught drift, total review token cost per quarter"
+    success_criteria: "B wins if drift staleness age drops >=50% at <=1.5x quarterly token cost; else keep quarterly-only"
+    manual_review_notes: "Use the deterministic issue counts (index_drift, deprecated markers) as the objective drift signal."
+    status: proposed
+    linked_recommendation_id: REC-20260706-035
+
+  - case_name: current_invocation_path_vs_simplified_invocation_path
+    task_type: invocation_efficiency
+    variant_a: "Current hook wiring (4 separate PreToolUse-Bash Python hooks; 3 UserPromptSubmit hooks; statusline_pro.mjs present)"
+    variant_b: "Simplified wiring per OPT-20260706-002/003/004 (merged dispatchers, statusline removed)"
+    expected_metrics: "per-Bash-call latency, per-prompt latency, hook verdict parity on replayed payloads, forks per session"
+    success_criteria: "B ships iff verdict parity is 100% on replayed logged payloads AND latency drops >=150ms/Bash-call; any parity break = keep A"
+    manual_review_notes: "Replay corpus: real payloads from ~/.claude/logs/hook_events.jsonl. This case gates OPT-002/003/004 - hooks are governance, human applies."
+    status: proposed
+    linked_recommendation_id: REC-20260706-036
+
+  - case_name: context_reset_vs_continuous_context
+    task_type: long_session_strategy
+    variant_a: "Forced context reset / handoff between review phases (fresh session per phase)"
+    variant_b: "Continuous single-session context across phases (current-model long-range reasoning)"
+    expected_metrics: "cross-phase consistency errors, re-reading cost after reset, dropped-thread count, wall-clock"
+    success_criteria: "Adopt B as default if consistency errors do not increase and re-reading cost drops; keep resets only for context-budget overflow"
+    manual_review_notes: "Ceiling risk HIGH - needs a genuinely long multi-phase task; the 3-phase harness upgrade itself is the reference workload shape."
+    status: proposed
+    linked_recommendation_id: REC-20260706-037

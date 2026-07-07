@@ -16,9 +16,9 @@ files:
   - path: .gitignore
     id: GITIGNORE
     layer: doc
-    purpose: "Never-commit list - secrets, env files, caches, scratch artifacts (see docs/private_repo_setup.md)."
-    tags: ["gitignore", "privacy", "hygiene"]
-    read_when: "Adding a new artifact class to the repo, or auditing the privacy posture."
+    purpose: "Never-commit list - secrets, env files, caches, scratch artifacts, generated review reports (see docs/publication_status.md)."
+    tags: ["gitignore", "publication", "hygiene"]
+    read_when: "Adding a new artifact class to the repo, or auditing the public-safety posture."
 
   - path: .gitattributes
     id: GITATTRIBUTES
@@ -174,19 +174,19 @@ files:
     tags: ["indexing", "retrieval", "mcp", "codebase-memory", "search"]
     read_when: "Setting up retrieval for a new session, after an edit round, or when grep feels too slow"
 
-  - path: docs/private_repo_setup.md
-    id: DOC-private-repo-setup
+  - path: docs/publication_status.md
+    id: DOC-publication-status
     layer: doc
-    purpose: "Privacy posture — private remote, never-include list, public-flip review checklist, gitignore"
-    tags: ["privacy", "security", "review-checklist", "gitignore", "private-remote"]
-    read_when: "Setting up the remote, before any push, and MANDATORY before any consideration of making this repo public"
+    purpose: "Publication status (PUBLIC, verified 2026-07-06) + public-safe posture - never-include list checked on every commit, repeatable public-safety review checklist, honest ledger of outstanding items (license pending)"
+    tags: ["publication", "public-safe", "security", "review-checklist", "gitignore"]
+    read_when: "Before any push or release, when a file mentions visibility posture, and MANDATORY before any major publication event"
 
   - path: docs/retrieval_smoke_test.md
     id: DOC-retrieval-smoke-test
     layer: doc
     purpose: "Post-edit verification that the routing and retrieval surface still works"
     tags: ["smoke-test", "validation", "retrieval", "routing"]
-    read_when: "After any edit round, after re-indexing, and as a gate item before any public flip"
+    read_when: "After any edit round, after re-indexing, and as a gate item before any major publication event"
 
   - path: examples/bad/bad_eval_free_feature.md
     id: EXAMPLE-bad-eval-free-feature
@@ -886,3 +886,52 @@ files:
     purpose: "A/B benchmark scaffold for uncertain-value harness scaffolding - 8 pre-registered cases (planning, todo, scan scope, subagent, codex delegation, brief, report generation, pointer-based CLAUDE.md) each linked to its motivating recommendation id."
     tags: ["dataset", "benchmark", "ab-test", "ai-review", "pre-registration"]
     read_when: "experiment_review mode, or when a Keep/Remove dispute needs data instead of debate."
+
+  - path: .claude/skills/adaptive-harness/SKILL.md
+    id: SKILL-adaptive-harness
+    layer: entry
+    purpose: "Skill-runtime adapter for the adaptive harness system - maps the 10 review modes onto the two deterministic runners plus the semantic checklists, under the report-only / patch-proposal safety posture."
+    tags: ["entrypoint", "skill", "adaptive-harness", "rolling-improvement"]
+    read_when: "A skill-aware runtime invokes adaptive-harness, or when wiring the rolling improvement loop into a new project."
+
+  - path: docs/ai_review_adaptive_harness_integration.md
+    id: DOC-ai-review-adaptive-harness-integration
+    layer: doc
+    purpose: "The one-system contract between AI-review (local reviewer) and adaptive-harness (rolling improvement manager): responsibilities, shared schemas, data flow, deterministic/LLM/human division of labor, recorded design decisions."
+    tags: ["doc", "integration", "ai-review", "adaptive-harness", "division-of-labor"]
+    read_when: "Changing either runner, the shared schemas, or the rolling loop; running ai_review_integration mode."
+
+  - path: scripts/run_adaptive_harness_review.py
+    id: SCRIPT-run-adaptive-harness-review
+    layer: validation
+    purpose: "Adaptive-harness rolling-review runner - 10 modes; imports the AI-review engine (collectors/validators/writers) instead of forking it; links findings new/repeated/resolved-by-commit; renders patch proposals; never edits harness files; scheduled mode report-only by code."
+    tags: ["validation", "script", "adaptive-harness", "rolling-improvement", "report-only"]
+    read_when: "Running any adaptive-harness mode, wiring the rolling loop, or extending its collectors."
+
+  - path: scripts/test_run_adaptive_harness_review.py
+    id: TEST-run-adaptive-harness-review
+    layer: validation
+    purpose: "Regression tests pinning the adaptive-harness contract: all 10 modes dry-run valid, scheduled report-only, rolling new/repeated/carried-open linkage, patch proposals render high-risk only, tier-0 validator green. Dual-runnable: standalone or pytest."
+    tags: ["validation", "test", "regression", "adaptive-harness"]
+    read_when: "After changing run_adaptive_harness_review.py or check_adaptive_harness.py; run to confirm the contract holds."
+
+  - path: scripts/check_adaptive_harness.py
+    id: SCRIPT-check-adaptive-harness
+    layer: validation
+    purpose: "Tier-0 presence + posture validator for the adaptive layer: wiring artifacts exist with load-bearing keywords, no stale private-repo posture claims on world-facing surfaces, skill adapter registered in ROUTES entrypoints. Pre-commit gated."
+    tags: ["validation", "script", "tier-0", "posture", "adaptive-harness"]
+    read_when: "After editing any adaptive-layer artifact or posture-bearing file; runs automatically in pre-commit."
+
+  - path: benchmarks/harness_cases.yaml
+    id: DATASET-harness-cases
+    layer: dataset
+    purpose: "A/B benchmark scaffold for the adaptive-harness system itself - 5 pre-registered cases (skill adapter value, rolling loop vs one-shot, cadence, invocation-path simplification, context reset) complementing ai_review_cases.yaml without duplication."
+    tags: ["dataset", "benchmark", "ab-test", "adaptive-harness", "pre-registration"]
+    read_when: "experiment_design mode, or when an adaptive-harness recommendation is classified Experiment."
+
+  - path: validation/retrieval_probe.py
+    id: SCRIPT-retrieval-probe
+    layer: validation
+    purpose: "Scripted retrieval smoke probes (computed form of docs/retrieval_smoke_test.md step 2) + INDEX ghost sweep - committed so smoke runs are re-runnable from the repo instead of reconstructed per session. Exit 0/1."
+    tags: ["validation", "script", "smoke-test", "retrieval", "probes"]
+    read_when: "After any edit round touching retrieval surface (frontmatter, INDEX, new content files); extend PROBES per round."

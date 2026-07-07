@@ -500,16 +500,18 @@ def validate_ingest(findings):
     return errors
 
 
-def validate_report(report):
+def validate_report(report, known_modes=None):
     """Minimal structural validation of the assembled report (mirrors the
-    required/enum core of schemas/review_report.schema.yaml)."""
+    required/enum core of schemas/review_report.schema.yaml). known_modes
+    lets other runners (run_adaptive_harness_review.py) validate against
+    their own mode list instead of string-filtering error messages."""
     errors = []
     for field in REPORT_REQUIRED:
         if field not in report:
             errors.append(f"report missing required field '{field}'")
     if report.get("source") not in SOURCE_ENUM:
         errors.append(f"source '{report.get('source')}' not in {sorted(SOURCE_ENUM)}")
-    if report.get("mode") not in MODES:
+    if report.get("mode") not in (known_modes if known_modes is not None else MODES):
         errors.append(f"mode '{report.get('mode')}' not a known runner mode")
     for i, rec in enumerate(report.get("recommendations", [])):
         validate_recommendation(rec, errors, f"recommendations[{i}]")
@@ -674,7 +676,9 @@ def render_markdown(report):
     return "\n".join(lines)
 
 
-def write_outputs(report, out_dir):
+def write_outputs(report, out_dir, stem_suffix="ai-review"):
+    """Shared report writer (also used by run_adaptive_harness_review.py with
+    stem_suffix='harness-review' - one writer, never forked, DR-020)."""
     out_dir.mkdir(parents=True, exist_ok=True)
     history = out_dir / "history"
     history.mkdir(exist_ok=True)
@@ -683,9 +687,15 @@ def write_outputs(report, out_dir):
         json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     (out_dir / "latest.md").write_text(md, encoding="utf-8")
     date = report["review_date"][:10]
-    stem = f"{date}-ai-review"
+    stem = f"{date}-{stem_suffix}"
     if (history / f"{stem}.json").exists():
-        stem = f"{date}-{report['review_id'].split('-')[2]}-ai-review"
+        # Same-second runs of different modes must not overwrite each other's
+        # history (happened in dogfooding): mode in the stem + numeric suffix.
+        stem = f"{date}-{report['review_id'].split('-')[2]}-{report['mode']}-{stem_suffix}"
+        n = 2
+        while (history / f"{stem}.json").exists():
+            stem = f"{date}-{report['review_id'].split('-')[2]}-{report['mode']}-{n}-{stem_suffix}"
+            n += 1
     (history / f"{stem}.json").write_text(
         json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     (history / f"{stem}.md").write_text(md, encoding="utf-8")

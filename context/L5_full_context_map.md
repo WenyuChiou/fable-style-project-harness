@@ -29,7 +29,7 @@ by stable ID — do not walk it top to bottom (L4 rule 1).
 | `validation/` | Smoke tests and consistency checks for THIS harness (frontmatter shape, route-file existence, dataset record shape, retrieval smoke test). Run after edits. |
 | `memory/` | `project_state.md` (the living state record, updated per `operating_model/project_memory_policy.yaml`) plus append-only correction and friction records. Corrections append, never overwrite (L1 #2, #9). |
 | `schemas/` | Record shapes: dataset record schemas, required frontmatter fields. Use when writing new records. |
-| `docs/` | Meta-documentation: `private_repo_setup.md` (privacy + review checklist), `codebase_memory_indexing.md` (how to index/search this repo), `retrieval_smoke_test.md` (post-edit retrieval verification), `ab_test_protocol.md` (future-work A/B design). |
+| `docs/` | Meta-documentation: `publication_status.md` (PUBLIC status + public-safety review checklist), `codebase_memory_indexing.md` (how to index/search this repo), `retrieval_smoke_test.md` (post-edit retrieval verification), `ab_test_protocol.md` (future-work A/B design), `codex-delegation-policy.md` (canonical delegation policy), `ai_review_adaptive_harness_integration.md` (the adaptive layer's contract). |
 | `.gitignore` | The required ignore set (secrets, env files, caches, OS junk, scratch). Never weaken it. |
 
 Directories may be populated incrementally by later distillation rounds; a

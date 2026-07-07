@@ -11,17 +11,19 @@ retrieval_keywords: [start here, bootstrap, first read, orientation, session sta
 
 # L0 — Bootstrap
 
-You are inside **fable-style-project-harness**: a private operating harness
+You are inside **fable-style-project-harness**: an operating harness
 distilled from the observable working method of the
 `method-harness-compiler` repo (docs, schemas, scripts, tests, example
-packages, git log — nothing hidden, nothing invented).
+packages, git log — nothing hidden, nothing invented), plus an adaptive
+review layer that keeps the harness itself maintained.
 
 **What it is:** procedures, rubrics, worked examples, and decision records
 for running that project's method — phase gates, falsifiable eval gates,
 honest-failure publishing, layered review, no-fabrication code gates.
 
-**What it is not:** a prompt dump, hidden internals, or secrets. It is
-private until a human review clears it (`docs/private_repo_setup.md`).
+**What it is not:** a prompt dump, hidden internals, or secrets. The repo
+is PUBLIC under a public-safe posture (`docs/publication_status.md`) —
+write every file as world-readable.
 
 ## Read next — in this order, nothing more
 

@@ -2,7 +2,7 @@
 id: DOC-retrieval-smoke-test
 layer: doc
 purpose: Post-edit verification that the routing and retrieval surface still works
-read_when: After any edit round, after re-indexing, and as a gate item before any public flip
+read_when: After any edit round, after re-indexing, and as a gate item before any major publication event
 depends_on: [ROUTES.yaml, context/L3_task_router.md, docs/codebase_memory_indexing.md]
 used_by: [ROUTE-repo-maintenance]
 tags: [smoke-test, validation, retrieval, routing]
@@ -44,7 +44,7 @@ harness's own "regenerate-the-fixtures" gate: measured, not claimed.
 | P4 | "how much of the repo may I read / full context load" | `context/L4_progressive_disclosure_policy.md` |
 | P5 | "project non-goals / no impersonation principle" | `context/L1_project_constitution.md` |
 | P6 | "where does X live / directory map" | `context/L5_full_context_map.md` |
-| P7 | "make this repo public / review checklist" | `docs/private_repo_setup.md` |
+| P7 | "publication status / public safety review checklist" | `docs/publication_status.md` |
 | P8 | "index this repo / re-index after edits" | `docs/codebase_memory_indexing.md` |
 | P9 | "A/B experiment arms / research question" | `docs/ab_test_protocol.md` |
 | P10 | an exact stable ID from each dataset (`TE-001`, `FM-001`, `EC-001`, `RE-001`) | the corresponding `datasets/*.jsonl` record |
@@ -216,3 +216,25 @@ recorded as such.
 
 ### Verdict: **PASS** (scoped) — with the pre-existing orchestration_bench
 INDEX gap explicitly carried as an open OPT item, not silently absorbed.
+
+---
+
+## Executed 2026-07-06 — Phase-2 adaptive-layer surface probe (scoped)
+
+**Scope:** the Phase-2 edit round (adaptive-harness runner + skill adapter +
+integration doc + publication-posture reconciliation + `private_repo_setup.md`
+→ `publication_status.md` rename). Checks COMPUTED by script — now committed
+as `validation/retrieval_probe.py` (11 probes + INDEX ghost sweep) so future
+rounds re-run the same instrument instead of reconstructing it (review-pair
+finding, this round). P1–P12 grid NOT RUN this round except P7, whose
+expected file was UPDATED to `docs/publication_status.md` as part of the
+rename's clean-break sweep (MT-4).
+
+| Check | Result | Detail |
+|---|---|---|
+| 11 surface probes (6 Phase-1 re-run + 5 Phase-2: publication status, adaptive skill, integration doc, harness cases, adaptive runner) | **PASS 11/11** | every expected file matched on all terms |
+| INDEX.yaml ghost sweep (130 entries) | **PASS** | 0 entries point at missing files |
+| Rename clean-break (`private_repo_setup`) | **PASS** | repo-wide grep: remaining mentions only in this file's historical sections and the superseding note in publication_status.md |
+| Posture conflict sweep | **PASS** | scripts/check_adaptive_harness.py: 0 stale private-repo claims on world-facing surfaces (memory/, datasets/, distillation/ exempt as history/records about the still-private source project) |
+
+### Verdict: **PASS** (scoped).

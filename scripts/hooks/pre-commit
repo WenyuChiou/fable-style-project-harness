@@ -17,3 +17,10 @@ if ! "$py" scripts/check_agent_artifacts.py >&2; then
   echo "            Fix the reported gap, or 'git commit --no-verify' to bypass." >&2
   exit 1
 fi
+
+echo "pre-commit: validating adaptive-harness layer + posture..." >&2
+if ! "$py" scripts/check_adaptive_harness.py >&2; then
+  echo "pre-commit: BLOCKED — adaptive-harness validation failed (see above)." >&2
+  echo "            Fix the reported gap, or 'git commit --no-verify' to bypass." >&2
+  exit 1
+fi

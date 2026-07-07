@@ -1,0 +1,104 @@
+---
+name: adaptive-harness
+description: >-
+  Use this skill when auditing, simplifying, benchmarking, or refactoring an
+  AI/agent project harness, including CLAUDE.md, AGENTS.md, slash commands,
+  skills, subagents, hooks, tool routing, scheduled reviews, AI-review
+  reports, benchmark scaffolds, and rolling harness maintenance. Not for
+  ordinary code review of application code (use code-review) or for running
+  the method-harness-compiler project (use the root harness ladder).
+id: SKILL-adaptive-harness
+layer: entry
+purpose: Skill-runtime adapter for the adaptive harness system - maps the 10 review modes onto the two deterministic runners plus the semantic checklists, under the report-only / patch-proposal safety posture.
+read_when: A skill-aware runtime (Claude Code and similar) invokes adaptive-harness; or when wiring the rolling improvement loop into a new project.
+depends_on:
+  - ../../../scripts/run_adaptive_harness_review.py
+  - ../../../scripts/run_ai_review.py
+  - ../../../prompts/ai-review-modes.md
+  - ../../../docs/ai_review_adaptive_harness_integration.md
+  - ../../../schemas/review_report.schema.yaml
+  - ../../../schemas/recommendation.schema.yaml
+used_by: [claude-code-skill-runtime]
+tags: [entrypoint, skill, adaptive-harness, ai-review, rolling-improvement, report-only]
+retrieval_keywords: [adaptive harness skill, rolling improvement loop, harness inventory, skill fit review, patch proposal mode, scheduled harness review, ai review integration, harness cleanup]
+---
+
+# SKILL: adaptive-harness
+
+**Relationship to the root `SKILL.md`:** the root file is the repo-level
+launcher for working ON the method-harness-compiler project (the L0→L3
+ladder). THIS adapter is the skill-aware runtime entry for the **adaptive
+harness system** — the rolling loop that keeps a harness (this repo's or the
+operator's global one) reviewed, simplified, and benchmarkable over time.
+AI-review is the local reviewer; adaptive-harness manages how its findings
+evolve. One system, shared schemas, two runners.
+
+## The loop you are operating
+
+1. **Observe** — `python scripts/run_adaptive_harness_review.py --mode
+   rolling_improvement_review` (reads AI-review `latest.json` + history +
+   harness structure + diff; computes new / repeated / resolved-by-commit).
+2. **Diagnose** — answer the mode's semantic checklist in
+   `prompts/ai-review-modes.md` with cited evidence.
+3. **Classify** — every finding gets Keep / Simplify / Remove / Replace /
+   Merge / Cache / Experiment per `schemas/recommendation.schema.yaml`.
+4. **Act safely** — low-risk docs drift may be edited only when the human
+   explicitly allowed it THIS session; high-risk (hooks, subagents, prompts,
+   permissions, settings, CI) ⇒ `--mode patch_proposal` renders an
+   apply/rollback sheet and STOPS; uncertain value ⇒ add a case to
+   `benchmarks/harness_cases.yaml` (pre-registered, never self-graded).
+5. **Record** — findings enter via `--ingest findings.json` (validated);
+   the runner appends JSONL history and renders JSON→MD deterministically.
+   Never hand-write report numbers.
+6. **Schedule next** — the report's `next_review_trigger` names the cadence;
+   scheduled runs stay report-only.
+
+## Modes
+
+| Mode | Runner call | Semantic checklist |
+|---|---|---|
+| `harness_inventory` | `run_adaptive_harness_review.py --mode harness_inventory` | none (deterministic) |
+| `harness_cleanup_review` | `--mode harness_cleanup_review` | ai-review-modes.md §harness_cleanup_review |
+| `code_invocation_review` | `--mode code_invocation_review` | §code_invocation_review |
+| `ai_review_integration` | `--mode ai_review_integration` | integration doc checklist |
+| `skill_fit_review` | `--mode skill_fit_review` | do skill descriptions still match usage? dead skills? mis-triggering? |
+| `diff_only_review` | `--mode diff_only_review --since-ref <ref>` | §diff_review |
+| `scheduled_harness_review` | `--mode scheduled_harness_review` | NONE by design (report-only) |
+| `experiment_design` | `--mode experiment_design` | §experiment_review |
+| `patch_proposal` | `--mode patch_proposal` | render only; human applies |
+| `rolling_improvement_review` | `--mode rolling_improvement_review` | full loop above |
+
+## Safety boundaries
+
+Enforced BY CODE (runner invariants, regression-pinned):
+
+- Scheduled runs are report-only: `--ingest` rejected, `source=
+  scheduled_runner`, `changes_made` must be empty, zero writes outside
+  `--output`.
+- `--dry-run` writes nothing, including the rolling state.
+- Ingest findings are validated (required fields, enums, REC-id pattern,
+  human-approval flag on high-risk Remove/Replace) or rejected.
+- Rolling-loop memory is never silently reset: unreadable state or missing
+  AI-review input preserves the previous `rolling_state.json` and surfaces
+  a P1 issue.
+
+Operating POLICY (this skill's instructions to the agent — not machine-
+enforced; violating them is a harness-governance violation):
+
+- Findings are recommendations; the human decides what merges.
+- Deleting prompts / subagents / hooks, changing permissions,
+  `.claude/settings.json`, or CI: patch proposal + human approval, always.
+- No self-modifying loop: never edit this SKILL.md, the runners, or the
+  schemas without a human-reviewed commit.
+- Loop-closure convention: a commit that applies a recommendation says
+  `applies REC-YYYYMMDD-NNN` (or `resolves ...`) in its message; a revert
+  says `reverts REC-...`; anything else must not bare-cite REC ids — the
+  applies/resolves verb is what `resolved_by_commit` greps for.
+
+## Model tiers
+
+Deterministic runners: any tier (code — Haiku or cron can invoke).
+`skill_fit_review` / `diff_only_review` semantic passes: Sonnet-capable.
+`harness_cleanup_review`, `rolling_improvement_review` interpretation,
+`patch_proposal` judgment: Opus/Fable-class. Codex: mechanical scoped work
+only, never final authority (docs/codex-delegation-policy.md).

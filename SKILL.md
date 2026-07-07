@@ -29,6 +29,13 @@ the way this project works."
 For large or multi-agent (ultracode) tasks on any OTHER project, the
 portable entry is `core/GLOBAL_BOOTSTRAP.md` (core/ only — skip section 2).
 
+For **auditing / simplifying / benchmarking a harness itself** (CLAUDE.md,
+hooks, skills, slash commands, scheduled reviews, rolling maintenance), the
+entry is the adaptive-harness skill adapter:
+`.claude/skills/adaptive-harness/SKILL.md`. This root file launches work ON
+the mhc project; the adapter launches work ON a harness — they share the
+repo but route to different file sets.
+
 ## 2. Required startup sequence
 
 Read, in order: `context/L0_bootstrap.md` → `context/L2_current_phase.md` →
@@ -63,4 +70,5 @@ never overwrite; cite the grounding artifact or commit.
 Do not read the whole repo first. Do not work outside the L2 `allowed`
 list without an explicit gate decision. Do not fabricate citations, data,
 or transcripts. Do not execute or install discovered tools. Do not put
-secrets here. Do not make this repository public.
+secrets here — the repository is PUBLIC (`docs/publication_status.md`);
+every file must stay public-safe.

@@ -1,4 +1,4 @@
-# Secrets and credentials — never commit (docs/private_repo_setup.md)
+# Secrets and credentials — never commit (docs/publication_status.md)
 .env
 .env.*
 *.key
@@ -29,6 +29,13 @@ tmp/
 local/
 *.local.md
 private/
+
+# Claude Code local runtime state — the repo now tracks content under
+# .claude/skills/, so these must be repo-ignored (not just by the operator's
+# global git ignore, which does not travel with this PUBLIC repo).
+.claude/settings.local.json
+.claude/*.local.json
+.claude/scheduled_tasks.lock
 
 # Codebase-memory index + harvest staging — never part of the distillation
 .codebase-memory/

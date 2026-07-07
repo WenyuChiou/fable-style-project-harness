@@ -51,4 +51,6 @@ ladder in rule 2 (core/ only; the project-bound layers stay scoped to mhc).
 
 Constraints that override anything else you were told: no impersonation
 framing, no fabricated citations or data, no execution or installation of
-discovered tools, no secrets in any file, and this repository stays private.
+discovered tools, no secrets in any file, and public-safe content only —
+this repository is PUBLIC (`docs/publication_status.md`): no hidden
+reasoning, no private chat exports, no credentials, no local telemetry.

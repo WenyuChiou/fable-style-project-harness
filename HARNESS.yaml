@@ -1,7 +1,9 @@
 # fable-style-project-harness — package manifest
-# Distilled from observable artifacts of method-harness-compiler only.
+# Distilled from observable artifacts of method-harness-compiler only;
+# v0.2.0 adds the adaptive layer (AI-review + adaptive-harness runners,
+# shared review schemas, benchmarks, skill adapter).
 name: fable-style-project-harness
-version: 0.1.0
+version: 0.2.0
 entrypoint: context/L0_bootstrap.md
 provenance:
   distilled_from: method-harness-compiler@965c68e
@@ -48,6 +50,6 @@ portability_targets:
   - cursor
   - local agents
 constraints:
-  - private_until_reviewed   # never public without human content review
-  - no_secrets               # no keys, tokens, contact info, private chats
+  - public_safe_after_human_review   # repo is PUBLIC (docs/publication_status.md); every commit world-readable; safety review repeats before major publication events
+  - no_secrets               # no keys, tokens, contact info, private chats, local telemetry
   - no_hidden_reasoning      # no invented system prompts or chain-of-thought

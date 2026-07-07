@@ -27,6 +27,8 @@ entrypoints:
     convention: skill_discovery_frontmatter
   - path: core/GLOBAL_BOOTSTRAP.md
     convention: global_portable_entry
+  - path: .claude/skills/adaptive-harness/SKILL.md
+    convention: project_skill_adapter   # adaptive harness system (harness audit / rolling maintenance), added 2026-07-06
 
 routes:
 
