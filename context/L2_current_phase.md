@@ -147,10 +147,15 @@ PH-031):** `docs/design/phase3_evidence_extraction_design.md` (S0–S5
 pure-code gates, V1–V9), `phase3_source_set_protocol.md` (commit-A
 freeze, no-swap), `phase3_adversarial_audit_harness.md` (check 0 + A–D,
 C_raw/C_shipped population pins). Twice adversarially reviewed; 3 P1 +
-7 sentence-level findings all closed. **Next gate step: human architect
-ratifies the three designs; then the audit instrument + calibration
-dry-run (audit doc §10) may be built FIRST — it precedes and is
-independent of any extractor build.** The build items below stay
+7 sentence-level findings all closed. **RATIFIED by user 2026-07-07
+(AD-023). Audit instrument 0.2.0 BUILT + calibration CLEAN (mhc
+`d687dec`, CI green; PH-032): 17/17 §10.2 assertions, zero
+fabrication-class false positives, criterion 1 UNSCORED by design →
+NO_GO, no GO claimed. Spec-vs-spec collision resolved strict (AD-024
+machine-readable-verbatim convention). Next gate step: the source-set
+FREEZE (commit A — maintainer sets n + caps, runs I1 probes); only
+after a frozen set exists does the extractor-build question return.**
+The build items below stay
 UNCHECKED until the frozen criteria pass:
 
 - [ ] Source discovery

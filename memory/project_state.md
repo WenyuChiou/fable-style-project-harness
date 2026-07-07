@@ -16,13 +16,13 @@ retrieval_keywords: current state, HEAD, test count, packages shipped, phase sta
 
 # Project State — method-harness-compiler
 
-**Snapshot date:** 2026-07-07 · **HEAD:** `c316113` (Phase-3 three-lane design docs committed, CI green; prior: `8281b3d` repositioning round, `0b8e4f8` N=2 gate v2 NULL) · **Standard version:** v0.7.1 · **Visibility:** private
+**Snapshot date:** 2026-07-07 (late) · **HEAD:** `d687dec` (Phase-3 audit instrument 0.2.0 + calibration 17/17; lineage `c316113` designs → `55087ab`/`3cc5c5d` design amendments → `6fd6f61` fpe_ev007 data → `d687dec` grader) · **Standard version:** v0.7.1 (v0.8 proposals §12.1–12.5 recorded, unapplied) · **Visibility:** private
 (open-source-ready; MIT + NOTICE carve-out; no badges while private)
 
 ## Health
 
-- **Test suite:** 792 passing, 2 skipped (at `8281b3d`; growth: 98 → … →
-  759 → 768 → 792; `c316113` is docs-only)
+- **Test suite:** 891 passing, 2 skipped (at `d687dec`; growth: 98 → … →
+  768 → 792 → 891; +99 = the audit instrument's offline suite)
 - **CI:** green — `.github/workflows/ci.yml` — ubuntu + windows × py3.11/3.13,
   full pytest + `phc validate` on all three packages (added in 7134227)
 - **E2E:** fresh-user plugin install + headless `/analyze-company` verified
@@ -161,3 +161,16 @@ word.
 - BUILD stays NO_GO. Next: human architect ratifies the three designs;
   audit instrument + calibration dry-run (audit §10) may then be built
   FIRST, independent of any extractor.
+
+## Session-close note (2026-07-07 late, instrument round — AD-023/AD-024/PH-032)
+
+- User ratified the designs (AD-023) + directed execution to Opus.
+  Instrument 0.2.0 shipped at mhc `d687dec` (CI green): 2 adversarial
+  review rounds, 3 criticals (all computed-but-not-wired class) fixed +
+  regression-pinned; spec-vs-spec collision resolved strict (AD-024
+  machine-readable-verbatim convention; fpe_ev007 migrated).
+- Calibration 17/17 clean, zero false positives, criterion 1 UNSCORED by
+  design → NO_GO on all three (no GO claimed).
+- NEXT: source-set freeze (commit A — maintainer sets n + caps + runs I1
+  probes) is the remaining precondition; extractor M3a–M3e stays NO_GO
+  until the frozen criteria pass on a real run.
