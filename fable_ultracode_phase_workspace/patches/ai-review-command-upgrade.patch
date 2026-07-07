@@ -1,0 +1,48 @@
+diff --git a/commands/ai-review.md b/commands/ai-review.md
+index f9efc48..f32e69d 100644
+--- a/commands/ai-review.md
++++ b/commands/ai-review.md
+@@ -28,6 +28,43 @@ Current governance sizes:
+ Last 5 audit reports already on disk:
+ !`ls -1t ~/.claude/audits/*-ai-review.md 2>/dev/null | head -5 || echo "(none yet — first run)"`
+ 
++## Modes & deterministic runner (2026-07-06 Phase-1 upgrade — additive)
++
++The deterministic half of this review now lives in a runner; call it instead
++of re-deriving numbers by hand (DR-004 computed-not-claimed):
++
++```bash
++python C:/Users/wenyu/Desktop/fable-style-project-harness/scripts/run_ai_review.py --mode <mode> [--dry-run]
++```
++
++Modes → tier mapping (each mode's judgment checklist:
++`fable-style-project-harness/prompts/ai-review-modes.md`):
++
++| Tier | Runner modes to fold in |
++|---|---|
++| weekly | `standard_review` + `diff_review --since-ref <last-review-tag>` |
++| monthly | weekly + `harness_cleanup_review` + `code_invocation_review` |
++| quarterly | monthly + `codex_delegation_review` + `experiment_review` |
++
++Flow: run the mode → read `reports/ai-review/latest.json` (gitignored, local)
++→ answer the mode's semantic checklist with cited evidence → write findings
++JSON per `schemas/recommendation.schema.yaml` → re-run with
++`--ingest findings.json`. The runner renders JSON→Markdown deterministically
++and appends `reports/ai-review/history/review-log.jsonl` — do NOT hand-write
++report numbers; embed the runner's output in the audits/*.md report.
++
++Codex delegation checks in this review follow the canonical policy:
++`fable-style-project-harness/docs/codex-delegation-policy.md` (one tripwire
++number: ≥3 files; supersedes any "≥5 files" statement elsewhere).
++
++Scheduled use: `--mode scheduled_review` is report-only BY DESIGN
++(source=scheduled_runner; deterministic scans; no ledger writes, no
++proposals, no application — doctrine-compatible with "the consumer is a
++present human"). The existing ClaudeAiReviewDue nudge task stays the
++summoner; if you also want a machine report waiting for you, register:
++`schtasks /create /tn ClaudeAiReviewScheduledScan /sc weekly /d MON /st 09:05 /tr "python C:/Users/wenyu/Desktop/fable-style-project-harness/scripts/run_ai_review.py --mode scheduled_review"`
++(human decision — never auto-registered).
++
+ ## Your task
+ 
+ 1. **Read the tier.** `$ARGUMENTS` is one of weekly / monthly / quarterly

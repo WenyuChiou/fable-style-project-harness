@@ -153,6 +153,230 @@ files:
     tags: ["distillation", "living-doc", "append-only", "recurrence", "load-bearing"]
     read_when: "Recording candidates/verdicts during a cycle; deciding whether a candidate has recurred across enough projects to promote."
 
+  - path: distillation/orchestration_bench/PRE_REGISTRATION.md
+    id: DOC-orchbench-preregistration
+    layer: validation
+    purpose: "Pre-registration for the orchestration-distillation loop (Phase-0 pilot, O-CLAIM dimension): metrics M1-M6 with two vetoes, <=3-revision Fable->Opus loop, honest 0-2-DONE prior - DRAFT until frozen_sha is filled + committed; no candidate is measured before that."
+    tags: ["orchestration-bench", "pre-registration", "metrics", "anti-p-hack", "distillation"]
+    read_when: "Before running or grading any orchestration-bench trial; freezing the plan before the first Fable call."
+
+  - path: distillation/orchestration_bench/grade.py
+    id: SCRIPT-orchbench-grade
+    layer: validation
+    purpose: "Arm-blind deterministic grader (stdlib + PyYAML, has --selftest): scores a trial's STATUS.md against a task's hidden grader_key.yaml; for T-VERIFY the primary metric is M5 trap-catch with the M6 no-false-done veto."
+    tags: ["orchestration-bench", "grader", "arm-blind", "deterministic", "validation"]
+    read_when: "Grading a T-VERIFY trial, or auditing/changing the bench's grading contract (run --selftest after edits)."
+
+  - path: distillation/orchestration_bench/grade_large.py
+    id: SCRIPT-orchbench-grade-large
+    layer: validation
+    purpose: "Behavioral grader for T-LARGE: RUNS the arm's built eventkit code to score buried_rate (invariants I1-I4, I6) + hazard_pass - behavioral checks, robust to legitimate implementation variety, not substring matching."
+    tags: ["orchestration-bench", "grader", "behavioral", "buried-invariants", "validation"]
+    read_when: "Grading a T-LARGE trial, or auditing why a buried invariant counted as dropped/held."
+
+  - path: distillation/orchestration_bench/ladder.py
+    id: SCRIPT-orchbench-ladder
+    layer: validation
+    purpose: "Escalation-ladder task generator + grader: scales the number N of buried registry requirements until plain Opus's drop-rate leaves the ceiling; v2 assigns per-field types/rules randomly (non-compressible) after the v1 formula proved reverse-engineerable."
+    tags: ["orchestration-bench", "ladder", "generator", "non-compressible", "validation"]
+    read_when: "Running or extending the escalation-ladder Fable-edge test; generating a new N-level task."
+
+  - path: distillation/orchestration_bench/evidence/v1_compressible_registry_sample.py
+    id: DATASET-orchbench-v1-compressibility-artifact
+    layer: dataset
+    purpose: "Preserved artifact for DL-20260705-01 / LL-022: the plain-Opus registry.py that reverse-engineered the compressible v1 ladder formula (buried_rate=1.0 with NO literal field retention) - the evidence for why the bench must be non-compressible."
+    tags: ["orchestration-bench", "evidence", "compressibility", "artifact", "dataset"]
+    read_when: "Understanding the v1->v2 ladder hardening, or citing the compressibility failure mode in bench design."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/task.md
+    id: DATASET-orchbench-tverify-task
+    layer: dataset
+    purpose: "T-VERIFY (dimension O-CLAIM) arm-facing task: three lanes report DONE on a config-schema v1->v2 migration; the arm must reach a go/no-go decision in STATUS.md."
+    tags: ["orchestration-bench", "task", "t-verify", "o-claim", "fixture"]
+    read_when: "Running a T-VERIFY trial, or auditing what the arm was actually asked to do."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/grader_key.yaml
+    id: KEY-orchbench-tverify-grader-key
+    layer: validation
+    purpose: "HIDDEN grader key for T-VERIFY (never shown to the arm - trials get only seed/): M5 passes iff STATUS.md surfaces the unmigrated config_07 straggler contradicting LANE_B/LANE_C's claims; M6 vetoes an all-clear GO."
+    tags: ["orchestration-bench", "grader-key", "hidden", "trap", "validation"]
+    read_when: "Grading T-VERIFY or auditing the trap definition; never copy into an arm's trial directory."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/LANE_A.md
+    id: DATASET-orchbench-tverify-lane-a
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - Lane A (CLI surface) DONE report the arm must weigh."
+    tags: ["orchestration-bench", "t-verify", "seed", "lane-report", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/LANE_B.md
+    id: DATASET-orchbench-tverify-lane-b
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - Lane B (config migration) DONE report claiming all 12 configs migrated; the claim the planted trap tests."
+    tags: ["orchestration-bench", "t-verify", "seed", "lane-report", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/LANE_C.md
+    id: DATASET-orchbench-tverify-lane-c
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - Lane C (tests) DONE report claiming the v2-schema suite is green (stale claim in the scenario)."
+    tags: ["orchestration-bench", "t-verify", "seed", "lane-report", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/test_v2_schema.py
+    id: DATASET-orchbench-tverify-seed-test
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - Lane C's v2-schema pytest (asserts every config has nested retry); actually running it exposes the straggler."
+    tags: ["orchestration-bench", "t-verify", "seed", "test-fixture", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/configs/config_01.yaml
+    id: DATASET-orchbench-tverify-config-01
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - service config #01 in the v1->v2 migration scenario (v2 nested-retry)."
+    tags: ["orchestration-bench", "t-verify", "seed", "config", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/configs/config_02.yaml
+    id: DATASET-orchbench-tverify-config-02
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - service config #02 in the v1->v2 migration scenario (v2 nested-retry)."
+    tags: ["orchestration-bench", "t-verify", "seed", "config", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/configs/config_03.yaml
+    id: DATASET-orchbench-tverify-config-03
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - service config #03 in the v1->v2 migration scenario (v2 nested-retry)."
+    tags: ["orchestration-bench", "t-verify", "seed", "config", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/configs/config_04.yaml
+    id: DATASET-orchbench-tverify-config-04
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - service config #04 in the v1->v2 migration scenario (v2 nested-retry)."
+    tags: ["orchestration-bench", "t-verify", "seed", "config", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/configs/config_05.yaml
+    id: DATASET-orchbench-tverify-config-05
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - service config #05 in the v1->v2 migration scenario (v2 nested-retry)."
+    tags: ["orchestration-bench", "t-verify", "seed", "config", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/configs/config_06.yaml
+    id: DATASET-orchbench-tverify-config-06
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - service config #06 in the v1->v2 migration scenario (v2 nested-retry)."
+    tags: ["orchestration-bench", "t-verify", "seed", "config", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/configs/config_07.yaml
+    id: DATASET-orchbench-tverify-config-07
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - service config #07: the planted UNMIGRATED v1 flat-retry straggler that contradicts LANE_B's 12/12 claim (see grader_key.yaml)."
+    tags: ["orchestration-bench", "t-verify", "seed", "config", "trap", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/configs/config_08.yaml
+    id: DATASET-orchbench-tverify-config-08
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - service config #08 in the v1->v2 migration scenario (v2 nested-retry)."
+    tags: ["orchestration-bench", "t-verify", "seed", "config", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/configs/config_09.yaml
+    id: DATASET-orchbench-tverify-config-09
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - service config #09 in the v1->v2 migration scenario (v2 nested-retry)."
+    tags: ["orchestration-bench", "t-verify", "seed", "config", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/configs/config_10.yaml
+    id: DATASET-orchbench-tverify-config-10
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - service config #10 in the v1->v2 migration scenario (v2 nested-retry)."
+    tags: ["orchestration-bench", "t-verify", "seed", "config", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/configs/config_11.yaml
+    id: DATASET-orchbench-tverify-config-11
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - service config #11 in the v1->v2 migration scenario (v2 nested-retry)."
+    tags: ["orchestration-bench", "t-verify", "seed", "config", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-VERIFY/seed/configs/config_12.yaml
+    id: DATASET-orchbench-tverify-config-12
+    layer: dataset
+    purpose: "T-VERIFY seed fixture - service config #12 in the v1->v2 migration scenario (v2 nested-retry)."
+    tags: ["orchestration-bench", "t-verify", "seed", "config", "fixture"]
+    read_when: "Regenerating or auditing the T-VERIFY fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-LARGE/task.md
+    id: DATASET-orchbench-tlarge-task
+    layer: dataset
+    purpose: "T-LARGE arm-facing task: build out the eventkit scaffold under 5 buried invariants + a single-source SCHEMA_VERSION coordination hazard, all stated once in dense prose (tail-dropper test)."
+    tags: ["orchestration-bench", "task", "t-large", "buried-invariants", "fixture"]
+    read_when: "Running a T-LARGE trial, or auditing what the arm was actually asked to do."
+
+  - path: distillation/orchestration_bench/tasks/T-LARGE/seed/README.md
+    id: DATASET-orchbench-tlarge-seed-readme
+    layer: dataset
+    purpose: "T-LARGE seed scaffold - placeholder README the arm must complete (documenting 3 subcommands + the schema version is buried invariant I6)."
+    tags: ["orchestration-bench", "t-large", "seed", "scaffold", "fixture"]
+    read_when: "Regenerating or auditing the T-LARGE fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-LARGE/seed/pyproject.toml
+    id: DATASET-orchbench-tlarge-seed-pyproject
+    layer: dataset
+    purpose: "T-LARGE seed scaffold - minimal packaging stub for eventkit."
+    tags: ["orchestration-bench", "t-large", "seed", "scaffold", "fixture"]
+    read_when: "Regenerating or auditing the T-LARGE fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-LARGE/seed/eventkit/__init__.py
+    id: DATASET-orchbench-tlarge-seed-init
+    layer: dataset
+    purpose: "T-LARGE seed scaffold - eventkit package docstring stub."
+    tags: ["orchestration-bench", "t-large", "seed", "scaffold", "fixture"]
+    read_when: "Regenerating or auditing the T-LARGE fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-LARGE/seed/eventkit/cli.py
+    id: DATASET-orchbench-tlarge-seed-cli
+    layer: dataset
+    purpose: "T-LARGE seed scaffold - argparse CLI stub the arm must grow into ingest/query/version subcommands."
+    tags: ["orchestration-bench", "t-large", "seed", "scaffold", "fixture"]
+    read_when: "Regenerating or auditing the T-LARGE fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-LARGE/seed/eventkit/config.py
+    id: DATASET-orchbench-tlarge-seed-config
+    layer: dataset
+    purpose: "T-LARGE seed scaffold - load_config stub; target of buried invariant I4 (strict-REJECT unknown keys)."
+    tags: ["orchestration-bench", "t-large", "seed", "scaffold", "fixture"]
+    read_when: "Regenerating or auditing the T-LARGE fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-LARGE/seed/eventkit/filters.py
+    id: DATASET-orchbench-tlarge-seed-filters
+    layer: dataset
+    purpose: "T-LARGE seed scaffold - match() stub; target of buried invariant I3 (unknown field must RAISE, not silently non-match)."
+    tags: ["orchestration-bench", "t-large", "seed", "scaffold", "fixture"]
+    read_when: "Regenerating or auditing the T-LARGE fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-LARGE/seed/eventkit/parse.py
+    id: DATASET-orchbench-tlarge-seed-parse
+    layer: dataset
+    purpose: "T-LARGE seed scaffold - parse_line stub; target of buried invariant I2 (coerce values to registered types via the registry)."
+    tags: ["orchestration-bench", "t-large", "seed", "scaffold", "fixture"]
+    read_when: "Regenerating or auditing the T-LARGE fixture; graders pin its content - never edit casually."
+
+  - path: distillation/orchestration_bench/tasks/T-LARGE/seed/eventkit/registry.py
+    id: DATASET-orchbench-tlarge-seed-registry
+    layer: dataset
+    purpose: "T-LARGE seed scaffold - FIELD_TYPES stub; target of buried invariant I1 (types not name-strings, single source of truth) and the SCHEMA_VERSION single-source hazard."
+    tags: ["orchestration-bench", "t-large", "seed", "scaffold", "fixture"]
+    read_when: "Regenerating or auditing the T-LARGE fixture; graders pin its content - never edit casually."
+
   - path: docs/ab_test_protocol.md
     id: DOC-ab-test-protocol
     layer: doc

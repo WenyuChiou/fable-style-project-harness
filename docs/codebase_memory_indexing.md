@@ -18,11 +18,11 @@ as the index schema.
 
 ## 1. Initial indexing
 
-- Run `index_repository` on **this repo's root**
-  (`agent_harness/fable_style_project_harness/`), NOT on the parent
-  `method-harness-compiler` root. The parent repo gitignores this
-  directory; indexing the parent will not pick these files up, and mixing
-  the two corpora blurs provenance.
+- Run `index_repository` on **this repo's root** (the standalone
+  `fable-style-project-harness/` repo), NOT on the `method-harness-compiler`
+  source repo. This harness no longer lives nested inside that repo (the
+  old `agent_harness/` clone is retired); indexing the source repo will not
+  pick these files up, and mixing the two corpora blurs provenance.
 - Verify with `index_status` / a probe query, but do NOT trust a bare
   `"ready"` status as proof of freshness — confirm with one known-ID
   lookup (e.g. search `L2-current-phase` and check the returned path).
