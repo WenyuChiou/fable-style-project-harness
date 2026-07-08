@@ -12,7 +12,7 @@ index f9efc48..f32e69d 100644
 +of re-deriving numbers by hand (DR-004 computed-not-claimed):
 +
 +```bash
-+python C:/Users/wenyu/Desktop/fable-style-project-harness/scripts/run_ai_review.py --mode <mode> [--dry-run]
++python <path-to-your-clone>/scripts/run_ai_review.py --mode <mode> [--dry-run]
 +```
 +
 +Modes → tier mapping (each mode's judgment checklist:
@@ -40,7 +40,7 @@ index f9efc48..f32e69d 100644
 +proposals, no application — doctrine-compatible with "the consumer is a
 +present human"). The existing ClaudeAiReviewDue nudge task stays the
 +summoner; if you also want a machine report waiting for you, register:
-+`schtasks /create /tn ClaudeAiReviewScheduledScan /sc weekly /d MON /st 09:05 /tr "python C:/Users/wenyu/Desktop/fable-style-project-harness/scripts/run_ai_review.py --mode scheduled_review"`
++`schtasks /create /tn ClaudeAiReviewScheduledScan /sc weekly /d MON /st 09:05 /tr "python <path-to-your-clone>/scripts/run_ai_review.py --mode scheduled_review"`
 +(human decision — never auto-registered).
 +
  ## Your task

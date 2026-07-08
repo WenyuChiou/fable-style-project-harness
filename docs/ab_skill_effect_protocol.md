@@ -106,7 +106,7 @@ C share content and differ only in disclosure (keeps the H5 cost comparison clea
 **Primary (scaled) mechanism (a):** the runner injects into Arm C exactly one pointer
 line and nothing else:
 
-> `Before doing anything else, read C:/Users/wenyu/Desktop/fable-style-project-harness/core/GLOBAL_BOOTSTRAP.md and follow its routing for this task.`
+> `Before doing anything else, read <path-to-your-clone>/core/GLOBAL_BOOTSTRAP.md and follow its routing for this task.`
 
 Points at **`core/GLOBAL_BOOTSTRAP.md`, never `BOOTSTRAP.md`** (the latter routes into mhc
 phase state, which GLOBAL_BOOTSTRAP's PROJECT CHECK warns misleads). The agent uses its
