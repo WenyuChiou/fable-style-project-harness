@@ -6,6 +6,12 @@ description: >-
   phase reviews, tool discovery, PR review, eval design, memory updates,
   runtime export, repo maintenance, or A/B test design. Routes the agent to
   a minimal per-task file set instead of whole-repo reading.
+  For work on ANY OTHER project, activate only when the task is long /
+  multi-step, multi-agent, expensive-if-wrong, makes a completion claim
+  (done / passing / fixed / ready / safe / staged), or touches governance
+  (permissions, hooks, cron, CI, routing) — the portable entry is then
+  core/GLOBAL_BOOTSTRAP.md. Skip for one-line / typo / format edits and pure
+  capability asks.
 id: SKILL
 layer: entry
 purpose: Lightweight runtime wrapper — lets skill-aware runtimes (Claude Code and similar) discover and launch the harness like a skill

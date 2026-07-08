@@ -5,9 +5,9 @@ purpose: Any-project entry point for the PORTABLE subset of this harness — the
 read_when: A session in ANY repository loads the global harness pointer; the very first core/ file to read, before anything else in this package.
 depends_on:
   - ./portable_operating_model.md
-  - ./workflow_orchestration_playbook.md
-  - ./portable_decision_rules.yaml
   - ../BOOTSTRAP.md
+  # trigger-loaded, NOT unconditional (see "Portable load — classify first" below):
+  # ./workflow_orchestration_playbook.md, ./portable_decision_rules.yaml
 used_by:
   - global-config-pointer
   - any-project-session
@@ -41,37 +41,32 @@ multi-agent (ultracode) runs inherit the discipline everywhere.
   (its phases, its frozen scopes, its decisions) and will mislead you into
   applying another repo's constraints to yours.
 
-## Portable reading set (non-mhc sessions)
+## Portable load — classify first, then load ONLY the matching set
 
-This set is pinned as `ROUTE-global-orchestration` in `../ROUTES.yaml`
-(start = this file only — the L0/L2/L3 ladder is project-bound and does
-not apply here).
+Pinned as `ROUTE-global-orchestration` in `../ROUTES.yaml` (start = this file
+only — the L0/L2/L3 ladder is project-bound and does not apply here).
 
-1. `core/portable_operating_model.md` — the task loop + review pipeline.
-2. `core/workflow_orchestration_playbook.md` — running multi-agent rounds.
-3. `core/portable_decision_rules.yaml` — standing judgment-call rules.
-4. Rubrics, when self-checking the matching artifact type:
-   - `rubrics/pr_review_rubric.yaml`
-   - `rubrics/maintainability_rubric.yaml`
-   - `rubrics/eval_quality_rubric.yaml`
-   - `rubrics/progressive_disclosure_rubric.yaml`
-5. Operator agent-binding overlay (OPTIONAL — concrete runtime config, load only
-   when the task is about which surface/mode should run it, a completion-integrity
-   deliverable (see Route triggers below — REQUIRED there, not optional), or a
-   scoped delegate brief):
-   - `docs/agent-routing-policy.md` — surface/mode routing matrix + escalation.
-   - `docs/completion-honesty-gate.md` — the done / fixed / ready checklist.
-   - `docs/agent-optimization-runbook.md` — day-to-day usage; indexes the
-     `prompts/claude-code-*.md` and `prompts/codex-task-brief-template.md` prompts.
+**Default for EVERY non-mhc task:** `core/portable_operating_model.md` — the
+task loop + review pipeline. **Nothing else loads by default.** Then pull ONLY
+what your classification (the "Route triggers" block below) names — do NOT
+bulk-load the set:
 
-Read only what the task needs; the rubrics are per-artifact-type, not
-per-session.
+- Completion / done / ready / status claim → `docs/completion-honesty-gate.md`
+  + `prompts/claude-code-completion-integrity.md` (REQUIRED; ROUTE-completion-integrity).
+- Governance / permissions / hooks / cron / CI / routing → `docs/agent-routing-policy.md`.
+- Spawning 2+ subagents → `core/workflow_orchestration_playbook.md`.
+- A cited judgment call → `core/portable_decision_rules.yaml`.
+- Self-checking a specific artifact type → the ONE matching rubric in `rubrics/`
+  (`pr_review_rubric`, `maintainability_rubric`, `eval_quality_rubric`,
+  `progressive_disclosure_rubric`) — per-artifact-type, never per-session.
+- Recurring-failure / known-pitfall lookup → `datasets/failure_modes.yaml`.
+- Day-to-day usage index → `docs/agent-optimization-runbook.md`.
 
 ## Route triggers (classify BEFORE you start — by your deliverable, not the prompt's wording)
 
-The portable reading set above is the DEFAULT for general large / multi-agent
-work. Before starting — and again if the deliverable's shape shifts mid-task —
-ask ONE question: **will my deliverable assert that
+The lean default above (`portable_operating_model.md` only) covers general
+work; you pull anything else ONLY when a trigger here fires. Before starting —
+and again if the deliverable's shape shifts mid-task — ask ONE question: **will my deliverable assert that
 something is done / passing / correct / ready / safe to ship or commit — or hand
 over an artifact (a status note, a report, a rename, a staged diff) as if it were
 authoritative?** If yes, it is a completion-integrity task EVEN WHEN the prompt

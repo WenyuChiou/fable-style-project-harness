@@ -281,9 +281,12 @@ routes:
       - core/GLOBAL_BOOTSTRAP.md
     required:
       - core/portable_operating_model.md
-      - core/workflow_orchestration_playbook.md
-      - core/portable_decision_rules.yaml
     optional:
+      # lean-load: pulled only when their trigger fires (GLOBAL_BOOTSTRAP
+      # "classify first" block), not bulk-loaded — this is the fix for the
+      # measured ~2.84x activation over-load at identical quality.
+      - core/workflow_orchestration_playbook.md   # only when spawning 2+ subagents
+      - core/portable_decision_rules.yaml          # only on a cited judgment call
       - rubrics/pr_review_rubric.yaml
       - rubrics/maintainability_rubric.yaml
       - rubrics/eval_quality_rubric.yaml
