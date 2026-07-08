@@ -78,8 +78,10 @@ trial records. This is for dry-run validation.
 
 Each trial prompt now starts with a Codex-only isolation preamble: the trial may
 be executed only by the current Codex process, and Claude, Fable, Gemini,
-Hermes, web services, and other AI/model runtimes are forbidden as executors or
-delegates. The manifest records `executor: codex exec`,
+Hermes, external web services, and other AI/model runtimes are forbidden as
+executors or delegates. Local filesystem and shell tools available inside the
+Codex run are explicitly allowed, and the preamble says not to stop after an
+acknowledgement-only reply. The manifest records `executor: codex exec`,
 `non_codex_ai_allowed: false`, and the isolation policy. `--resume` skips
 existing `trial_result.json` files so long runs can be continued without
 rerunning completed trials.

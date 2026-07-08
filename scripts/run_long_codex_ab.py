@@ -33,15 +33,20 @@ DEFAULT_SCENARIOS = ("LT1", "LT2", "LT3", "LT4")
 EXECUTOR = "codex exec"
 ISOLATION_POLICY = (
     "Codex-only isolation: every trial is executed by this Codex process only; "
-    "Claude, Fable, Gemini, Hermes, web services, and other AI/model runtimes "
+    "Claude, Fable, Gemini, Hermes, external web services, and other AI/model runtimes "
     "are forbidden as executors or delegates."
 )
 ISOLATION_PREAMBLE = (
     "Evaluation isolation: execute this trial using only this Codex process. "
+    "Use the local filesystem and shell tools available inside this Codex run; "
+    "those local tools are part of this Codex process and are allowed. "
     "Do not call, invoke, delegate to, compare with, or rely on Claude, Fable, "
-    "Gemini, Hermes, web services, or any other AI/model runtime. "
+    "Gemini, Hermes, external web services, or any other AI/model runtime. "
     "Do not read or import artifacts from other arms or trials; use only this "
-    "working directory and any explicitly named harness files.\n\n"
+    "working directory and any explicitly named harness files. "
+    "Do not stop after acknowledging these instructions; perform the requested "
+    "file reads, shell checks, and file edits now, then give a concise final "
+    "status.\n\n"
 )
 
 

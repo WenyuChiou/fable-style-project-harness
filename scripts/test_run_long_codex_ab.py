@@ -181,6 +181,8 @@ def test_dry_run_creates_unexecuted_trial_results():
         prompt = next((run_dir / "trials").glob("*/prompt.txt")).read_text(encoding="utf-8")
         assert "Evaluation isolation" in prompt
         assert "Do not call, invoke, delegate to, compare with, or rely on Claude" in prompt
+        assert "local filesystem and shell tools" in prompt
+        assert "Do not stop after acknowledging" in prompt
         assert "Codex process" in prompt
 
 
