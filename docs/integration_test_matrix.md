@@ -12,38 +12,38 @@ tags: [doc, integration, test-matrix, phase3, validation]
 retrieval_keywords: [integration test matrix, phase 3 validation, pass fail partial unverified, model tier status, scheduled report only verified, readiness verdict]
 ---
 
-# Integration test matrix — executed 2026-07-06
+# Integration test matrix - executed 2026-07-08
 
-**Instrument:** `python validation/integration_check.py` → **51/51 PASS**
-(exit 0; branch `ai-review-adaptive-harness-v2` at overlay commit `411dcbe` +
-Phase-3 working tree). Re-run the instrument instead of trusting this
-snapshot. Model-tier rows come from workflow `wf_5f117689-bad` (5 real
-executions) + the session evidence; they are graded per
-`docs/model_compatibility_test_plan.md`.
+**Instrument:** `python validation/integration_check.py` -> **53/53 PASS**
+(exit 0; branch `main` at local commit `f961d67` plus the Codex long-task
+runner working tree). Re-run the instrument instead of trusting this snapshot.
+Model-tier rows come from workflow `wf_5f117689-bad` (5 real executions) +
+the session evidence; they are graded per `docs/model_compatibility_test_plan.md`.
+
 
 ## Deterministic layers (computed by the instrument)
 
 | Layer | Checks | Status | Evidence |
 |---|---|---|---|
 | CLI surface (both runners `--help`) | 2 | PASS | exit 0 |
-| Runner modes (7 ai-review + 10 adaptive, dry-run → valid JSON, right `source`) | 17 | PASS | schema-core validation per mode |
+| Runner modes (7 ai-review + 10 adaptive, dry-run -> valid JSON, right `source`) | 17 | PASS | schema-core validation per mode |
 | Dry-run safety (zero mutation across all 17 dry-runs) | 1 | PASS | `git status --porcelain` byte-identical |
-| Data flow E2E (AI-review real run → latest.json+md → history append → ingest → adaptive `--read-ai-review` → harness latest+history) | 5 | PASS | hermetic temp-dir run |
+| Data flow E2E (AI-review real run -> latest.json+md -> history append -> ingest -> adaptive `--read-ai-review` -> harness latest+history) | 5 | PASS | hermetic temp-dir run |
 | Traceability (REC id + source_review_id survive into the harness report) | 2 | PASS | REC-20260706-900 round-trip |
 | Shared schema (same report core keys both systems) | 1 | PASS | key-set comparison |
 | Scheduled report-only (both scheduled modes: repo tree + proposals ledger untouched) | 1 | PASS | tree diff + ledger mtime |
 | Validators (overlay + adaptive/posture) | 2 | PASS | both exit 0 |
 | Retrieval probes + INDEX ghosts | 1 | PASS | 13/13 probes, 0 ghosts |
-| Knowledge graph (build, 0 broken deps) | 1 | PASS | 0 broken depends_on (150 nodes / 740 edges at snapshot; counts grow with the tree — the criterion is the zero, not the counts) |
-| Test suites (4 suites: 21 + 17 + 9 + parser) | 4 | PASS | all exit 0 |
-| Artifact inventory (13 Phase-1/2 artifacts + no-CI check) | 14 | PASS | on disk |
+| Knowledge graph (build, 0 broken deps) | 1 | PASS | 0 broken depends_on (157 nodes / 789 edges at snapshot; counts grow with the tree - the criterion is the zero, not the counts) |
+| Test suites (5 suites incl. Codex long-task A/B runner) | 5 | PASS | all exit 0 |
+| Artifact inventory (14 Phase-1/2/long-task artifacts + no-CI check) | 15 | PASS | on disk |
 
-## Posture (§2 — judged in context, not just grepped)
+## Posture (section 2 - judged in context, not just grepped)
 
 | Remaining "private" reference | Judgment | Action |
 |---|---|---|
-| `docs/publication_status.md` line quoting the superseded private-remote-REQUIRED policy (hyphenated HERE because this matrix file is itself a scanned posture surface; the validator's line-scoped exemption covers only publication_status.md) | legitimate historical note (supersedes-record) | none — disclosure added per review finding |
-| `memory/project_state.md` "Visibility: private" + playbook/decision-rule mentions | records ABOUT method-harness-compiler, which IS still private (verified via GitHub API by the Phase-2 review pair) | none — changing them would falsify provenance |
+| `docs/publication_status.md` line quoting the superseded private-remote-REQUIRED policy (hyphenated HERE because this matrix file is itself a scanned posture surface; the validator's line-scoped exemption covers only publication_status.md) | legitimate historical note (supersedes-record) | none - disclosure added per review finding |
+| `memory/project_state.md` "Visibility: private" + playbook/decision-rule mentions | records ABOUT method-harness-compiler, which IS still private (verified via GitHub API by the Phase-2 review pair) | none - changing them would falsify provenance |
 | Dated sections in `docs/retrieval_smoke_test.md` | append-only history | none |
 | World-facing surfaces (README/AGENTS/SKILL/HARNESS/L0/L5/INDEX/entry files) | zero forbidden-posture hits | machine-gated per commit (`check_adaptive_harness.py`) |
 
@@ -52,7 +52,7 @@ executions) + the session evidence; they are graded per
 | Tier | Test | Status | Evidence |
 |---|---|---|---|
 | Haiku | mc01 route selection | **PASS** (executed) | exact runner command; 1 file read |
-| Haiku | mc02 JSON filling + escalation | **PASS** (executed) | validate_ingest → 0 errors (re-verified mechanically); judgment escalated |
+| Haiku | mc02 JSON filling + escalation | **PASS** (executed) | validate_ingest -> 0 errors (re-verified mechanically); judgment escalated |
 | Haiku | mc03 deterministic script exec | **PASS** (executed) | exit 0, review_id captured, zero writes |
 | Haiku | mc10 escalation boundary | **PASS** (executed, n=1) | planted judgment question escalated |
 | Sonnet | mc04 dry-run + honest summary | **PASS** (executed) | counts exact; UNSCORED explicitly stated |
@@ -64,6 +64,6 @@ executions) + the session evidence; they are graded per
 
 ## Summary
 
-PASS 51 deterministic + 10 model rows (Codex live compliance executed
-2026-07-07) · FAIL 0 · remaining UNVERIFIED: the multi-delegate splitter
+PASS 53 deterministic + 10 model rows (Codex live compliance executed
+2026-07-07) - FAIL 0 - remaining UNVERIFIED: the multi-delegate splitter
 efficiency A/B (pre-registered, not yet run).

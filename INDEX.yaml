@@ -27,6 +27,13 @@ files:
     tags: ["gitattributes", "line-endings", "hooks", "hygiene"]
     read_when: "Adding a shell script / hook, or debugging a CRLF-related hook failure."
 
+  - path: LICENSE
+    id: LICENSE
+    layer: doc
+    purpose: "MIT license text for public reuse and distribution of the harness package."
+    tags: ["license", "mit", "publication"]
+    read_when: "Checking public release, reuse, or distribution terms."
+
   - path: HARNESS.yaml
     id: HARNESS-manifest
     layer: doc
@@ -391,12 +398,47 @@ files:
     tags: ["ab-test", "evaluation", "future-work", "pre-registration", "skill-effect", "confound-control"]
     read_when: "Designing, ratifying, or running the skill-effect experiment; reviewing the confound-controlled arm design and the non-proxy activation mechanism."
 
+  - path: docs/codex_long_task_ab.md
+    id: DOC-codex-long-task-ab
+    layer: doc
+    purpose: "Codex-first long-task A/B design and runner contract for measuring harness effects on stability, false-done reduction, and token/tool cost."
+    tags: ["codex", "long-task", "ab-test", "benchmark", "evidence"]
+    read_when: "Planning or running Codex long-task harness evaluation, or reviewing claims about Codex long-task stability and efficiency."
+
   - path: docs/codebase_memory_indexing.md
     id: DOC-codebase-memory-indexing
     layer: doc
     purpose: "How to index and search this harness with the codebase-memory MCP"
     tags: ["indexing", "retrieval", "mcp", "codebase-memory", "search"]
     read_when: "Setting up retrieval for a new session, after an edit round, or when grep feels too slow"
+
+  - path: docs/codebase_memory_assessment.md
+    id: DOC-codebase-memory-assessment
+    layer: doc
+    purpose: "Evidence-based assessment of how the harness affects long and multi-step agent work, using codebase-memory discovery plus pilot scorecards."
+    tags: ["codebase-memory", "evidence", "ab-test", "long-work", "multi-step", "codex"]
+    read_when: "Deciding whether the harness improves agent work, updating README evidence, or planning the next A/B run."
+
+  - path: docs/codex_harness_integration.md
+    id: DOC-codex-harness-integration
+    layer: doc
+    purpose: "Codex runtime interface for the same harness project, using AGENTS.md instead of the Claude skill wrapper."
+    tags: ["codex", "opencode", "hermes", "agents-md", "runtime-interface", "global-pointer"]
+    read_when: "Wiring this harness into Codex, OpenCode, Cursor, Hermes, or any AGENTS.md-convention runtime."
+
+  - path: docs/harness_ab_pilot_2026_07_07.md
+    id: DOC-harness-ab-pilot-2026-07-07
+    layer: doc
+    purpose: "Durable summary of the 2026-07-07 GPT-5.5 harness-effect pilot, copied from local scorecards intentionally not tracked under evals/."
+    tags: ["ab-test", "pilot", "codex", "evidence", "negative-result"]
+    read_when: "Checking pilot evidence behind README and evidence.md claims about Codex/GPT-5.5 harness activation."
+
+  - path: docs/t5_codex_governance_regression.md
+    id: DOC-t5-codex-governance-regression
+    layer: doc
+    purpose: "Targeted post-fix regression evidence for the Codex runtime interface on the T5 governance-sensitive fixture."
+    tags: ["codex", "regression", "governance", "evidence", "harness-ab"]
+    read_when: "Checking whether the Codex interface change fixed the T5 destructive-permission failure."
 
   - path: docs/publication_status.md
     id: DOC-publication-status
@@ -544,6 +586,118 @@ files:
     purpose: "Golden example of read-only tool/registry discovery — fixed investigation questions, per-claim citations, explicit unverified ledger, zero installs or signups."
     tags: ["tool-discovery", "read-only", "registry-research", "unverified-ledger", "golden"]
     read_when: "You are researching external tools, registries, MCP servers, or data sources before any integration decision."
+
+  - path: fable_ultracode_phase_workspace/README.md
+    id: DOC-fable-ultracode-workspace-readme
+    layer: doc
+    purpose: "Operator notes for the Fable ultracode phase workspace and first-use prompt bundle."
+    tags: ["fable", "ultracode", "workspace", "operator-notes"]
+    read_when: "Orienting on the historical Fable ultracode workspace or its prompt bundle."
+
+  - path: fable_ultracode_phase_workspace/00_MASTER_ORCHESTRATOR.md
+    id: PROMPT-fable-ultracode-master-orchestrator
+    layer: prompt
+    purpose: "Master orchestration prompt for the Fable ultracode phase workspace."
+    tags: ["fable", "ultracode", "orchestration", "prompt"]
+    read_when: "Replaying or auditing the historical Fable ultracode orchestration round."
+
+  - path: fable_ultracode_phase_workspace/01_ai_review_ultracode_optimization.md
+    id: PROMPT-fable-ultracode-ai-review
+    layer: prompt
+    purpose: "Phase-1 prompt for AI-review ultracode optimization work."
+    tags: ["fable", "ultracode", "ai-review", "prompt"]
+    read_when: "Auditing or replaying the Phase-1 AI-review optimization prompt."
+
+  - path: fable_ultracode_phase_workspace/02_adaptive_harness_skill_ultracode.md
+    id: PROMPT-fable-ultracode-adaptive-harness
+    layer: prompt
+    purpose: "Phase-2 prompt for adaptive-harness skill ultracode work."
+    tags: ["fable", "ultracode", "adaptive-harness", "prompt"]
+    read_when: "Auditing or replaying the Phase-2 adaptive-harness prompt."
+
+  - path: fable_ultracode_phase_workspace/03_full_integration_validation_ultracode.md
+    id: PROMPT-fable-ultracode-integration-validation
+    layer: prompt
+    purpose: "Phase-3 prompt for full integration validation across the adaptive harness work."
+    tags: ["fable", "ultracode", "integration", "validation", "prompt"]
+    read_when: "Auditing or replaying the Phase-3 integration validation prompt."
+
+  - path: fable_ultracode_phase_workspace/04_codebase_memory_knowledge_graph_overlay.md
+    id: PROMPT-fable-ultracode-codebase-memory-overlay
+    layer: prompt
+    purpose: "Optional overlay prompt for codebase-memory and knowledge-graph retrieval over the harness."
+    tags: ["fable", "ultracode", "codebase-memory", "knowledge-graph", "prompt"]
+    read_when: "Auditing or replaying the codebase-memory / knowledge-graph overlay prompt."
+
+  - path: fable_ultracode_phase_workspace/99_OPEN_OPTIMIZATION_SPACE.md
+    id: PROMPT-fable-ultracode-open-optimization
+    layer: prompt
+    purpose: "Open-ended optimization prompt from the Fable ultracode workspace."
+    tags: ["fable", "ultracode", "optimization", "prompt"]
+    read_when: "Reviewing the historical open optimization prompt."
+
+  - path: fable_ultracode_phase_workspace/FINAL_FIRST_PROMPT.md
+    id: PROMPT-fable-ultracode-final-first
+    layer: prompt
+    purpose: "Final first-use prompt for launching the historical Fable ultracode workspace flow."
+    tags: ["fable", "ultracode", "first-prompt", "prompt"]
+    read_when: "Reconstructing the intended first message for the ultracode workspace."
+
+  - path: fable_ultracode_phase_workspace/CHECKLIST.md
+    id: DOC-fable-ultracode-checklist
+    layer: doc
+    purpose: "Checklist for branch safety, long-term harness qualities, and phase completion gates in the ultracode workspace."
+    tags: ["fable", "ultracode", "checklist", "phase-gate"]
+    read_when: "Auditing historical phase completion criteria or branch-safety expectations."
+
+  - path: fable_ultracode_phase_workspace/PHASE1_REPORT.md
+    id: DOC-fable-ultracode-phase1-report
+    layer: doc
+    purpose: "Phase-1 report from the Fable ultracode workspace."
+    tags: ["fable", "ultracode", "report", "phase1"]
+    read_when: "Reviewing the Phase-1 historical report."
+
+  - path: fable_ultracode_phase_workspace/PHASE2_REPORT.md
+    id: DOC-fable-ultracode-phase2-report
+    layer: doc
+    purpose: "Phase-2 report from the Fable ultracode workspace."
+    tags: ["fable", "ultracode", "report", "phase2"]
+    read_when: "Reviewing the Phase-2 historical report."
+
+  - path: fable_ultracode_phase_workspace/PHASE3_REPORT.md
+    id: DOC-fable-ultracode-phase3-report
+    layer: doc
+    purpose: "Phase-3 report from the Fable ultracode workspace."
+    tags: ["fable", "ultracode", "report", "phase3"]
+    read_when: "Reviewing the Phase-3 historical report."
+
+  - path: fable_ultracode_phase_workspace/OVERLAY04_REPORT.md
+    id: DOC-fable-ultracode-overlay04-report
+    layer: doc
+    purpose: "Overlay-04 report for the codebase-memory / knowledge-graph ultracode workspace."
+    tags: ["fable", "ultracode", "report", "codebase-memory", "knowledge-graph"]
+    read_when: "Reviewing the overlay-04 historical report."
+
+  - path: fable_ultracode_phase_workspace/patches/ai-review-command-upgrade.patch
+    id: PATCH-fable-ultracode-ai-review-command-upgrade
+    layer: example
+    purpose: "Historical patch proposal for AI-review command upgrades from the ultracode workspace."
+    tags: ["fable", "ultracode", "patch", "ai-review"]
+    read_when: "Auditing historical patch proposals or comparing later AI-review implementation decisions."
+
+  - path: fable_ultracode_phase_workspace/patches/github-actions-ci-proposal.md
+    id: DOC-fable-ultracode-github-actions-ci-proposal
+    layer: doc
+    purpose: "Historical GitHub Actions CI proposal from the ultracode workspace."
+    tags: ["fable", "ultracode", "ci", "proposal"]
+    read_when: "Reviewing the historical CI proposal or public-release automation options."
+
+  - path: fable_ultracode_phase_workspace/phase2_findings.json
+    id: DATASET-fable-ultracode-phase2-findings
+    layer: dataset
+    purpose: "Structured Phase-2 findings emitted by the ultracode workspace."
+    tags: ["fable", "ultracode", "findings", "dataset", "phase2"]
+    read_when: "Auditing historical Phase-2 recommendations or tracing adaptive-harness finding provenance."
 
   - path: memory/accepted_decisions.jsonl
     id: MEM-accepted-decisions
@@ -962,7 +1116,7 @@ files:
   - path: scripts/setup_harness.py
     id: SCRIPT-setup-harness
     layer: validation
-    purpose: "Idempotent stdlib post-clone setup: enables pre-commit gates, runs the 51-check verification, optionally installs the global Claude Code skill stub (path baked at install), wires the CLAUDE.md pointer (duplicate-safe), registers the weekly report-only scan, and prints per-runtime wiring for Codex/Cursor/Hermes/cron."
+    purpose: "Idempotent stdlib post-clone setup: enables pre-commit gates, runs the 53-check verification, optionally installs the global Claude Code skill stub (path baked at install), wires the CLAUDE.md pointer (duplicate-safe), registers the weekly report-only scan, and prints per-runtime wiring for Codex/Cursor/Hermes/cron."
     tags: ["validation", "script", "setup", "onboarding", "idempotent"]
     read_when: "Right after clone (any agent), or when the clone moves and the global stub needs re-pointing."
 
@@ -1083,6 +1237,13 @@ files:
     tags: ["hook", "pre-commit", "validation", "gate", "overlay"]
     read_when: "Wiring the overlay integrity gate into git, or onboarding a fresh clone (must set core.hooksPath scripts/hooks)."
 
+  - path: scripts/hooks/pre-push
+    id: HOOK-pre-push-canonical-remote
+    layer: validation
+    purpose: "Repo-local pre-push guard that blocks accidental autonomous pushes to the canonical public remote unless FABLE_HARNESS_ALLOW_PUSH=1 is set."
+    tags: ["hook", "pre-push", "remote-guard", "publication", "safety"]
+    read_when: "Debugging blocked pushes, onboarding hooks, or changing public-remote protection policy."
+
   - path: schemas/review_report.schema.yaml
     id: SCHEMA-review-report
     layer: schema
@@ -1160,6 +1321,27 @@ files:
     tags: ["validation", "test", "regression", "adaptive-harness"]
     read_when: "After changing run_adaptive_harness_review.py or check_adaptive_harness.py; run to confirm the contract holds."
 
+  - path: scripts/run_long_codex_ab.py
+    id: SCRIPT-run-long-codex-ab
+    layer: validation
+    purpose: "Codex long-task A/B runner with four arms, deterministic fixtures, raw trial capture under ignored evals/, scorecard aggregation, and UNSCORED handling for runtime failures."
+    tags: ["validation", "script", "codex", "long-task", "ab-test", "runner"]
+    read_when: "Running or modifying the Codex long-task harness evaluation, or auditing token/tool cost and false-done scorecards."
+
+  - path: scripts/test_run_long_codex_ab.py
+    id: TEST-run-long-codex-ab
+    layer: validation
+    purpose: "Regression tests for the Codex long-task A/B runner: fixture generation, dry-run safety, graders, timeout UNSCORED handling, and metric aggregation."
+    tags: ["validation", "test", "codex", "long-task", "ab-test"]
+    read_when: "After changing run_long_codex_ab.py or the long-task grading contract."
+
+  - path: scripts/summarize_harness_ab_pilot.py
+    id: SCRIPT-summarize-harness-ab-pilot
+    layer: validation
+    purpose: "Reporting helper that computes aggregate metrics from local ignored 2026-07-07 harness-effect pilot scorecards for durable README/evidence summaries."
+    tags: ["validation", "script", "ab-test", "pilot", "evidence"]
+    read_when: "Updating README/evidence claims from the 2026-07-07 pilot, or auditing pilot aggregate numbers."
+
   - path: scripts/check_adaptive_harness.py
     id: SCRIPT-check-adaptive-harness
     layer: validation
@@ -1205,7 +1387,7 @@ files:
   - path: validation/integration_check.py
     id: SCRIPT-integration-check
     layer: validation
-    purpose: "Phase-3 re-runnable integration instrument: 51 deterministic checks - CLI surface, all 17 runner modes dry-run to valid JSON, dry-run zero-mutation, E2E data flow with REC-id traceability, scheduled report-only (tree + ledger untouched), validators, probes, graph build, all 4 test suites, artifact inventory. Exit 0/1."
+    purpose: "Phase-3 re-runnable integration instrument: 53 deterministic checks - CLI surface, all 17 runner modes dry-run to valid JSON, dry-run zero-mutation, E2E data flow with REC-id traceability, scheduled report-only (tree + ledger untouched), validators, probes, graph build, all 5 test suites, artifact inventory. Exit 0/1."
     tags: ["validation", "script", "integration", "phase3", "matrix"]
     read_when: "Re-validating the whole adaptive harness system after any change; refreshing docs/integration_test_matrix.md."
 
@@ -1233,6 +1415,6 @@ files:
   - path: docs/integration_test_matrix.md
     id: DOC-integration-test-matrix
     layer: doc
-    purpose: "Executed Phase-3 matrix snapshot: 51/51 instrument checks + posture context judgments + model-tier rows (8 PASS, 2 UNVERIFIED Codex) with per-row evidence; the readiness record behind the CONDITIONAL_READY->READY verdict."
+    purpose: "Executed Phase-3 matrix snapshot: 53/53 instrument checks + posture context judgments + model-tier rows (8 PASS, 2 UNVERIFIED Codex) with per-row evidence; the readiness record behind the CONDITIONAL_READY->READY verdict."
     tags: ["doc", "integration", "test-matrix", "phase3"]
     read_when: "Judging system usability or refreshing the snapshot after re-running the instrument."

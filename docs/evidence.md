@@ -31,7 +31,7 @@ publishing it is the feature.
 | Report generation costs ~0 LLM output tokens | Review reports (~10k tokens each) are rendered deterministically from JSON; the LLM only supplies schema-validated findings | `scripts/run_ai_review.py` (render_markdown); any `--dry-run` run |
 | Findings never silently disappear | 37 tracked findings → 17 auto-resolved with the exact resolving commit sha attached, 20 carried into ledger tracking, 0 lost | rolling run of `scripts/run_adaptive_harness_review.py --mode rolling_improvement_review`; closure convention: commit says `applies REC-YYYYMMDD-NNN` |
 | The system catches real defects in real work | During its own construction: 4 defect-finding adversarial review rounds (plus one approve-with-suggestions round) produced ~30 confirmed defects strictly counted (~35 including nit/hygiene items), including two silent state-loss bugs in the rolling loop and a parity survivor during a privacy remediation (the leak itself was self-identified and human-dispositioned; the reviewer caught the incomplete fix). Separately, the eval tool's session-guard refused an unsafe run and emitted a prepare bundle instead of a result | commit trailers on `f55459d`→`0dd0cf2` (finding counts enumerated per commit body); refusal artifact: the operator-side prepare bundle `eval_runs/20260706-223321` |
-| Installation is verifiable, and the history is clean | 51/51 integration checks on any clone; full-history secret scan clean (gitleaks 8.30.1 at its run date — point-in-time, the tree has grown since; re-run at each release gate) | `python validation/integration_check.py`; scan record in `docs/publication_status.md` |
+| Installation is verifiable, and the history is clean | 53/53 integration checks on any clone; full-history secret scan clean (gitleaks 8.30.1 at its run date — point-in-time, the tree has grown since; re-run at each release gate) | `python validation/integration_check.py`; scan record in `docs/publication_status.md` |
 
 ## Measured: what it does NOT do
 
@@ -41,6 +41,7 @@ publishing it is the feature.
 | The traits it was distilled from are not model-exclusive | The distillation research found candidate "source-model-distinctive" traits present at 100% in plain models of two different families, harness off — labeled UNIVERSAL FRONTIER-MODEL COMPETENCE, not secret sauce | `distillation/distillation-log.md` (base-rate arm entries) |
 | **Forced GPT-5.5 harness activation has not shown a reliability lift in the 2026-07-07 proxy pilot.** | Same-environment GPT-5.5 pilot: A 4/5 pass, B 4/5 pass; false-done A 1/5, B 1/5; canonical checks 5/5 both. B used 52 vs 33 tool calls (1.58x) and 1,140,776 vs 401,583 input tokens (2.84x). High-risk T2-T5: A 3/4, B 3/4; T5 failed in both arms on governance-sensitive permissions. | `docs/harness_ab_pilot_2026_07_07.md` |
 | **The T5 governance gap has a targeted post-fix Codex regression pass, not a broad A/B win.** | After adding the governance / permission safety trigger to `core/GLOBAL_BOOTSTRAP.md`, one isolated `codex exec` T5 run added safe helper docstrings, left `settings.json` unchanged, did not apply `Bash(rm -rf:*)` or `Bash(git clean -fdx:*)`, and requested explicit approval or a narrower allowlist. This is n=1 regression evidence only. | `docs/t5_codex_governance_regression.md` |
+| **Codex long-task improvement is now testable, not yet proven.** | A formal Codex-first long-task runner exists with four arms and four long-task scenarios, plus token/tool accounting hooks. A 2026-07-08 LT3 n=1 runner smoke executed real Codex trials and found headroom, but the confirmatory run is not complete, so this is instrument readiness rather than broad evidence of lift. | `docs/codex_long_task_ab.md`; `scripts/run_long_codex_ab.py` |
 
 Consequence, stated plainly: **use this for discipline, economy, and audit
 trail — not for capability.** Its own routing guidance says to skip the
@@ -78,7 +79,7 @@ are expensive, work is long, or several agents run at once.
 ```bash
 git clone https://github.com/WenyuChiou/fable-style-project-harness
 cd fable-style-project-harness
-python validation/integration_check.py     # 51 checks, ~3 min
+python validation/integration_check.py     # 53 checks, ~3 min
 python validation/retrieval_probe.py       # retrieval surface probes
 python scripts/build_harness_graph.py --dry-run   # 0 broken dependencies
 ```

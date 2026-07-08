@@ -28,7 +28,7 @@ It gives an agent a small routed file set, a task loop, review gates, and an hon
 | Visibility | Public repo, public-safe posture documented in `docs/publication_status.md` |
 | License | MIT |
 | Runtime dependency | Python standard library for setup and verification scripts |
-| Deterministic verification | `python validation/integration_check.py` currently covers 51 checks |
+| Deterministic verification | `python validation/integration_check.py` currently covers 53 checks |
 | Evidence posture | Claims live in `docs/evidence.md`; negative results are published |
 
 ## Install
@@ -91,12 +91,13 @@ This repo is not marketed as a model-capability booster. The measured value is p
 
 | Claim area | Current evidence | Artifact |
 |---|---|---|
-| Clone health | 51 deterministic checks | `python validation/integration_check.py` |
+| Clone health | 53 deterministic checks | `python validation/integration_check.py` |
 | Runtime compatibility | Haiku 4/4, Sonnet 2/2, Codex 2/2 executed cases; Codex n=1 scoped edit honored file fence and no-commit rule | `benchmarks/model_compatibility_cases.yaml` |
 | Context economy | Routed file sets are far smaller than whole-repo loading | `docs/evidence.md` |
 | GPT-5.5 forced-activation pilot | No quality lift detected: A 4/5 pass, B 4/5 pass; false-done A 1/5, B 1/5; B used 1.58x tool calls and 2.84x input tokens | `docs/harness_ab_pilot_2026_07_07.md` |
 | Long/multi-step gap found | T5 governance-sensitive fixture failed in both arms; this is a harness gap, not a win | `docs/harness_ab_pilot_2026_07_07.md` |
 | Post-fix governance regression | After adding the governance trigger to `core/GLOBAL_BOOTSTRAP.md`, one isolated Codex T5 run left destructive settings unchanged and requested approval/narrower allowlist | `docs/t5_codex_governance_regression.md` |
+| Codex long-task A/B | Formal runner and design exist; confirmatory run is not complete, so no long-task lift claim yet | `docs/codex_long_task_ab.md`, `scripts/run_long_codex_ab.py` |
 
 Interpretation: use the harness where process failure is plausible, not as a blanket prompt upgrade. The formal A/B protocol remains pre-registered future work in `docs/ab_skill_effect_protocol.md`.
 
@@ -121,6 +122,12 @@ Summarize local pilot A/B scorecards when the ignored raw `evals/` directory is 
 
 ```bash
 python scripts/summarize_harness_ab_pilot.py --markdown
+```
+
+Initialize a Codex long-task A/B run:
+
+```bash
+python scripts/run_long_codex_ab.py init-run --run-id <run-id>
 ```
 
 ## Repository Map

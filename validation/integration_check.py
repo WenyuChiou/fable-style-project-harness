@@ -5,7 +5,7 @@ Executes the full deterministic verification matrix for the AI-review +
 adaptive-harness system: CLI surface, all modes dry-run, JSON validity,
 dry-run zero-mutation, the E2E data flow (AI-review -> rolling loop ->
 REC-id linkage), scheduled report-only invariants, validators, posture,
-graph build, and all four test suites. Emits one PASS/FAIL row per check
+graph build, and all five test suites. Emits one PASS/FAIL row per check
 plus a JSON blob; docs/integration_test_matrix.md records executed
 snapshots of this output (computed, never hand-written).
 
@@ -74,7 +74,7 @@ def main():
     import argparse
     global QUIET
     ap = argparse.ArgumentParser(prog="integration_check.py",
-                                 description="Phase-3 integration instrument (51 checks).")
+                                 description="Phase-3 integration instrument (53 checks).")
     ap.add_argument("--json", action="store_true",
                     help="Emit ONLY the JSON blob on stdout (human rows suppressed).")
     args = ap.parse_args()
@@ -197,7 +197,8 @@ def main():
 
     # 5. Test suites
     for suite in ("scripts/test_run_ai_review.py", "scripts/test_run_adaptive_harness_review.py",
-                  "scripts/test_build_harness_graph.py", "scripts/test_check_agent_artifacts.py"):
+                  "scripts/test_build_harness_graph.py", "scripts/test_check_agent_artifacts.py",
+                  "scripts/test_run_long_codex_ab.py"):
         rc, out, err = run([PY, suite])
         last = out.strip().splitlines()[-1] if out.strip() else err[:100]
         row(f"suite {suite}", "tests", rc == 0, last, f"python {suite}")
@@ -205,6 +206,7 @@ def main():
     # 6. Artifact presence inventory (Phase-3 section 1)
     for path in (".claude/skills/adaptive-harness/SKILL.md", "SKILL.md",
                  "scripts/run_ai_review.py", "scripts/run_adaptive_harness_review.py",
+                 "scripts/run_long_codex_ab.py",
                  "schemas/review_report.schema.yaml", "schemas/recommendation.schema.yaml",
                  "benchmarks/ai_review_cases.yaml", "benchmarks/harness_cases.yaml",
                  "benchmarks/retrieval_cases.yaml", "docs/codex-delegation-policy.md",

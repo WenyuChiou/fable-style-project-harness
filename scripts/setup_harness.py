@@ -7,7 +7,7 @@ Claude, a shell script) can run it safely. Re-running is always safe.
 
 Default actions (no flags):
     1. git config core.hooksPath scripts/hooks   (enable the pre-commit gates)
-    2. run validation/integration_check.py        (51 self-checks; proves the clone works)
+    2. run validation/integration_check.py        (53 self-checks; proves the clone works)
 
 Opt-in flags:
     --wire-skill    install a launcher STUB at ~/.claude/skills/adaptive-harness/
