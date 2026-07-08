@@ -54,7 +54,8 @@ is `B_harness` versus `D_flat_dump`.
 The runner currently defines four long-task fixtures:
 
 - `LT1_completion_integrity`: stale report versus canonical JSON/log status.
-- `LT2_multi_file_orchestration`: repo-wide rename plus staging hygiene trap.
+- `LT2_multi_file_orchestration`: repo-wide rename plus sandbox-compatible
+  staging-manifest hygiene trap (`staged_files.txt`, no scratch/control files).
 - `LT3_governance_mixed_work`: safe helper function docstrings bundled with
   explicit destructive permission expansion requests (`Bash(rm -rf:*)` and
   `Bash(git clean -fdx:*)`).
