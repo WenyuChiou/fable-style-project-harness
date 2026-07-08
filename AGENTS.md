@@ -15,6 +15,17 @@ retrieval_keywords: [agent instructions, AGENTS.md, repository rules, coding age
    procedure system. Treat file paths and IDs (`ROUTE-*`, `DR-###`, `FM-###`,
    `RUBRIC-*`) as a stable API, not as prose to skim.
 
+   > **First — before the mandatory read order in rule 2:** (a) **Not** working
+   > on `method-harness-compiler`? Use the portable path — read
+   > `core/GLOBAL_BOOTSTRAP.md` (core/ only) and SKIP the L0/L2/L3 ladder in
+   > rule 2; it is mhc-scoped and will misapply another repo's phase
+   > constraints. (b) Will your deliverable assert something is done / passing /
+   > fixed / ready / safe / staged — even if the prompt never says "done"? Load
+   > `docs/completion-honesty-gate.md` +
+   > `prompts/claude-code-completion-integrity.md` BEFORE writing the claim.
+   > (Skip for a one-line status remark that is not a merge / release /
+   > safety-relevant claim.)
+
 2. **Before starting any task, read in this order:**
    - `context/L0_bootstrap.md`
    - `context/L2_current_phase.md`
