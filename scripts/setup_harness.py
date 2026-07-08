@@ -18,7 +18,7 @@ Opt-in flags:
     --schedule      register the weekly report-only scan (Windows Task Scheduler;
                     prints the crontab line on other platforms)
     --print-wiring  print per-runtime wiring snippets (Claude Code / Codex /
-                    Cursor / Hermes / plain shell) and exit
+                    Cursor / OpenCode / Hermes / plain shell) and exit
     --dry-run       show what would be done; write nothing
     --skip-check    skip the integration check (e.g. on very slow machines)
 
@@ -90,12 +90,15 @@ WIRING = """
 Claude Code (global auto-discovery):
     python "{repo}/scripts/setup_harness.py" --wire-skill --wire-claude
 
-Codex CLI / Cursor / any AGENTS.md-convention agent:
+Codex CLI / Cursor / OpenCode / any AGENTS.md-convention agent:
     Working inside this clone: nothing to do - AGENTS.md is auto-read.
     For OTHER repos, add to that repo's (or your global) AGENTS.md:
-        Harness maintenance: read {repo}/.claude/skills/adaptive-harness/SKILL.md
-        (runners are plain Python CLIs; never act as final authority - see
-        {repo}/docs/codex-delegation-policy.md)
+        For large, multi-agent, high-risk, phase-gated, or completion-sensitive tasks:
+            read {repo}/core/GLOBAL_BOOTSTRAP.md and follow its routing.
+        For AI-harness maintenance, README/evidence work, AGENTS.md/CLAUDE.md/hooks/skills/settings review:
+            read {repo}/.claude/skills/adaptive-harness/SKILL.md.
+        Runners are plain Python CLIs; never act as final authority - see
+        {repo}/docs/codex-delegation-policy.md
 
 Hermes / any router surface - add a routing row:
     harness maintenance (audit/simplify/benchmark an AI setup) ->

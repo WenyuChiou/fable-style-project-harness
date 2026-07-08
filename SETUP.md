@@ -1,12 +1,12 @@
 ---
 id: SETUP
 layer: entry
-purpose: AI-executable post-clone setup runbook - a user hands this file to ANY agent (Claude Code, Codex, Cursor, Hermes, a shell) and says "set it up"; the agent runs one idempotent script and reports.
+purpose: AI-executable post-clone setup runbook - a user hands this file to ANY agent (Claude Code, Codex, Cursor, OpenCode, Hermes, a shell) and says "set it up"; the agent runs one idempotent script and reports.
 read_when: Immediately after cloning, on any machine, by whichever agent the user has.
 depends_on: [scripts/setup_harness.py, README.md]
 used_by: [any-agent-post-clone]
 tags: [entrypoint, setup, onboarding, ai-runbook, cross-runtime]
-retrieval_keywords: [setup after clone, install harness, ai setup runbook, wire skill, codex hermes setup, new machine]
+retrieval_keywords: [setup after clone, install harness, ai setup runbook, wire skill, codex opencode hermes setup, new machine]
 ---
 
 # SETUP — for the AI that was just told "set this up"
@@ -32,13 +32,16 @@ missing, stop and tell the user — that is the only prerequisite.
   python scripts/setup_harness.py --wire-skill --wire-claude
   ```
   (Idempotent: existing pointers are detected and skipped, never duplicated.)
-- **Codex CLI / Cursor / any AGENTS.md-convention agent** — nothing to
-  install: this repo's `AGENTS.md` is auto-read when working here. To use
-  the harness from OTHER repos, run
+- **Codex CLI / Cursor / OpenCode / any AGENTS.md-convention agent** —
+  nothing to install inside this clone: this repo's `AGENTS.md` is the
+  entrypoint. To use the harness from OTHER repos, run
   `python scripts/setup_harness.py --print-wiring` and add the printed
-  AGENTS.md snippet where your user keeps agent instructions. Boundary you
-  must honor: you may run the runners and draft findings, but you are never
-  final authority (`docs/codex-delegation-policy.md`).
+  AGENTS.md snippet where your user keeps agent instructions. That snippet
+  is the full future-work integration path: large/high-risk tasks enter
+  `core/GLOBAL_BOOTSTRAP.md`; AI-harness maintenance enters
+  `.claude/skills/adaptive-harness/SKILL.md`. Boundary you must honor: you
+  may run the runners and draft findings, but you are never final authority
+  (`docs/codex-delegation-policy.md`).
 - **Hermes / router surfaces** — `--print-wiring` prints the routing row to
   add: deterministic scans you run directly; semantic checklists route to a
   strong-reasoning surface.

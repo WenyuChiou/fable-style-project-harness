@@ -1,94 +1,152 @@
 ---
 id: README
 layer: doc
-purpose: Explain what this adaptive harness system is, what it is not, and how to enter it
+purpose: Explain what this adaptive harness system is, who should use it, what is measured, and how agents enter it
 read_when: First contact with the repo, or when unsure how the pieces fit
-depends_on: [context/L0_bootstrap.md, HARNESS.yaml, docs/publication_status.md]
+depends_on:
+  - context/L0_bootstrap.md
+  - HARNESS.yaml
+  - docs/publication_status.md
+  - docs/evidence.md
+  - docs/codebase_memory_assessment.md
+  - docs/codex_harness_integration.md
 used_by: [ROUTE-phase-review, ROUTE-tool-discovery, ROUTE-pr-review, ROUTE-eval-design, ROUTE-memory-update, ROUTE-runtime-export, ROUTE-repo-maintenance, ROUTE-ab-test-design]
-tags: [entrypoint, overview, publication, adaptive-harness]
-retrieval_keywords: [what is this repo, harness overview, how to use, entrypoint, publication status, progressive disclosure, adaptive harness skill system]
+tags: [entrypoint, overview, publication, adaptive-harness, open-source]
+retrieval_keywords: [what is this repo, harness overview, how to use, entrypoint, publication status, progressive disclosure, adaptive harness skill system, codex integration, opencode]
 ---
 
 # fable-style-project-harness
 
-A progressive-disclosure operating harness your AI agent loads a little at a time — it gates every "done" claim, keeps context cost low, and reviews and prunes itself on a cadence.
+Progressive-disclosure operating harness for AI-assisted software work.
 
-## Quickstart
+It gives an agent a small routed file set, a task loop, review gates, and an honest way to stop when evidence is missing. Use it for long, multi-step, multi-agent, high-risk, or evaluation-heavy work. Skip it for one-line edits.
+
+## Project Status
+
+| Item | Status |
+|---|---|
+| Visibility | Public repo, public-safe posture documented in `docs/publication_status.md` |
+| License | MIT |
+| Runtime dependency | Python standard library for setup and verification scripts |
+| Deterministic verification | `python validation/integration_check.py` currently covers 51 checks |
+| Evidence posture | Claims live in `docs/evidence.md`; negative results are published |
+
+## Install
 
 ```bash
 git clone https://github.com/WenyuChiou/fable-style-project-harness
 cd fable-style-project-harness
-git config core.hooksPath scripts/hooks     # enable the pre-commit gates (recommended)
-python validation/integration_check.py      # 51 self-checks; all-PASS = your clone works
+git config core.hooksPath scripts/hooks
+python validation/integration_check.py
 ```
 
-Or simply tell whatever AI you use — Claude Code, Codex, Cursor, Hermes — *"read `SETUP.md` and set this up"*: one idempotent script wires everything for its own runtime (`python scripts/setup_harness.py`, flags per runtime).
+Or hand the repo to an agent and say:
 
-## Two ways to use it
+```text
+Read SETUP.md and set this up.
+```
 
-Pick per task — you don't need Mode A for simple work.
-
-**A. Run big tasks the Fable way** — tell Claude Code: *"read `core/GLOBAL_BOOTSTRAP.md` and follow it"* (or add a two-line pointer in your own `~/.claude/CLAUDE.md`). It loads ~5% of this repo per task via `ROUTES.yaml`, works the task loop, and gates every done-claim. Use it for multi-agent / long-horizon / expensive-if-wrong work; skip it for simple tasks (frontier models ace those bare — measured, see `distillation/distillation-log.md`).
-
-**B. Audit and continuously improve your own AI setup** (your CLAUDE.md, hooks, skills):
+The setup path is idempotent, offline, and stdlib-only:
 
 ```bash
-python scripts/run_ai_review.py --mode harness_cleanup_review --target <your-repo>
-# then in a Claude session: read reports/ai-review/latest.json, answer
-# prompts/ai-review-modes.md's checklist, save findings.json, and:
-python scripts/run_ai_review.py --mode harness_cleanup_review --ingest findings.json
-python scripts/run_adaptive_harness_review.py --mode rolling_improvement_review --target <your-repo>
-python scripts/run_adaptive_harness_review.py --mode patch_proposal   # high-risk items -> a sheet YOU approve
+python scripts/setup_harness.py
+python scripts/setup_harness.py --print-wiring
 ```
 
-Findings enter only through schema-validated `--ingest`, and scheduled runs are report-only by design — deterministic scripts compute, LLMs judge, humans approve (the full contract is [`docs/ai_review_adaptive_harness_integration.md`](docs/ai_review_adaptive_harness_integration.md)). Approve a proposal → commit with `applies REC-YYYYMMDD-NNN` in the message → the next rolling run marks it resolved with the commit sha. Non-Claude agents enter via [`AGENTS.md`](AGENTS.md).
+## When To Use It
 
-## Is it proven useful?
+Use the harness when failure is expensive:
 
-Use this system for discipline, economy (~90-98% less context loaded per task; same gate behavior at ~55% less standing-instruction context), and audit trail — NOT for capability: it does NOT make a frontier model smarter (eight consecutive ceiling experiments hit plain-Opus 88-100%, up to N=120 buried requirements retained with zero drops, harness OFF), so its measured value concentrates only where mistakes are expensive, work is long, or several agents run at once, and its own guidance says to skip the ceremony on simple tasks.
+- long or multi-step work where state can drift;
+- multi-agent work where lane reports must be re-verified;
+- completion claims such as done, passing, fixed, ready, safe, or staged;
+- benchmark, eval, release, governance, permissions, hooks, or routing changes;
+- maintenance of AI instructions, skills, hooks, AGENTS.md, or CLAUDE.md.
 
-The full tested ledger — including the negative results — is [`docs/evidence.md`](docs/evidence.md).
+Do not force it for trivial edits. The 2026-07-07 pilot shows forced activation on a one-typo control adds overhead without quality benefit.
 
-## What this repo IS
+## Agent Entry Points
 
-- **Method summaries, procedures, rubrics, examples, and decision records** that any observer of the `method-harness-compiler` repo could reconstruct from its docs, schemas, scripts, tests, example packages, and git log (17+ commits with rich trailers).
-- **A progressive-disclosure context package**: small layered files (`context/L0`–`L5`), a task router (`ROUTES.yaml`), per-route file lists, and datasets keyed by stable IDs (`TE-###`, `FM-###`, `EC-###`, `RE-###`, `ROUTE-*`, `RUBRIC-*`, `PLAYBOOK-*`).
-- **Its own git repo**, deliberately gitignored by the parent project (parent commit `965c68e`: "private harness distillation must never ship with the (future-public) repo").
-
-## What this repo is NOT
-
-- **Not a prompt dump.** Nothing here is a private system prompt, hidden chain-of-thought, or internal model instruction. Everything is reconstructed from published artifacts.
-- **Not hidden internals.** No API keys, tokens, personal contact info, or private chat content — see [`docs/publication_status.md`](docs/publication_status.md).
-- **Not a static skill package.** The adaptive layer exists precisely so the harness gets reviewed and pruned on a cadence; a growing pile of unreviewed rules is a defect the system itself must flag.
-- **Not the method-harness-compiler itself.** The source project compiles expert-methodology packages; this repo distills *how that project is operated* so the same working method can be applied elsewhere.
-
-## Entry points (Skill-like activation)
-
-Thin entry files let different runtimes *discover and launch* the harness on their own, instead of a human explaining it each time:
-
-| File | Convention it serves | When it fires |
+| Runtime | Entry path | Notes |
 |---|---|---|
-| [`BOOTSTRAP.md`](BOOTSTRAP.md) | Universal shortest entry | Paste-a-pointer for any model: "read BOOTSTRAP.md and follow it" |
-| [`AGENTS.md`](AGENTS.md) | Repository agent instructions | Auto-read at session start by convention-following coding agents (Codex, Cursor, and similar) |
-| [`SKILL.md`](SKILL.md) | Skill discovery (`name`/`description` frontmatter) | Skill-aware runtimes (Claude Code and similar) surface it as an invocable capability |
-| [`core/GLOBAL_BOOTSTRAP.md`](core/GLOBAL_BOOTSTRAP.md) | Portable path for work on any OTHER project | Loads only the `core/` discipline layer and never the project-bound files (L1/L2, phase playbooks, `memory/`) |
+| Claude Code / skill-aware runtimes | `SKILL.md`, or `python scripts/setup_harness.py --wire-skill --wire-claude` | Installs a launcher stub; this repo remains the source of truth. |
+| Codex | `AGENTS.md` inside this repo; `docs/codex_harness_integration.md` for future work in other repos | Codex should use `core/GLOBAL_BOOTSTRAP.md` for large non-mhc tasks and the adaptive-harness adapter for harness maintenance. |
+| Cursor / OpenCode / AGENTS.md-convention agents | `AGENTS.md` | Use `python scripts/setup_harness.py --print-wiring` to copy the portable pointer into another repo or global instruction file. |
+| Hermes / router surfaces | `docs/agent-routing-policy.md` plus the `--print-wiring` routing row | Hermes can run deterministic scans and route semantic or high-risk judgment to a stronger surface. |
+| Bare model, shell, or other AI | `BOOTSTRAP.md` for this project; `core/GLOBAL_BOOTSTRAP.md` for other projects | Paste a single pointer line; do not bulk-read the repo. |
 
-The first three converge on the same startup ladder below — they are launchers, not rule stores, so the entry layer stays short and stable. `core/GLOBAL_BOOTSTRAP.md` is the portable path for applying the discipline to any other project.
+## Full Codex Harness Integration
 
-## How to use it (the reading order)
+For future Codex work outside this repo, run `python scripts/setup_harness.py --print-wiring` and paste the emitted pointer into the relevant global or repo `AGENTS.md`. The generic form is:
 
-1. **`context/L0_bootstrap.md`** — the minimal first read, under 300 words.
-2. **`context/L2_current_phase.md`** — what phase the source project is in, what is allowed and forbidden right now.
-3. **`context/L3_task_router.md`** — classify your task into one of the 8 pinned routes.
-4. **`ROUTES.yaml`** — get the exact file list for your route.
-5. **Route files only.** Open the rubrics / playbooks / examples the route lists — nothing else, per [`context/L4_progressive_disclosure_policy.md`](context/L4_progressive_disclosure_policy.md).
+```text
+For large, multi-agent, high-risk, phase-gated, or completion-sensitive tasks, read <harness-root>/core/GLOBAL_BOOTSTRAP.md and follow its routing. For AI-harness maintenance, README/evidence work, AGENTS.md/CLAUDE.md/hooks/skills/settings review, read <harness-root>/.claude/skills/adaptive-harness/SKILL.md. Load routed files only; do not bulk-read the harness repo.
+```
 
-`context/L1_project_constitution.md` (thesis, non-goals, stable principles) and `context/L5_full_context_map.md` (one-line directory map) are reference layers: load them when a route file points to them or when ambiguity survives the routed files.
+The longer operational guide is `docs/codex_harness_integration.md`.
 
-## Publication status
+## Evidence Summary
 
-**PUBLIC** (visibility verified 2026-07-06). Public-safe posture: no secrets, no hidden reasoning, no private chat exports, no credentials, no local telemetry; generated review reports stay gitignored. The repeatable public-safety review checklist and the honest outstanding-items ledger (license: MIT, decided 2026-07-06) live in [`docs/publication_status.md`](docs/publication_status.md). The `HARNESS.yaml` constraints block (`public_safe_after_human_review`, `no_secrets`, `no_hidden_reasoning`) is binding on every future edit.
+This repo is not marketed as a model-capability booster. The measured value is process discipline, lower standing-instruction load, auditability, and safer stopping behavior.
 
-## Provenance discipline
+| Claim area | Current evidence | Artifact |
+|---|---|---|
+| Clone health | 51 deterministic checks | `python validation/integration_check.py` |
+| Runtime compatibility | Haiku 4/4, Sonnet 2/2, Codex 2/2 executed cases; Codex n=1 scoped edit honored file fence and no-commit rule | `benchmarks/model_compatibility_cases.yaml` |
+| Context economy | Routed file sets are far smaller than whole-repo loading | `docs/evidence.md` |
+| GPT-5.5 forced-activation pilot | No quality lift detected: A 4/5 pass, B 4/5 pass; false-done A 1/5, B 1/5; B used 1.58x tool calls and 2.84x input tokens | `python scripts/summarize_harness_ab_pilot.py --markdown` |
+| Long/multi-step gap found | T5 governance-sensitive fixture failed in both arms; this is a harness gap, not a win | `evals/harness_ab/pilot_2026-07-07/scorecards/T5_pair.json` |
 
-Every claim traces to an observable artifact: a file path in `method-harness-compiler` (docs/, schemas/, scripts/, tests/, the three example packages) or a commit hash in its git log. Dataset records carry a `source_artifact` field and a `synthetic` flag; grounded (`synthetic: false`) records are preferred. If you cannot cite an artifact, do not write the claim — the source project's no-fabrication rule (`TODO_FILL`-fails-validation, UNSCORED-never-guessed) applies here too.
+Interpretation: use the harness where process failure is plausible, not as a blanket prompt upgrade. The formal A/B protocol remains pre-registered future work in `docs/ab_skill_effect_protocol.md`.
+
+## Daily Usage
+
+Run a high-risk task with the portable core:
+
+```text
+Read core/GLOBAL_BOOTSTRAP.md and follow its routing for this task.
+```
+
+Audit an AI setup or harness:
+
+```bash
+python scripts/run_ai_review.py --mode harness_cleanup_review --target <repo>
+python scripts/run_ai_review.py --mode harness_cleanup_review --ingest findings.json
+python scripts/run_adaptive_harness_review.py --mode rolling_improvement_review --target <repo>
+python scripts/run_adaptive_harness_review.py --mode patch_proposal
+```
+
+Summarize the pilot A/B scorecards:
+
+```bash
+python scripts/summarize_harness_ab_pilot.py --markdown
+```
+
+## Repository Map
+
+| Path | Purpose |
+|---|---|
+| `core/` | Portable discipline for work in other projects. |
+| `context/` | Project-bound startup ladder for `method-harness-compiler`. |
+| `ROUTES.yaml` | Task classifier to exact required file sets. |
+| `.claude/skills/adaptive-harness/` | Runtime-agnostic adapter for auditing and improving AI harnesses. |
+| `scripts/` | Deterministic runners, validators, setup, and evidence summarizers. |
+| `validation/` | Integration and retrieval smoke checks. |
+| `benchmarks/` and `evals/` | Compatibility cases and A/B pilot artifacts. |
+| `docs/` | Evidence, publication status, routing policy, integration guides. |
+
+## Safety And Publication Rules
+
+This repo is public. Do not add secrets, credentials, private chat exports, hidden reasoning traces, local telemetry, or private system prompts. Generated reports stay out of git by design. Before a release or README relaunch, repeat the public-safety checklist in `docs/publication_status.md`.
+
+## Contributing
+
+1. Keep route files small and explicit.
+2. Add runnable evidence for new claims.
+3. Mark unmeasured dimensions `UNSCORED`, not guessed.
+4. Run `python validation/integration_check.py` before proposing a change.
+5. For README/evidence changes, run `python scripts/summarize_harness_ab_pilot.py --markdown` if you cite the pilot.
+
+## License
+
+MIT. See `LICENSE`.

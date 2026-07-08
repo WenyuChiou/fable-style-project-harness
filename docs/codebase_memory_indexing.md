@@ -80,7 +80,7 @@ see `ROUTES.yaml` `entrypoints:`):
 1. **Skill-aware runtime (Claude Code class):** `SKILL.md` carries
    `name`/`description` frontmatter, so the runtime can surface the harness
    as an invocable capability without any human explanation.
-2. **AGENTS.md-convention agents (Codex/Cursor class):** `AGENTS.md` is
+2. **AGENTS.md-convention agents (Codex/Cursor/OpenCode class):** `AGENTS.md` is
    auto-read at session start; the 8 rules there force the L0→L2→L3→ROUTES
    ladder before any work.
 3. **Anything else (incl. a bare model + this index):** paste one line —
@@ -90,7 +90,7 @@ see `ROUTES.yaml` `entrypoints:`):
 
 Recommended first query for a fresh session with this repo indexed:
 search `bootstrap startup sequence` → open `BOOTSTRAP.md` → follow the
-ladder. Total pre-task reading stays under five files by design.
+ladder. Total pre-task reading stays under five files by design. For Codex future-work wiring outside this repo, use `docs/codex_harness_integration.md`.
 
 **Global usage (portable core, non-mhc projects):** index this harness repo
 ONCE (its own root, per §1) and reuse that index from any project — the

@@ -48,6 +48,9 @@ portability_targets:
   - claude_code
   - codex
   - cursor
+  - opencode
+  - hermes
+  - agents_md_convention
   - local agents
 constraints:
   - public_safe_after_human_review   # repo is PUBLIC (docs/publication_status.md); every commit world-readable; safety review repeats before major publication events
