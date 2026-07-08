@@ -70,14 +70,14 @@ Do not force it for trivial edits. The 2026-07-07 pilot shows forced activation 
 | Runtime | Entry path | Notes |
 |---|---|---|
 | Claude Code / skill-aware runtimes | `SKILL.md`, or `python scripts/setup_harness.py --wire-skill --wire-claude` | Installs a launcher stub; this repo remains the source of truth. |
-| Codex | `AGENTS.md` inside this repo; `docs/codex_harness_integration.md` for future work in other repos | Codex should use `core/GLOBAL_BOOTSTRAP.md` for large non-mhc tasks and the adaptive-harness adapter for harness maintenance. |
+| Codex | `AGENTS.md` inside this repo; `docs/codex_harness_integration.md` defines the Codex runtime interface | Same project, different interface: Codex uses the repo's core routes and evidence contract through AGENTS.md instead of the Claude skill wrapper. |
 | Cursor / OpenCode / AGENTS.md-convention agents | `AGENTS.md` | Use `python scripts/setup_harness.py --print-wiring` to copy the portable pointer into another repo or global instruction file. |
 | Hermes / router surfaces | `docs/agent-routing-policy.md` plus the `--print-wiring` routing row | Hermes can run deterministic scans and route semantic or high-risk judgment to a stronger surface. |
 | Bare model, shell, or other AI | `BOOTSTRAP.md` for this project; `core/GLOBAL_BOOTSTRAP.md` for other projects | Paste a single pointer line; do not bulk-read the repo. |
 
-## Full Codex Harness Integration
+## Codex Runtime Interface
 
-For future Codex work outside this repo, run `python scripts/setup_harness.py --print-wiring` and paste the emitted pointer into the relevant global or repo `AGENTS.md`. The generic form is:
+This repo does not fork a second Codex harness. Codex is another interface to the same harness: same `core/`, same routes, same evidence contract, different activation surface. For future Codex work outside this repo, run `python scripts/setup_harness.py --print-wiring` and paste the emitted pointer into the relevant global or repo `AGENTS.md`. The generic form is:
 
 ```text
 For large, multi-agent, high-risk, phase-gated, or completion-sensitive tasks, read <harness-root>/core/GLOBAL_BOOTSTRAP.md and follow its routing. For AI-harness maintenance, README/evidence work, AGENTS.md/CLAUDE.md/hooks/skills/settings review, read <harness-root>/.claude/skills/adaptive-harness/SKILL.md. Load routed files only; do not bulk-read the harness repo.

@@ -20,7 +20,7 @@ retrieval_keywords: [codebase memory assessment, harness improvement, long multi
 
 This assessment used the codebase-memory MCP index for the harness repo as the first discovery layer, then opened the canonical files it identified. The index was ready with 1,612 nodes and 2,183 edges. It surfaced the real implementation clusters instead of relying on folder names alone:
 
-- YAML/Markdown harness surface plus 23 Python files.
+- YAML/Markdown harness surface plus Python utility scripts.
 - Deterministic runners in `scripts/run_ai_review.py` and `scripts/run_adaptive_harness_review.py`.
 - Verification surface in `validation/integration_check.py`, `validation/retrieval_probe.py`, and `scripts/build_harness_graph.py`.
 - A/B and long-work evidence under `distillation/orchestration_bench/` and `evals/harness_ab/`.
@@ -97,9 +97,9 @@ What is not supported:
 
 Practical rule: use the harness for long, high-risk, multi-agent, completion-sensitive, or governance-sensitive work, but do not force it on small edits. For governance-sensitive changes, the harness must route to explicit approval or patch proposal before writes.
 
-## Future Codex Integration Requirement
+## Future Codex Interface Requirement
 
-For this to help future Codex sessions, the harness must be reachable before the task begins. The durable path is:
+For this to help future Codex sessions, the Codex interface for this same harness project must be reachable before the task begins. The durable path is:
 
 1. Keep this repo installed at a stable path.
 2. Add the pointer in `docs/codex_harness_integration.md` to the relevant global or repo `AGENTS.md`.

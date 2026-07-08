@@ -1,8 +1,8 @@
 ---
 id: DOC-codex-harness-integration
 layer: doc
-purpose: Full Codex and AGENTS.md integration path so future Codex work can use this harness before planning
-read_when: Wiring this harness into Codex, OpenCode, Cursor, Hermes, or any AGENTS.md-convention runtime; preparing future work to use the harness globally
+purpose: Codex runtime interface for the same harness project, using AGENTS.md instead of the Claude skill wrapper
+read_when: Wiring this same harness project into Codex, OpenCode, Cursor, Hermes, or any AGENTS.md-convention runtime; preparing future work to use the harness globally
 depends_on:
   - ../core/GLOBAL_BOOTSTRAP.md
   - ../AGENTS.md
@@ -11,17 +11,17 @@ depends_on:
   - ./codex-delegation-policy.md
   - ./codebase_memory_indexing.md
 used_by: [README, SETUP, operator-session]
-tags: [codex, opencode, hermes, agents-md, integration, global-pointer]
-retrieval_keywords: [Codex harness integration, AGENTS.md pointer, OpenCode, Hermes, future Codex work, global bootstrap]
+tags: [codex, opencode, hermes, agents-md, runtime-interface, global-pointer]
+retrieval_keywords: [Codex harness integration, Codex runtime interface, AGENTS.md pointer, OpenCode, Hermes, future Codex work, global bootstrap]
 ---
 
-# Codex Harness Integration
+# Codex Runtime Interface
 
 ## Goal
 
-Make the harness available before future Codex work starts, especially for long, multi-step, multi-agent, completion-sensitive, or governance-sensitive tasks.
+Expose a Codex-specific interface for this same harness project before future Codex work starts, especially for long, multi-step, multi-agent, completion-sensitive, or governance-sensitive tasks.
 
-This integration is intentionally a pointer, not a prompt dump. Codex should read the routed files from this repo and follow the current bytes on disk.
+This is not a second harness and not a prompt dump. Claude/Fable enters through the skill-native wrapper; Codex enters through AGENTS.md and reads the routed files from this repo. Both interfaces share the same `core/`, routes, evidence contract, and verification posture.
 
 ## Minimal Pointer
 
