@@ -1,0 +1,55 @@
+#!/bin/sh
+# pre-push — remote-protection guard for fable-style-project-harness.
+#
+# Why this exists: on 2026-07-07 a concurrent autonomous agent session committed
+# and pushed experiment artifacts to the PUBLIC canonical remote against an
+# explicit keep-it-local decision. This guard makes a push to the canonical
+# remote DELIBERATE: an autonomous `git push` is blocked unless the pusher sets
+# FABLE_HARNESS_ALLOW_PUSH=1 — something a human / intended workflow does on
+# purpose and an autonomous agent running a routine push does not.
+#
+# Scope: ONLY the canonical remote (github.com/WenyuChiou/fable-style-project-
+# harness, any URL casing, https or ssh, with or without a .git suffix) is
+# guarded. Pushing a clone to your own fork, a renamed fork (…-harness-fork), or
+# a mirror on another host is unaffected, so this hook is harmless downstream. It
+# fires for every process pushing from this checkout because core.hooksPath =
+# scripts/hooks is repo-local.
+#
+# This is a speed bump, not a security boundary: it is bypassable with
+# `git push --no-verify`, or from a clone that never set core.hooksPath. Its job
+# is to stop *routine / accidental* autonomous pushes, which is the failure that
+# actually happened — not to defeat a determined actor.
+#
+# git passes: $1 = remote name, $2 = remote URL; refs arrive on stdin (unused).
+
+remote_name="$1"
+remote_url="$2"
+
+# Case-fold: GitHub owner/repo routing is case-insensitive, so the guard must be
+# too (else github.com/wenyuchiou/... would slip past a WenyuChiou pattern).
+remote_url_lc=$(printf '%s' "$remote_url" | tr 'A-Z' 'a-z')
+
+# Each alternative on its own arm (no backslash-continuation, whose leading
+# indentation would silently become part of the pattern). Patterns are anchored
+# at end-of-string (no trailing *), so ".../fable-style-project-harness-fork"
+# does NOT match; the host is pinned to github.com so other-host mirrors are
+# left alone.
+guarded=0
+case "$remote_url_lc" in
+  *github.com/wenyuchiou/fable-style-project-harness) guarded=1 ;;
+  *github.com/wenyuchiou/fable-style-project-harness.git) guarded=1 ;;
+  *github.com:wenyuchiou/fable-style-project-harness) guarded=1 ;;
+  *github.com:wenyuchiou/fable-style-project-harness.git) guarded=1 ;;
+esac
+
+if [ "$guarded" = "1" ] && [ "$FABLE_HARNESS_ALLOW_PUSH" != "1" ]; then
+  echo "pre-push BLOCKED: the canonical public remote is guarded." >&2
+  echo "  remote: $remote_name -> $remote_url" >&2
+  echo "  This repo protects its public remote from autonomous/accidental" >&2
+  echo "  pushes (a concurrent AI session pushed here against a decision on" >&2
+  echo "  2026-07-07). If this push is intentional, re-run it as:" >&2
+  echo "      FABLE_HARNESS_ALLOW_PUSH=1 git push $remote_name <refspec>" >&2
+  exit 1
+fi
+
+exit 0
