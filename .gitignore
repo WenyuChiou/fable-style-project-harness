@@ -62,3 +62,10 @@ distillation/orchestration_bench/calib_large/
 # too. phase2_findings.json is already tracked (sanitized, user-accepted) and
 # stays tracked — .gitignore never untracks an already-tracked file.
 fable_ultracode_phase_workspace/*findings*.json
+
+# A/B / harness-effect experiment output (evals/) — same rationale as reports/
+# and the findings dumps: generated, machine-local, self-labeled pilot/proxy
+# data that may embed absolute operator paths (e.g. a B-arm prompt citing a
+# clone path). Durable results belong in docs/evidence.md, not in raw run dirs.
+# Keep local; never sweep into this PUBLIC repo via a stray `git add -A`.
+evals/
