@@ -1,20 +1,3 @@
----
-id: README
-layer: doc
-purpose: Explain what this adaptive harness system is, who should use it, what is measured, and how agents enter it
-read_when: First contact with the repo, or when unsure how the pieces fit
-depends_on:
-  - context/L0_bootstrap.md
-  - HARNESS.yaml
-  - docs/publication_status.md
-  - docs/evidence.md
-  - docs/codebase_memory_assessment.md
-  - docs/codex_harness_integration.md
-used_by: [ROUTE-phase-review, ROUTE-tool-discovery, ROUTE-pr-review, ROUTE-eval-design, ROUTE-memory-update, ROUTE-runtime-export, ROUTE-repo-maintenance, ROUTE-ab-test-design]
-tags: [entrypoint, overview, publication, adaptive-harness, open-source]
-retrieval_keywords: [what is this repo, harness overview, how to use, entrypoint, publication status, progressive disclosure, adaptive harness skill system, codex integration, opencode]
----
-
 # fable-style-project-harness
 
 **A discipline-and-cost layer for AI-assisted software work — not a capability booster.**
