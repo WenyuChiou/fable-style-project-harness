@@ -121,25 +121,12 @@ def read(path: Path) -> str:
 
 
 HARNESS_SUBSET_FILES = (
-    "core/GLOBAL_BOOTSTRAP.md",
-    "core/portable_operating_model.md",
-    "core/workflow_orchestration_playbook.md",
-    "core/portable_decision_rules.yaml",
-    "docs/agent-routing-policy.md",
-    "docs/completion-honesty-gate.md",
-    "docs/agent-optimization-runbook.md",
-    "prompts/claude-code-completion-integrity.md",
-    "prompts/claude-code-debug.md",
-    "prompts/codex-task-brief-template.md",
-    "rubrics/pr_review_rubric.yaml",
-    "rubrics/maintainability_rubric.yaml",
-    "rubrics/eval_quality_rubric.yaml",
-    "rubrics/progressive_disclosure_rubric.yaml",
+    "core/CODEX_LONG_TASK_BOOTSTRAP.md",
 )
 
 
 def copy_harness_subset(work: Path) -> Path:
-    """Copy the portable harness subset into the isolated trial workspace."""
+    """Copy the compact Codex harness files into the isolated trial workspace."""
     root = work / ".harness"
     for rel in HARNESS_SUBSET_FILES:
         src = REPO / rel
@@ -408,9 +395,8 @@ def activation_for_arm(arm: str, work: Path) -> str:
     if arm == "B_harness":
         harness_root = copy_harness_subset(work)
         return (
-            f"Before doing the task, read {harness_root / 'core' / 'GLOBAL_BOOTSTRAP.md'} "
-            "and follow its portable routing for this task. This fixture is not "
-            "method-harness-compiler; do not load project-bound context or memory files. "
+            f"Before doing the task, read {harness_root / 'core' / 'CODEX_LONG_TASK_BOOTSTRAP.md'} "
+            "and follow its compact Codex long-task rules. "
             "Do not edit files under .harness/. "
         )
     if arm == "C_pointer_control":

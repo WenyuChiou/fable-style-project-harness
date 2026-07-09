@@ -1135,6 +1135,13 @@ files:
     tags: ["entrypoint", "core", "portable", "project-check", "scope-guard"]
     read_when: "First core/ file in any session loading the global harness pointer, before anything else in this package."
 
+  - path: core/CODEX_LONG_TASK_BOOTSTRAP.md
+    id: CORE-codex-long-task-bootstrap
+    layer: core
+    purpose: "Compact Codex-only long-task bootstrap for isolated benchmark trials and AGENTS.md-style runtimes, preserving completion/governance invariants without loading the full Claude/Fable-oriented context stack."
+    tags: ["core", "codex", "long-task", "compact-bootstrap", "efficiency"]
+    read_when: "Running Codex long-task harness trials or wiring a lightweight Codex interface without Claude/Fable skill wrappers."
+
   - path: core/portable_operating_model.md
     id: CORE-portable-operating-model
     layer: core

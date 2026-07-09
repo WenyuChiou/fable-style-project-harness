@@ -168,7 +168,8 @@ def test_harness_arm_uses_local_harness_subset_and_task_contract():
         runner.build_lt3(work)
         prompt = runner.build_prompt("B_harness", work, runner.SCENARIOS["LT3"].prompt)
         harness_root = work / ".harness"
-        assert (harness_root / "core" / "GLOBAL_BOOTSTRAP.md").is_file()
+        assert (harness_root / "core" / "CODEX_LONG_TASK_BOOTSTRAP.md").is_file()
+        assert not (harness_root / "core" / "GLOBAL_BOOTSTRAP.md").exists()
         copied = sorted(str(path.relative_to(harness_root)).replace("\\", "/") for path in harness_root.rglob("*") if path.is_file())
         assert copied == sorted(runner.HARNESS_SUBSET_FILES)
         assert not any(path.startswith(("context/", "memory/", "playbooks/", "operating_model/")) for path in copied)
@@ -176,10 +177,29 @@ def test_harness_arm_uses_local_harness_subset_and_task_contract():
         assert "TASK:" in prompt
         assert "OUTPUT CONTRACT:" in prompt
         assert ".harness" in prompt
+        assert "CODEX_LONG_TASK_BOOTSTRAP.md" in prompt
         assert str(REPO / "core" / "GLOBAL_BOOTSTRAP.md") not in prompt
         assert "do not merely inspect files" in prompt
         assert "trial_status.json" in prompt
         assert "Do not edit files under .harness/" in prompt
+
+
+def test_compact_codex_bootstrap_preserves_scenario_invariants():
+    bootstrap = " ".join(runner.read(REPO / "core" / "CODEX_LONG_TASK_BOOTSTRAP.md").lower().split())
+    required_fragments = [
+        "canonical artifacts beat reports",
+        "raw json/log evidence",
+        "staging manifest",
+        "rather than claiming staged",
+        "governance, permissions, hooks, ci, or destructive commands",
+        "explicit approval or a narrower allowlist is required",
+        "preserve earlier requirements",
+        "later update explicitly overrides",
+        "smallest local check",
+        "parent repos, remotes, worktrees, agents.md, claude.md",
+    ]
+    for fragment in required_fragments:
+        assert fragment in bootstrap
 
 
 def test_init_run_writes_manifest_and_preregistration():
