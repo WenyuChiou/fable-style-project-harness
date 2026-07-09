@@ -1,162 +1,119 @@
----
-id: README
-layer: doc
-purpose: Explain what this adaptive harness system is, who should use it, what is measured, and how agents enter it
-read_when: First contact with the repo, or when unsure how the pieces fit
-depends_on:
-  - context/L0_bootstrap.md
-  - HARNESS.yaml
-  - docs/publication_status.md
-  - docs/evidence.md
-  - docs/codebase_memory_assessment.md
-  - docs/codex_harness_integration.md
-used_by: [ROUTE-phase-review, ROUTE-tool-discovery, ROUTE-pr-review, ROUTE-eval-design, ROUTE-memory-update, ROUTE-runtime-export, ROUTE-repo-maintenance, ROUTE-ab-test-design]
-tags: [entrypoint, overview, publication, adaptive-harness, open-source]
-retrieval_keywords: [what is this repo, harness overview, how to use, entrypoint, publication status, progressive disclosure, adaptive harness skill system, codex integration, opencode]
----
-
 # fable-style-project-harness
 
-Progressive-disclosure operating harness for AI-assisted software work.
+**A discipline-and-cost layer for AI-assisted software work — not a capability booster.**
 
-It gives an agent a small routed file set, a task loop, review gates, and an honest way to stop when evidence is missing. Use it for long, multi-step, multi-agent, high-risk, or evaluation-heavy work. Skip it for one-line edits.
+It won't make the model smarter (we measured that — it doesn't). What it does is
+cut the cost of multi-step work, catch expensive mistakes before they ship, and
+keep an honest audit trail. Its sharpest single lever is **cost routing — comparable
+quality at roughly 2.5× lower cost when the routing is accurate.**
 
-## Project Status
+## What you get
 
-| Item | Status |
-|---|---|
-| Visibility | Public repo, public-safe posture documented in `docs/publication_status.md` |
-| License | MIT |
-| Runtime dependency | Python standard library for setup and verification scripts |
-| Deterministic verification | `python validation/integration_check.py` currently covers 53 checks |
-| Evidence posture | Claims live in `docs/evidence.md`; negative results are published |
+- **💸 Cost routing** — put a cheap model on the mechanical majority of a job and
+  reserve the expensive one for the honesty-critical parts. Measured: the same
+  quality *and* stability as all-Opus (1.00 = 1.00 across 6 subtasks, k=5) at
+  ~40% of the cost — when the routing is accurate.
+- **🛑 Honest-failure discipline** — review gates, completion-honesty checks, and
+  a rule that an explicit "unknown / HALT" beats a confident guess. Measured:
+  caught ~30 real defects while building itself; refused an unsafe eval run
+  instead of faking a result.
+- **🪶 Context economy** — classify first, then load only the files a task needs
+  (~4–5% of the repo) instead of dumping everything into context.
+- **🔍 Audit trail** — every claim in `docs/evidence.md` cites a re-runnable
+  artifact, and negative results are published — including the measured fact
+  that it does *not* boost capability.
 
-## Install
+## What we actually measured
+
+Nothing here is aspirational — each row re-runs from its named artifact.
+
+| Measured | Result | Where |
+|---|---|---|
+| **Cost routing vs all-Opus** | Same quality (6/6 = 6/6) and same whole-workload stability (**1.00 = 1.00**, k=5) at **~40% of the cost (~2.5× cheaper)**, when routing is accurate | `docs/evidence.md`, `evals/route_ab/` |
+| **Naive all-cheap baseline** | all-Haiku scores **0.00** whole-workload — it misses the subtle-honesty subtask every single time (0/5). Routing, not the cheap model alone, is what buys the stability | same |
+| **Invocation fix** | activation over-load **2.84× → removed** (single-file default); the completion-honesty route self-triggered **0/10 → 4/5** | `docs/evidence.md` |
+| **Context per task** | **~4–5%** of the repo loaded (~12–16k of ~303k tokens) instead of bulk-reading | `ROUTES.yaml` + file sizes |
+| **Standing instructions** | a 215-line global instruction file slimmed to **96 lines (~55% less)** with identical gate behavior | dotfiles commit `ddf2872` |
+| **Review reports** | **~0 LLM output tokens** — rendered deterministically from JSON | `scripts/run_ai_review.py --dry-run` |
+| **Defects caught building itself** | **~30** confirmed, including two silent state-loss bugs | commit trailers `f55459d`→`0dd0cf2` |
+
+## When to use it
+
+Use it when a mistake is expensive:
+
+- long or multi-step work where state can drift;
+- multi-agent runs where lane reports need re-checking;
+- completion claims (done / passing / fixed / ready / safe / staged);
+- cost-sensitive jobs where a cheap model can safely do the bulk of the work;
+- governance, permissions, hooks, release, or eval changes.
+
+**Skip it** for one-line edits, typo fixes, or pure "make the model smarter"
+asks — there it adds ceremony without benefit (also measured: a forced run on a
+one-typo control added overhead with no quality gain).
+
+## Quick start
 
 ```bash
 git clone https://github.com/WenyuChiou/fable-style-project-harness
 cd fable-style-project-harness
 git config core.hooksPath scripts/hooks
-python validation/integration_check.py
+python validation/integration_check.py   # 53 checks, ~3 min
 ```
 
-Or hand the repo to an agent and say:
+Or hand the repo to an agent:
 
-```text
-Read SETUP.md and set this up.
-```
+> Read `SETUP.md` and set this up.
 
-The setup path is idempotent, offline, and stdlib-only:
+Then, for a real task:
 
-```bash
-python scripts/setup_harness.py
-python scripts/setup_harness.py --print-wiring
-```
+> Read `core/GLOBAL_BOOTSTRAP.md` and follow its routing for this task.
 
-## When To Use It
+## How agents enter it
 
-Use the harness when failure is expensive:
-
-- long or multi-step work where state can drift;
-- multi-agent work where lane reports must be re-verified;
-- completion claims such as done, passing, fixed, ready, safe, or staged;
-- cost-sensitive multi-subtask work where a cheap model can safely do the mechanical majority and only honesty-critical parts need the expensive model;
-- benchmark, eval, release, governance, permissions, hooks, or routing changes;
-- maintenance of AI instructions, skills, hooks, AGENTS.md, or CLAUDE.md.
-
-Do not force it for trivial edits. The 2026-07-07 pilot shows forced activation on a one-typo control adds overhead without quality benefit.
-
-## Agent Entry Points
-
-| Runtime | Entry path | Notes |
-|---|---|---|
-| Claude Code / skill-aware runtimes | `SKILL.md`, or `python scripts/setup_harness.py --wire-skill --wire-claude` | Installs a launcher stub; this repo remains the source of truth. |
-| Codex | `AGENTS.md` inside this repo; `docs/codex_harness_integration.md` defines the Codex runtime interface | Same project, different interface: Codex uses the repo's core routes and evidence contract through AGENTS.md instead of the Claude skill wrapper. |
-| Cursor / OpenCode / AGENTS.md-convention agents | `AGENTS.md` | Use `python scripts/setup_harness.py --print-wiring` to copy the portable pointer into another repo or global instruction file. |
-| Hermes / router surfaces | `docs/agent-routing-policy.md` plus the `--print-wiring` routing row | Hermes can run deterministic scans and route semantic or high-risk judgment to a stronger surface. |
-| Bare model, shell, or other AI | `BOOTSTRAP.md` for this project; `core/GLOBAL_BOOTSTRAP.md` for other projects | Paste a single pointer line; do not bulk-read the repo. |
-
-## Codex Runtime Interface
-
-This repo does not fork a second Codex harness. Codex is another interface to the same harness: same `core/`, same routes, same evidence contract, different activation surface. For future Codex work outside this repo, run `python scripts/setup_harness.py --print-wiring` and paste the emitted pointer into the relevant global or repo `AGENTS.md`. The generic form is:
-
-```text
-For large, multi-agent, high-risk, phase-gated, or completion-sensitive tasks, read <harness-root>/core/GLOBAL_BOOTSTRAP.md and follow its routing. For AI-harness maintenance, README/evidence work, AGENTS.md/CLAUDE.md/hooks/skills/settings review, read <harness-root>/.claude/skills/adaptive-harness/SKILL.md. Load routed files only; do not bulk-read the harness repo.
-```
-
-The longer operational guide is `docs/codex_harness_integration.md`.
-
-## Evidence Summary
-
-This repo is not marketed as a model-capability booster. The measured value is process discipline, cost routing, lower standing-instruction load, auditability, and safer stopping behavior.
-
-| Claim area | Current evidence | Artifact |
-|---|---|---|
-| Clone health | 53 deterministic checks | `python validation/integration_check.py` |
-| Runtime compatibility | Haiku 4/4, Sonnet 2/2, Codex 2/2 executed cases; Codex n=1 scoped edit honored file fence and no-commit rule | `benchmarks/model_compatibility_cases.yaml` |
-| Context economy | Routed file sets are far smaller than whole-repo loading | `docs/evidence.md` |
-| Cost routing (2026-07-08) | Used as a cost router — cheap model on the mechanical subtasks, expensive model reserved for honesty-critical ones — it matched all-Opus quality and whole-workload stability (both 1.00 across 6 subtasks, k=5) at ~2.5x lower execution cost. The gain hinges on routing accuracy; it is *not* more stable than Opus, but far more stable than an all-cheap run, which every time misses the subtle-honesty subtask | `docs/evidence.md`, `evals/route_ab/` (local, gitignored) |
-| GPT-5.5 forced-activation pilot | No quality lift detected: A 4/5 pass, B 4/5 pass; false-done A 1/5, B 1/5. B used 1.58x tool calls and 2.84x input tokens — later traced to a broken activation (a fixed 4-file bulk load), fixed 2026-07-08 with classify-first lean loading; that is a fixed invocation cost, not an inherent harness tax | `docs/harness_ab_pilot_2026_07_07.md`, `docs/evidence.md` |
-| Long/multi-step gap found | T5 governance-sensitive fixture failed in both arms; this is a harness gap, not a win | `docs/harness_ab_pilot_2026_07_07.md` |
-| Post-fix governance regression | After adding the governance trigger to `core/GLOBAL_BOOTSTRAP.md`, one isolated Codex T5 run left destructive settings unchanged and requested approval/narrower allowlist | `docs/t5_codex_governance_regression.md` |
-| Codex long-task A/B | Formal runner and design exist; confirmatory run is not complete, so no long-task lift claim yet | `docs/codex_long_task_ab.md`, `scripts/run_long_codex_ab.py` |
-
-Interpretation: use the harness where process failure is plausible, not as a blanket prompt upgrade. The clearest positive lever measured so far is cost routing — comparable quality at ~2.5x lower cost when the routing is accurate. The formal A/B protocol remains pre-registered future work in `docs/ab_skill_effect_protocol.md`.
-
-## Daily Usage
-
-Run a high-risk task with the portable core:
-
-```text
-Read core/GLOBAL_BOOTSTRAP.md and follow its routing for this task.
-```
-
-Audit an AI setup or harness:
-
-```bash
-python scripts/run_ai_review.py --mode harness_cleanup_review --target <repo>
-python scripts/run_ai_review.py --mode harness_cleanup_review --ingest findings.json
-python scripts/run_adaptive_harness_review.py --mode rolling_improvement_review --target <repo>
-python scripts/run_adaptive_harness_review.py --mode patch_proposal
-```
-
-Summarize local pilot A/B scorecards when the ignored raw `evals/` directory is present:
-
-```bash
-python scripts/summarize_harness_ab_pilot.py --markdown
-```
-
-Initialize a Codex long-task A/B run:
-
-```bash
-python scripts/run_long_codex_ab.py init-run --run-id <run-id>
-```
-
-## Repository Map
-
-| Path | Purpose |
+| Runtime | Entry |
 |---|---|
-| `core/` | Portable discipline for work in other projects. |
-| `context/` | Project-bound startup ladder for `method-harness-compiler`. |
-| `ROUTES.yaml` | Task classifier to exact required file sets. |
-| `.claude/skills/adaptive-harness/` | Runtime-agnostic adapter for auditing and improving AI harnesses. |
-| `scripts/` | Deterministic runners, validators, setup, and evidence summarizers. |
-| `validation/` | Integration and retrieval smoke checks. |
-| `benchmarks/` | Compatibility and retrieval cases. |
-| `docs/` | Evidence, durable A/B summaries, publication status, routing policy, integration guides. |
-| `evals/` | Local ignored raw runs only; do not cite as public evidence. |
+| Claude Code | `SKILL.md` (auto-discovered) |
+| Codex / Cursor / AGENTS.md agents | `AGENTS.md` |
+| Any other model or shell | `BOOTSTRAP.md` (this project) · `core/GLOBAL_BOOTSTRAP.md` (any other project) |
+| Hermes / router surfaces | `docs/agent-routing-policy.md` — run deterministic scans, route judgment to a stronger model |
 
-## Safety And Publication Rules
+One rule for all of them: **classify the task, load only the routed files, do
+not bulk-read the repo.** `python scripts/setup_harness.py --print-wiring` prints
+the pointer to drop into another repo; `docs/codex_harness_integration.md` covers
+the Codex interface in depth.
 
-This repo is public. Do not add secrets, credentials, private chat exports, hidden reasoning traces, local telemetry, or private system prompts. Generated reports stay out of git by design. Before a release or README relaunch, repeat the public-safety checklist in `docs/publication_status.md`.
+## Is it actually useful? (the honest version)
+
+Yes — for **cost, discipline, and audit; not for capability.** We tried hard to
+show a capability lift and could not: across eight experiments a frontier model
+was already at the ceiling with the harness off. What survives measurement is the
+table above. The full ledger — every positive, every negative, and the artifact
+to re-run each one — is in **[`docs/evidence.md`](docs/evidence.md)**. Read it
+before adopting.
+
+## Repository map
+
+| Path | What's there |
+|---|---|
+| `core/` | Portable discipline for any project |
+| `ROUTES.yaml` | Task type → exact required file set |
+| `.claude/skills/adaptive-harness/` | Runtime-agnostic harness-audit adapter |
+| `scripts/`, `validation/` | Deterministic runners and checks |
+| `docs/` | Evidence, routing policy, publication status, operator runbook |
+| `benchmarks/`, `evals/` | Public cases · local-only raw runs (gitignored) |
+
+## Safety
+
+Public repo. No secrets, private chat exports, hidden reasoning, or telemetry.
+Generated reports stay out of git by design. Re-run the checklist in
+`docs/publication_status.md` before any release.
 
 ## Contributing
 
-1. Keep route files small and explicit.
-2. Add runnable evidence for new claims.
-3. Mark unmeasured dimensions `UNSCORED`, not guessed.
-4. Run `python validation/integration_check.py` before proposing a change.
-5. For README/evidence changes, update `docs/harness_ab_pilot_2026_07_07.md` or the relevant tracked evidence doc; run `python scripts/summarize_harness_ab_pilot.py --markdown` only when local ignored scorecards are present.
+- Every new claim needs a re-runnable artifact; mark unmeasured dimensions
+  `UNSCORED`, not guessed.
+- Keep route files small and explicit.
+- Run `python validation/integration_check.py` before proposing a change.
 
 ## License
 
