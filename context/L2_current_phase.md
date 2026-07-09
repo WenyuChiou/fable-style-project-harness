@@ -156,17 +156,24 @@ machine-readable-verbatim convention). SOURCE SET NOW FROZEN 2026-07-07
 (commit A `d0fb3ef`, tag `phase3-freeze-A`, CI green; AD-025/PH-033):
 held-out subject Jeff Bezos, 35 sources (cal 22 + Bezos 13, 10F/3U),
 every I1 probe orchestrator-run via real WebFetch; NO-SWAP binding.
-Next gate step: the extractor-build GO/NO_GO decision — needs a build
-plan; the audit instrument (0.2.0, calibrated 17/17 clean) is ready to
-point at real output the moment an extractor exists.**
-The build items below stay
-UNCHECKED until the frozen criteria pass ON A REAL RUN against the frozen set:
+EXTRACTOR NOW BUILT end-to-end 2026-07-07 (build plan v2 mhc `a3ef65a`;
+B0–B7 all shipped, code-reviewer APPROVE + CI green each; PH-034/LL-024;
+suite 792→953; B7 tip `36bc5b6`). The whole pipeline runs, produces a
+correct verdict, and fabrication fails closed at every stage; an
+automated run → NO_GO (used_for still TODO_FILL), a simulated human
+S4-clear → BUILD_GATE PASS (NO_GO is package-quality-driven, not
+hardwired).**
+The build items below are BUILT (the MODULES + gates + the binding
+runner); each stays functionally gated — a real Bezos GO still needs
+`--live` fetch + a real LLM segmenter/proposer + the human S4 pass, none
+automatable, and the 3 frozen criteria must pass on THAT run:
 
-- [ ] Source discovery
-- [ ] Evidence card builder
-- [ ] Principle extractor
-- [ ] Source-to-principle mapper
-- [ ] Attribution classifier
+- [x] Source discovery / fetch ledger — B1 M3a (`e46e470`)
+- [x] Evidence card builder — B3 M3b (`4099e59`)
+- [x] Principle extractor — B5 M3c (`75aab07`)
+- [x] Source-to-principle mapper — B6 M3d (`857eecb`)
+- [x] Attribution classifier — B4 M3e (`b95acce`)
+- [x] (+ B0 skeleton, B2 V1–V9 gate, B7 binding runner)
 
 Observable entry expectations, from how Phases 1–2 were run: an architect
 work order BEFORE execution (exists: `2ad438b`); a falsifiable gate defined

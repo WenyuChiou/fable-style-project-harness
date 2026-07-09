@@ -16,7 +16,7 @@ retrieval_keywords: current state, HEAD, test count, packages shipped, phase sta
 
 # Project State — method-harness-compiler
 
-**Snapshot date:** 2026-07-07 (freeze) · **HEAD:** `d0fb3ef` (Phase-3 source-set FREEZE = commit A, tag `phase3-freeze-A`; lineage `d687dec` audit instrument 0.2.0 → `d0fb3ef` freeze) · **Standard version:** v0.7.1 (v0.8 proposals §12.1–12.5 recorded, unapplied) · **Visibility:** private
+**Snapshot date:** 2026-07-07 (extractor built) · **mhc HEAD:** `36bc5b6` (Phase-3 evidence-layer extractor B0–B7 all shipped; lineage `d0fb3ef` freeze → `a3ef65a` build plan v2 → B0..B7) · **Standard version:** v0.7.1 (v0.8 proposals §12.1–12.5 recorded, unapplied) · **Visibility:** private (harness repo renamed → `fable-method-harness`, public-release prep in progress via a concurrent session)
 (open-source-ready; MIT + NOTICE carve-out; no badges while private)
 
 ## Health
@@ -188,3 +188,25 @@ word.
   instrument is already calibrated 17/17 clean at `d687dec` and ready to
   point at real output). BUILD stays NO_GO until the 3 frozen criteria
   pass on a real run against the frozen set.
+
+## Session-close note (2026-07-07 evidence-layer build — PH-034 / LL-024)
+
+- Opus built the Phase-3 extractor end-to-end: B0–B7, 8 review-gated
+  milestones (mhc `bffcbf2`/`e46e470`/`0e059d9`/`4099e59`/`b95acce`/
+  `75aab07`/`857eecb`/`36bc5b6`), each code-reviewer APPROVE + CI green,
+  suite 792→953. Every milestone's independent review found a real bug
+  (LL-024) — all fixed with regression pins.
+- PROVEN: the pipeline runs end-to-end, fabrication fails closed at every
+  stage, an automated run → NO_GO, a simulated S4-clear → BUILD_GATE PASS
+  (NO_GO honest + reversible, not hardwired).
+- NEXT for a real Bezos GO (not automatable): `--live` fetch + a real LLM
+  segmenter/proposer + the human S4 pass, then the 3 frozen criteria on
+  that run. BUILD stays NO_GO until then.
+- DEFERRED (AD-026, user 2026-07-07 「先把原本的證據層先搞定 再回來做」):
+  the tool-track adversarial-audit arc, sequenced AFTER this — now unblocked.
+- HARNESS GOVERNANCE: this round's memory push was deferred during a
+  concurrent-session public-release lockdown (repo renamed
+  fable-style→fable-method, README sweep, path-scrub, pre-push guard). That
+  work is now merged (PRs #3–#5) and everything is synced; these owed
+  PH-034/LL-024 + L2/state records are pushed with the guard's documented
+  `FABLE_HARNESS_ALLOW_PUSH=1` intentional-push path.
