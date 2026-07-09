@@ -14,7 +14,8 @@ retrieval_keywords: [Codex long task A/B, long-task harness benchmark, Codex har
 
 # Codex Long-Task A/B
 
-Status: instrument added; confirmatory run not complete.
+Status: Codex micro-contract A/B run complete; full C/D control rerun not yet
+complete after the inline-interface change.
 
 This evaluation tests whether activating the harness improves Codex long-task
 stability and completion honesty enough to justify extra token and tool cost.
@@ -110,6 +111,39 @@ stack and this repo's own runtime instructions.
 The runner sends the complete prompt to `codex exec -` over stdin. On Windows,
 this avoids `cmd /c` argument parsing truncating multi-section prompts before
 the `TASK:` block.
+
+## 2026-07-09 Codex Micro-Contract A/B
+
+Run id: `codex_iso_ab4_20260708_v10`.
+
+Frozen sha: `2c34067f25fff5269c66edb51407242ebb8c32b1`.
+
+Scope: `LT1`-`LT4`, `A_baseline` vs `B_harness`, one trial per arm/scenario
+for eight executed trials total. This run verifies the Codex-specific inline
+micro-contract treatment after the local `.harness/` file-read activation was
+removed.
+
+Computed outcome:
+
+| Arm | Pass | False done | Canonical checked | Input tokens | Output tokens | Total tokens | Tool calls | Seconds |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `A_baseline` | 3/4 | 1/4 | 4/4 | 604,482 | 12,538 | 617,020 | 49 | 387.61 |
+| `B_harness` | 4/4 | 0/4 | 4/4 | 573,402 | 11,560 | 584,962 | 26 | 342.90 |
+
+Delta versus baseline: `B_harness` improved primary pass by 25 percentage
+points, eliminated the observed false-done, used 31,080 fewer input tokens
+(-5.1%), 978 fewer output tokens (-7.8%), 32,058 fewer total tokens (-5.2%),
+23 fewer tool calls (-46.9%), and 44.71 fewer seconds (-11.5%).
+
+Isolation check: all eight trials report executor `codex exec`; the
+`command_execution` streams contain zero Claude/Gemini/Hermes/Fable/opencode
+command invocations. This supports a Codex-only claim for this run.
+
+Interpretation: the inline Codex micro-contract shows a measured long-task
+stability and efficiency lift over plain Codex on this four-scenario fixture.
+Do not generalize this to Claude/Fable or to full control-arm superiority until
+the `C_pointer_control` and `D_flat_dump` arms are rerun under the same
+post-`2c34067` treatment definition.
 
 ## 2026-07-08 Runner Smoke
 
