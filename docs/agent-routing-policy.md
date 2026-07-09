@@ -105,7 +105,7 @@ Delegate mechanical, scoped, stable-pattern work; keep judgment on Claude Code.
 **Do NOT delegate to Codex:** ambiguous root-cause, security/governance decisions,
 release gates, completion claims, or final verification authority.
 
-## 5. When to trigger Fable-style completion review
+## 5. When to trigger Fable-method completion review
 
 Route to the **Claude Fable alias + distilled** completion-integrity lens whenever a
 task is about to claim done, or when an artifact and its evidence may disagree.
