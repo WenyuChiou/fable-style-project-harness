@@ -45,6 +45,23 @@ layer, not a capability boost.
   artifact, and negative results are published — including the measured fact
   that it does *not* boost capability.
 
+## Before / after — what changes when you use it
+
+Same task, same model — the harness changes *how* you work, not how smart the
+model is. Every row below traces to the measured table above.
+
+| | Ad-hoc (no harness) | With the harness |
+|---|---|---|
+| **Context per task** | bulk-read the repo (~303k tokens) | classify, then load ~4–5% (~12–16k) |
+| **Cost on mixed work** | one expensive model for everything | cheap model on the mechanical bulk, expensive one reserved → **~2.5× cheaper at the same quality**, when routing is accurate |
+| **A subtle-honesty slip** | can ship silently | reserved to the strong model behind a HALT/UNSCORED gate (all-cheap misses it 0/5) |
+| **Review reports** | the model writes them (output tokens) | rendered from JSON (**~0 output tokens**) |
+| **A "done / passing" claim** | trusted as written | a completion-honesty gate runs first |
+| **Raw capability** | already at the ceiling | **unchanged — no lift, by design** |
+
+The gain is in eliminating the left column's failure modes (blown context,
+uniform cost, silent slips) — not a smarter model.
+
 ## When to use it
 
 Use it when a mistake is expensive:

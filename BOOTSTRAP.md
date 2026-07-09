@@ -11,7 +11,7 @@ retrieval_keywords: [start here, bootstrap, how to begin, entrypoint, startup se
 
 # BOOTSTRAP — start here
 
-This repo is a **Fable-style project operating harness**: the observable,
+This repo is a **Fable-method project operating harness**: the observable,
 documented working method of the `method-harness-compiler` project, packaged
 as files you load incrementally. It is not general documentation and it is
 not a prompt dump. It tells you *how to work on that project*, in a way that

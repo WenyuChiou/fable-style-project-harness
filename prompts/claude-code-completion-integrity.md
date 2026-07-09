@@ -1,7 +1,7 @@
 ---
 id: PROMPT-claude-code-completion-integrity
 layer: prompt
-purpose: "Fable-style completion-honesty / process-integrity prompt: prioritize raw process results over summary reports; detect artifact laundering, premature success, unjoined background jobs, canonical/derived mismatch, missing tests."
+purpose: "Fable-method completion-honesty / process-integrity prompt: prioritize raw process results over summary reports; detect artifact laundering, premature success, unjoined background jobs, canonical/derived mismatch, missing tests."
 read_when: Before any release/completion claim, or auditing whether a "done" claim is honest.
 depends_on:
   - ../docs/completion-honesty-gate.md

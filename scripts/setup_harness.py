@@ -77,7 +77,7 @@ POINTER_SENTINEL = "<!-- adaptive-harness:wire-claude-pointer -->"
 
 CLAUDE_MD_POINTER = """
 """ + POINTER_SENTINEL + """
-## Fable-style Adaptive Harness
+## Fable-method Adaptive Harness
 For large, multi-agent, high-risk, or phase-gated tasks: read
 `{repo}/core/GLOBAL_BOOTSTRAP.md` and follow its ROUTES. For auditing /
 simplifying / maintaining an AI harness (this file included): read
