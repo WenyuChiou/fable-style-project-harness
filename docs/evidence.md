@@ -32,6 +32,8 @@ publishing it is the feature.
 | Findings never silently disappear | 37 tracked findings → 17 auto-resolved with the exact resolving commit sha attached, 20 carried into ledger tracking, 0 lost | rolling run of `scripts/run_adaptive_harness_review.py --mode rolling_improvement_review`; closure convention: commit says `applies REC-YYYYMMDD-NNN` |
 | The system catches real defects in real work | During its own construction: 4 defect-finding adversarial review rounds (plus one approve-with-suggestions round) produced ~30 confirmed defects strictly counted (~35 including nit/hygiene items), including two silent state-loss bugs in the rolling loop and a parity survivor during a privacy remediation (the leak itself was self-identified and human-dispositioned; the reviewer caught the incomplete fix). Separately, the eval tool's session-guard refused an unsafe run and emitted a prepare bundle instead of a result | commit trailers on `f55459d`→`0dd0cf2` (finding counts enumerated per commit body); refusal artifact: the operator-side prepare bundle `eval_runs/20260706-223321` |
 | Installation is verifiable, and the history is clean | 53/53 integration checks on any clone; full-history secret scan clean (gitleaks 8.30.1 at its run date — point-in-time, the tree has grown since; re-run at each release gate) | `python validation/integration_check.py`; scan record in `docs/publication_status.md` |
+| **As a cost router, it matches all-Opus quality at ~2.5x lower cost (2026-07-08).** | An Opus "router" triaged 6 subtasks — 4 mechanical (transcribe / sort / arithmetic / reformat) → Haiku, 2 hidden-failure honesty tasks → Opus — at 100% routing accuracy. The routed run scored 6/6, EQUAL to all-Opus 6/6, at ~40% of all-Opus execution cost (Haiku ≈ 0.1× Opus price proxy) = ~2.5x cheaper. The saving scales with the mechanical share of the workload and HINGES on routing accuracy — a mis-route of an honesty task to Haiku would drop quality. Stability MEASURED (k=5/subtask): whole-workload "all 6 correct" was Fable-routed 1.00 = all-Opus 1.00 (EQUAL — not more stable than Opus), vs naive all-Haiku 0.00 (which every time misses the subtle-honesty subtask). Haiku is perfectly consistent on the 4 mechanical subtasks (5/5, no slips) and deterministically misses the subtle-honesty one (0/5) — so routing offloads the former safely and reserves Opus for the latter. Net: Opus-level quality AND stability at ~40% of Opus cost, when routing is accurate. | `evals/route_ab/` (local, gitignored; `check_route.py` grader prints routing / quality / cost) |
+| **The earlier 2.84x activation tax + 0/10 routing was a BROKEN invocation, not the discipline — now fixed (2026-07-08).** | Activation force-read a fixed 4-file bulk (the over-load) while the completion route self-triggered 0/10. Fix = classify-first lean load + a portable-regime trigger. Re-test: Opus self-routed to the honesty gate 4/5 (was 0/10), Haiku 2/5; the demoted triad loaded 0/6 (bulk gone); trivial typo tasks over-triggered 0/6 (no new tax). Every earlier single-model A/B null was thus run against the broken (expensive, inert) invocation. | `fix-invocation-lean-load` branch commit `8ae8dbe`; re-test data in `evals/` (local) |
 
 ## Measured: what it does NOT do
 
@@ -46,7 +48,14 @@ publishing it is the feature.
 Consequence, stated plainly: **use this for discipline, economy, and audit
 trail — not for capability.** Its own routing guidance says to skip the
 ceremony on simple tasks; the measured value concentrates where mistakes
-are expensive, work is long, or several agents run at once.
+are expensive, work is long, or several agents run at once. The clearest
+positive lever measured so far is **cost-routing**: put a cheap model on the
+mechanical majority of subtasks and reserve the expensive one for the few
+honesty-critical parts — comparable quality at ~2.5x lower cost *when the
+routing is accurate*. Once the invocation was fixed, a properly-routed
+discipline still showed no quality lift on a strong model (ceiling) and only
+a weak, routing-limited lift on a weak one (Haiku bare 0/6 → routed 1/6 on a
+hidden-failure task) — so the value remains cost and trust, not raw quality.
 
 ## Untested (pre-registered, criteria frozen, not yet run)
 

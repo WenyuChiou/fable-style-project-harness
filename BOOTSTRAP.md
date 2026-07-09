@@ -24,6 +24,13 @@ survives model and session changes.
 > hooks, skills, scheduled reviews — this repo's or another)? Read
 > `.claude/skills/adaptive-harness/SKILL.md` — runtime-agnostic entry; the
 > runners are plain Python CLIs any agent can execute.
+>
+> **Making a completion claim?** If your deliverable will assert something is
+> done / passing / fixed / ready / safe / staged — even when the prompt never
+> says "done" — load `docs/completion-honesty-gate.md` +
+> `prompts/claude-code-completion-integrity.md` BEFORE you write the claim.
+> (Skip for a one-line status remark that is not a merge / release /
+> safety-relevant claim.)
 
 ## Startup sequence (mandatory, in order)
 

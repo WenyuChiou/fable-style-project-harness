@@ -38,6 +38,9 @@ PROBES = [
     ("adaptive harness runner patch proposal", ["scripts/run_adaptive_harness_review.py"]),
     ("integration test matrix phase3", ["docs/integration_test_matrix.md"]),
     ("model compatibility test plan unverified ledger", ["docs/model_compatibility_test_plan.md"]),
+    # pins the invocation lean-load fix (2026-07-08): activation classifies
+    # first and loads only the matching rule, not the full portable triad.
+    ("global bootstrap portable load classify first lean default", ["core/GLOBAL_BOOTSTRAP.md"]),
 ]
 
 SKIP_PARTS = {".git", "__pycache__", "reports", "fable_ultracode_phase_workspace"}
