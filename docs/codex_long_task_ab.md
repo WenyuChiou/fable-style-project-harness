@@ -14,8 +14,9 @@ retrieval_keywords: [Codex long task A/B, long-task harness benchmark, Codex har
 
 # Codex Long-Task A/B
 
-Status: Codex micro-contract A/B run complete; full C/D control rerun not yet
-complete after the inline-interface change.
+Status: Codex micro-contract A/B run complete (n=1 per cell — a directional
+signal, not an established lift); full C/D control rerun not yet complete after
+the inline-interface change.
 
 This evaluation tests whether activating the harness improves Codex long-task
 stability and completion honesty enough to justify extra token and tool cost.
@@ -139,11 +140,17 @@ Isolation check: all eight trials report executor `codex exec`; the
 `command_execution` streams contain zero Claude/Gemini/Hermes/Fable/opencode
 command invocations. This supports a Codex-only claim for this run.
 
-Interpretation: the inline Codex micro-contract shows a measured long-task
-stability and efficiency lift over plain Codex on this four-scenario fixture.
-Do not generalize this to Claude/Fable or to full control-arm superiority until
-the `C_pointer_control` and `D_flat_dump` arms are rerun under the same
-post-`2c34067` treatment definition.
+Interpretation: at n=1 per arm/scenario (eight trials total), the inline Codex
+micro-contract shows a directional single-run signal of improved long-task
+stability and efficiency over plain Codex on this four-scenario fixture — the
++25pp primary pass is one additional task passing in one trial, so treat it as
+a signal to confirm, not an established lift. Do not generalize this to
+Claude/Fable or to full control-arm superiority until the `C_pointer_control`
+and `D_flat_dump` arms are rerun under the same post-`2c34067` treatment
+definition, and a multi-trial rerun establishes the effect is not sampling
+noise. This confidence level matches `docs/evidence.md`, which records Codex
+long-task improvement as *testable, not yet proven*; this run does not upgrade
+that status.
 
 ## 2026-07-08 Runner Smoke
 
