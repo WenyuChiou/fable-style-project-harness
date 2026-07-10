@@ -141,6 +141,9 @@ def check_route_paths():
 
 
 def main():
+    # --quiet: suppress OK lines (success noise re-enters agent context on
+    # every hook run); FAIL/MISSING lines and the summary print verbatim.
+    quiet = "--quiet" in sys.argv[1:]
     total = len(REQUIRED)
     passed = 0
     for rel_path, required_subs in REQUIRED.items():
@@ -152,7 +155,8 @@ def main():
         broken = unresolved_depends_on(rel_path, text)
         if not missing and not broken:
             passed += 1
-            print("OK {} ({} keywords, depends_on resolves)".format(rel_path, len(required_subs)))
+            if not quiet:
+                print("OK {} ({} keywords, depends_on resolves)".format(rel_path, len(required_subs)))
             continue
         if missing:
             print("FAIL {}: missing keywords {}".format(rel_path, missing))
@@ -164,9 +168,14 @@ def main():
     broken_routes = check_route_paths()
     proto = "docs/ab_skill_effect_protocol.md"
     proto_ok = (repo_root / proto).exists()
-    print("OK ROUTES.yaml path references all resolve" if not broken_routes
-          else "FAIL ROUTES.yaml references missing paths: {}".format(broken_routes))
-    print(("OK " if proto_ok else "MISSING FILE ") + proto)
+    if broken_routes:
+        print("FAIL ROUTES.yaml references missing paths: {}".format(broken_routes))
+    elif not quiet:
+        print("OK ROUTES.yaml path references all resolve")
+    if not proto_ok:
+        print("MISSING FILE " + proto)
+    elif not quiet:
+        print("OK " + proto)
 
     return 0 if (passed == total and not broken_routes and proto_ok) else 1
 
