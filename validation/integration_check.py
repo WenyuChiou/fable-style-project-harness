@@ -39,14 +39,16 @@ def run(cmd, timeout=600):
     return p.returncode, p.stdout, p.stderr
 
 
-QUIET = False
+QUIET = False       # --json: suppress ALL human rows (JSON is the output)
+FAIL_ONLY = False   # --quiet: suppress PASS rows; FAIL rows print verbatim
 
 
 def row(name, layer, ok, evidence, command=""):
     ROWS.append({"test": name, "layer": layer, "status": "PASS" if ok else "FAIL",
                  "evidence": evidence[:300], "command": command})
-    if not QUIET:
-        print(("PASS " if ok else "FAIL ") + name + ("" if ok else f"  <- {evidence[:160]}"))
+    if QUIET or (ok and FAIL_ONLY):
+        return
+    print(("PASS " if ok else "FAIL ") + name + ("" if ok else f"  <- {evidence[:160]}"))
 
 
 def git_state():
@@ -72,14 +74,19 @@ AH_MODES = ["harness_inventory", "harness_cleanup_review", "code_invocation_revi
 def main():
     utf8()
     import argparse
-    global QUIET
+    global QUIET, FAIL_ONLY
     ap = argparse.ArgumentParser(prog="integration_check.py",
                                  description="Phase-3 integration instrument (53 checks).")
     ap.add_argument("--json", action="store_true",
                     help="Emit ONLY the JSON blob on stdout (human rows suppressed).")
+    ap.add_argument("--quiet", action="store_true",
+                    help="Suppress PASS rows; FAIL rows + final summary print verbatim. "
+                         "For in-session runs where success noise re-enters agent context. "
+                         "--json takes precedence when both are passed (all rows go to the JSON blob).")
     args = ap.parse_args()
     as_json = args.json
     QUIET = as_json
+    FAIL_ONLY = args.quiet
 
     # 1. CLI surface
     for script in ("scripts/run_ai_review.py", "scripts/run_adaptive_harness_review.py"):

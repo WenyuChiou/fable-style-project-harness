@@ -126,7 +126,65 @@ def main():
     else:
         print("ok   check_route_paths clean on real ROUTES.yaml")
 
-    total = len(CASES) + 2 + len(ROUTE_PATH_CASES) + 2
+    # --quiet no-swallow invariant (2026-07-09, validator_verbose_vs_quiet):
+    # quiet mode must NEVER suppress a FAIL/MISSING/POSTURE line or change an
+    # exit code — a swallowed failure silently disables the commit gate. Each
+    # case seeds a real violation into the tree, runs BOTH modes via
+    # subprocess, asserts exit parity + byte-identical failure lines, and
+    # restores the file in a finally block. Covers the posture-conflict path
+    # (check_posture's distinct print branch) that the executed A/B's seed
+    # set missed.
+    import re
+    import subprocess
+
+    def _run(script, quiet):
+        args = [sys.executable, str(_here / script)] + (["--quiet"] if quiet else [])
+        r = subprocess.run(args, capture_output=True, text=True,
+                           encoding="utf-8", cwd=str(_here.parent))
+        return r.returncode, sorted(
+            l for l in (r.stdout or "").splitlines()
+            if l.startswith(("FAIL", "MISSING", "POSTURE")))
+
+    def quiet_parity(name, script, rel_path, mutate):
+        nonlocal failures
+        p = _here.parent / rel_path
+        orig = p.read_text(encoding="utf-8")
+        try:
+            p.write_text(mutate(orig), encoding="utf-8")
+            cv, fv = _run(script, False)
+            cq, fq = _run(script, True)
+            ok = cv == cq == 1 and fv == fq and len(fv) > 0
+            if not ok:
+                failures += 1
+                print("FAIL quiet-parity [{}]: verbose exit {} fails {} | quiet exit {} fails {}".format(
+                    name, cv, len(fv), cq, len(fq)))
+            else:
+                print("ok   quiet-parity [{}] ({} failure line(s) identical in both modes)".format(
+                    name, len(fv)))
+        finally:
+            p.write_text(orig, encoding="utf-8")
+
+    quiet_parity("keyword removed (case-insensitive)", "check_agent_artifacts.py",
+                 "docs/agent-routing-policy.md",
+                 lambda t: re.sub("hermes", "h_e_r_m_e_s", t, flags=re.I))
+    quiet_parity("broken depends_on", "check_agent_artifacts.py",
+                 "docs/completion-honesty-gate.md",
+                 lambda t: t.replace("depends_on:", "depends_on:\n  - ./NO_SUCH_FILE.md", 1))
+    quiet_parity("posture conflict (check_posture print path)", "check_adaptive_harness.py",
+                 "docs/codex-delegation-policy.md",
+                 lambda t: t + "\n<!-- seeded: this repo stays private -->\n")
+
+    # Clean tree: both modes exit 0, quiet emits zero failure lines.
+    for script in ("check_agent_artifacts.py", "check_adaptive_harness.py"):
+        cv, fv = _run(script, False)
+        cq, fq = _run(script, True)
+        if not (cv == cq == 0 and fv == fq == []):
+            failures += 1
+            print("FAIL quiet-clean [{}]: verbose exit {} quiet exit {}".format(script, cv, cq))
+        else:
+            print("ok   quiet-clean [{}] (both modes exit 0, no failure lines)".format(script))
+
+    total = len(CASES) + 2 + len(ROUTE_PATH_CASES) + 2 + 3 + 2
     print("{} passed, {} failed".format(total - failures, failures))
     return 1 if failures else 0
 

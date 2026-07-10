@@ -98,7 +98,7 @@ def read_text(rel_path):
         return None
 
 
-def check_artifacts():
+def check_artifacts(quiet=False):
     failures = []
     for rel_path, keywords in REQUIRED.items():
         text = read_text(rel_path)
@@ -109,7 +109,7 @@ def check_artifacts():
         missing = [k for k in keywords if k.lower() not in low]
         if missing:
             failures.append("FAIL {}: missing keywords {}".format(rel_path, missing))
-        else:
+        elif not quiet:
             print("OK {} ({} keywords)".format(rel_path, len(keywords)))
     return failures
 
@@ -147,17 +147,20 @@ def check_posture():
     return failures
 
 
-def check_entrypoint():
+def check_entrypoint(quiet=False):
     routes = read_text("ROUTES.yaml") or ""
     if ".claude/skills/adaptive-harness/SKILL.md" not in routes:
         return ["FAIL ROUTES.yaml: adaptive-harness skill adapter missing from entrypoints"]
-    print("OK ROUTES.yaml entrypoints include the adaptive-harness adapter")
+    if not quiet:
+        print("OK ROUTES.yaml entrypoints include the adaptive-harness adapter")
     return []
 
 
 def main():
-    artifact_failures = check_artifacts()
-    failures = artifact_failures + check_posture() + check_entrypoint()
+    # --quiet: suppress OK lines; failures and the summary print verbatim.
+    quiet = "--quiet" in sys.argv[1:]
+    artifact_failures = check_artifacts(quiet=quiet)
+    failures = artifact_failures + check_posture() + check_entrypoint(quiet=quiet)
     for f in failures:
         print(f)
     n_ok = len(REQUIRED) - len(artifact_failures)
