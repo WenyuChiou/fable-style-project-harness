@@ -425,6 +425,13 @@ files:
     tags: ["codex", "long-task", "ab-test", "benchmark", "evidence"]
     read_when: "Planning or running Codex long-task harness evaluation, or reviewing claims about Codex long-task stability and efficiency."
 
+  - path: docs/hermes_compact_router_2026_07_13.md
+    id: DOC-hermes-compact-router-2026-07-13
+    layer: doc
+    purpose: "Commit-bound static and live evidence for the compact Hermes route-receipt contract, including the failed full paired gate."
+    tags: ["hermes", "routing", "benchmark", "evidence", "prompt-economy"]
+    read_when: "Checking whether the Hermes compact router reduces standing context or improves route receipt quality and safety."
+
   - path: docs/codebase_memory_indexing.md
     id: DOC-codebase-memory-indexing
     layer: doc
