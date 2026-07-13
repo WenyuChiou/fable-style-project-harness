@@ -8,11 +8,15 @@ the deterministic graders used by the long-task A/B runner.
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
+import os
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
+from unittest import mock
 
 
 REPO = Path(__file__).resolve().parent.parent
@@ -36,6 +40,32 @@ def run_cli(*args):
     )
 
 
+def trial_fixture(root: Path, run_id: str = "safe-run"):
+    run_dir = root / "run"
+    work_root = root / "work-root"
+    run_dir.mkdir()
+    work_root.mkdir()
+    (run_dir / "manifest.json").write_text(
+        json.dumps({"run_id": run_id}), encoding="utf-8")
+    row = {"scenario": "LT1", "arm": "B_harness", "trial": 1, "order": 1}
+    return run_dir, work_root, row
+
+
+def successful_fake_process(capture: dict | None = None):
+    def fake(cmd, work, timeout, stdin_text="", env=None):
+        if capture is not None:
+            capture.update(cmd=cmd, work=work, timeout=timeout, stdin=stdin_text, env=env)
+        final_path = Path(cmd[cmd.index("-o") + 1])
+        final_path.parent.mkdir(parents=True, exist_ok=True)
+        final_path.write_text("completed", encoding="utf-8")
+        events = json.dumps({
+            "type": "turn.completed",
+            "usage": {"input_tokens": 1, "output_tokens": 1, "total_tokens": 2},
+        }) + "\n"
+        return events, "", 0, ""
+    return fake
+
+
 def test_list_scenarios():
     proc = run_cli("list-scenarios")
     assert proc.returncode == 0, proc.stderr
@@ -51,19 +81,41 @@ def test_codex_exec_command_windows_safe():
         assert cmd[:2] == ["codex", "exec"]
 
 
-def test_run_trial_command_uses_supported_exec_flags(monkeypatch=None):
-    # Pin the current Codex exec surface: no "-a never" flag under the exec
-    # subcommand. This test inspects source text because the real command is
-    # assembled inside run_trial and should not invoke Codex during unit tests.
-    source = RUNNER.read_text(encoding="utf-8")
-    assert '"-a"' not in source
-    assert '"--ask-for-approval"' not in source
+def test_run_trial_assembles_exact_isolated_command_and_cleans_home():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        run_dir, work_root, row = trial_fixture(root)
+        source_home = root / "source-home"
+        source_home.mkdir()
+        (source_home / "auth.json").write_text('{"token":"fixture"}', encoding="utf-8")
+        capture = {}
+        with mock.patch.dict(os.environ, {"CODEX_HOME": str(source_home)}), mock.patch.object(
+                runner, "run_codex_process", successful_fake_process(capture)):
+            result = runner.run_trial(run_dir, row, "gpt-5.5", 12, True, work_root)
+
+        trial_base = work_root / "safe-run" / "0001_LT1_B_harness_01"
+        codex_home = trial_base / "codex_home"
+        final_path = run_dir / "trials" / "0001_LT1_B_harness_01" / "final_message.txt"
+        expected = runner.codex_exec_command([
+            "exec", "--json", "--strict-config", "--ephemeral",
+            "--ignore-user-config", "--ignore-rules",
+            "-c", 'approval_policy="never"',
+            *(["-c", 'windows.sandbox="elevated"'] if os.name == "nt" else []),
+            "-C", str((trial_base / "work").resolve()),
+            "-s", "workspace-write", "-m", "gpt-5.5",
+            "--skip-git-repo-check", "-o", str(final_path), "-",
+        ])
+        assert capture["cmd"] == expected
+        assert capture["env"]["CODEX_HOME"] == str(codex_home.resolve())
+        assert capture["stdin"].startswith("ISOLATION:\n" + runner.ISOLATION_PREAMBLE)
+        assert result["codex_home_removed"] is True
+        assert not codex_home.exists()
 
 
 def test_codex_prompt_is_sent_via_stdin():
     source = RUNNER.read_text(encoding="utf-8")
     assert '"-",' in source
-    assert "run_codex_process(cmd, work, timeout, prompt)" in source
+    assert "cmd, work, timeout, prompt, env=process_env" in source
     assert "proc.communicate(input=stdin_text" in source
     assert "stdin=subprocess.PIPE" in source
 
@@ -83,14 +135,190 @@ def test_run_codex_process_delivers_multiline_stdin():
         assert "ISOLATION:<NL>alpha<NL><NL>TASK:<NL>beta<NL><NL>OUTPUT CONTRACT:<NL>gamma" in stdout
 
 
-def test_timeout_is_recorded_as_unscored():
-    source = RUNNER.read_text(encoding="utf-8")
-    assert "except subprocess.TimeoutExpired" in source
-    assert '"unscored_reason"] = timeout_reason' in source
-    assert '"taskkill", "/F", "/T", "/PID"' in source
-    assert "os.killpg" in source
-    assert "missing_final_message" in source
-    assert "missing_json_events" in source
+def test_run_codex_process_receives_isolated_home_env():
+    with tempfile.TemporaryDirectory() as tmp:
+        isolated = str(Path(tmp) / "isolated-codex-home")
+        env = os.environ.copy()
+        env["CODEX_HOME"] = isolated
+        script = "import os; print(os.environ['CODEX_HOME'])"
+        stdout, stderr, rc, timeout_reason = runner.run_codex_process(
+            [sys.executable, "-c", script], Path(tmp), timeout=10, env=env)
+        assert rc == 0, stderr
+        assert timeout_reason == ""
+        assert stdout.strip() == isolated
+
+
+def test_clean_codex_home_copies_auth_only():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        source = root / "source"
+        destination = root / "isolated"
+        source.mkdir()
+        (source / "auth.json").write_text('{"token": "fixture"}', encoding="utf-8")
+        (source / "config.toml").write_text('[mcp_servers.bad]', encoding="utf-8")
+        (source / "plugins").mkdir()
+        (source / "plugins" / "broken.yaml").write_text(":bad", encoding="utf-8")
+        (source / "AGENTS.md").write_text("operator-only rules", encoding="utf-8")
+
+        meta = runner.prepare_clean_codex_home(destination, source)
+        assert meta["isolated"] is True
+        assert meta["copied_files"] == ["auth.json"]
+        assert meta["approval_policy"] == "never"
+        assert meta["sandbox_mode"] == "workspace-write"
+        assert meta["windows_sandbox"] == ("elevated" if os.name == "nt" else "not_applicable")
+        assert {p.name for p in destination.iterdir()} == {"auth.json"}
+        assert (destination / "auth.json").read_text(encoding="utf-8") == '{"token": "fixture"}'
+        assert not (destination / "config.toml").exists()
+        assert not (destination / "plugins").exists()
+        assert not (destination / "AGENTS.md").exists()
+
+
+def test_partial_auth_copy_failure_scrubs_isolated_home():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        run_dir, work_root, row = trial_fixture(root)
+        source_home = root / "source-home"
+        source_home.mkdir()
+        (source_home / "auth.json").write_text("secret-fixture", encoding="utf-8")
+
+        def partial_copy(_source, destination):
+            Path(destination).write_text("partial-secret", encoding="utf-8")
+            raise OSError("fixture copy failure")
+
+        with mock.patch.dict(os.environ, {"CODEX_HOME": str(source_home)}), mock.patch.object(
+                runner.shutil, "copy2", partial_copy):
+            try:
+                runner.run_trial(run_dir, row, "gpt-5.5", 12, True, work_root)
+            except OSError as exc:
+                assert "fixture copy failure" in str(exc)
+            else:
+                raise AssertionError("partial credential copy unexpectedly succeeded")
+
+        isolated = work_root / "safe-run" / "0001_LT1_B_harness_01" / "codex_home"
+        assert not isolated.exists()
+
+
+def test_malicious_run_id_is_rejected_before_work_or_credential_creation():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        run_dir, work_root, row = trial_fixture(root, "../../escape")
+        try:
+            runner.run_trial(run_dir, row, "gpt-5.5", 12, True, work_root)
+        except ValueError as exc:
+            assert "invalid run_id" in str(exc)
+        else:
+            raise AssertionError("path-traversing run_id unexpectedly accepted")
+        assert not (root / "escape").exists()
+        assert list(work_root.iterdir()) == []
+
+
+def test_timeout_is_bounded_and_returns_diagnostic():
+    with tempfile.TemporaryDirectory() as tmp:
+        started = time.perf_counter()
+        stdout, stderr, rc, timeout_reason = runner.run_codex_process(
+            [sys.executable, "-c", "import time; time.sleep(30)"],
+            Path(tmp), timeout=0.1)
+        elapsed = time.perf_counter() - started
+        assert elapsed < runner.POST_KILL_TIMEOUT * 2 + 5
+        assert rc is None
+        assert timeout_reason == "timeout_0.1s"
+        assert "TIMEOUT after 0.1 seconds" in stderr
+        assert isinstance(stdout, str)
+
+
+def test_repeated_timeout_with_byte_output_returns_text_diagnostics():
+    class StubbornProcess:
+        pid = 424242
+        returncode = None
+
+        def __init__(self):
+            self.stdin = io.BytesIO()
+            self.stdout = io.BytesIO()
+            self.stderr = io.BytesIO()
+            self.kill_calls = 0
+
+        def communicate(self, input=None, timeout=None):
+            raise subprocess.TimeoutExpired(
+                cmd="fixture", timeout=timeout, output=b"partial-out", stderr=b"partial-err")
+
+        def kill(self):
+            self.kill_calls += 1
+
+    proc = StubbornProcess()
+    patches = [mock.patch.object(runner.subprocess, "Popen", return_value=proc)]
+    if os.name == "nt":
+        patches.append(mock.patch.object(
+            runner.subprocess, "run",
+            return_value=subprocess.CompletedProcess([], returncode=1, stdout="", stderr="failed")))
+    else:
+        patches.append(mock.patch.object(runner.os, "killpg", return_value=None))
+
+    with patches[0], patches[1]:
+        stdout, stderr, rc, timeout_reason = runner.run_codex_process(
+            ["fixture"], REPO, timeout=0.1, stdin_text="task")
+    assert stdout == "partial-out"
+    assert "partial-err" in stderr
+    assert "TIMEOUT after 0.1 seconds" in stderr
+    assert "direct_kill_wait_timeout" in stderr
+    assert rc is None
+    assert timeout_reason == "timeout_0.1s"
+    assert proc.kill_calls >= 1
+
+
+def test_timeout_trial_cleans_home_and_is_unscored():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        run_dir, work_root, row = trial_fixture(root)
+
+        def timed_out(*_args, **_kwargs):
+            return "", "fixture timeout", None, "timeout_12s"
+
+        with mock.patch.object(runner, "run_codex_process", timed_out):
+            result = runner.run_trial(run_dir, row, "gpt-5.5", 12, True, work_root)
+        isolated = work_root / "safe-run" / "0001_LT1_B_harness_01" / "codex_home"
+        assert result["unscored_reason"] == "timeout_12s"
+        assert result["codex_home_removed"] is True
+        assert not isolated.exists()
+
+
+def test_cleanup_failure_is_separate_and_forces_unscored():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        run_dir, work_root, row = trial_fixture(root)
+        original_remove = runner.remove_tree_under
+
+        def fail_final_home_cleanup(path, contained_root):
+            if Path(path).name == "codex_home" and Path(path).exists():
+                raise OSError("fixture locked home")
+            return original_remove(path, contained_root)
+
+        with mock.patch.object(runner, "run_codex_process", successful_fake_process()), mock.patch.object(
+                runner, "remove_tree_under", fail_final_home_cleanup):
+            result = runner.run_trial(run_dir, row, "gpt-5.5", 12, True, work_root)
+        assert result["cleanup_error"] == "codex_home_cleanup_failed:fixture locked home"
+        assert result["unscored_reason"] == result["cleanup_error"]
+        assert result["codex_home_removed"] is False
+
+
+def test_timeout_and_cleanup_failure_preserve_both_diagnostics():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        run_dir, work_root, row = trial_fixture(root)
+        original_remove = runner.remove_tree_under
+
+        def timed_out(*_args, **_kwargs):
+            return "", "fixture timeout", None, "timeout_12s"
+
+        def fail_final_home_cleanup(path, contained_root):
+            if Path(path).name == "codex_home" and Path(path).exists():
+                raise OSError("fixture locked home")
+            return original_remove(path, contained_root)
+
+        with mock.patch.object(runner, "run_codex_process", timed_out), mock.patch.object(
+                runner, "remove_tree_under", fail_final_home_cleanup):
+            result = runner.run_trial(run_dir, row, "gpt-5.5", 12, True, work_root)
+        assert result["unscored_reason"] == "timeout_12s"
+        assert result["cleanup_error"] == "codex_home_cleanup_failed:fixture locked home"
 
 
 def test_unscored_rows_do_not_increment_scored_metrics():
@@ -228,6 +456,15 @@ def test_init_run_writes_manifest_and_preregistration():
         assert len(manifest["schedule"]) == 8
         assert manifest["executor"] == "codex exec"
         assert manifest["non_codex_ai_allowed"] is False
+        assert manifest["codex_home_policy"] == "per-trial-clean-auth-only"
+        assert manifest["codex_user_config_loaded"] is False
+        assert manifest["codex_approval_policy"] == "never"
+        assert manifest["codex_sandbox_mode"] == "workspace-write"
+        assert manifest["codex_windows_sandbox"] == (
+            "elevated" if os.name == "nt" else "not_applicable")
+        assert manifest["runner_path"] == "scripts/run_long_codex_ab.py"
+        assert len(manifest["runner_content_sha256"]) == 64
+        assert isinstance(manifest["runner_tracked_at_frozen_sha"], bool)
         assert "Claude" in manifest["isolation_policy"]
         assert manifest["raw_output_root"] == str(Path(tmp).resolve())
         assert manifest["raw_output_root_gitignored"] is False
@@ -236,6 +473,10 @@ def test_init_run_writes_manifest_and_preregistration():
         prereg = (run_dir / "pre_registration.md").read_text(encoding="utf-8")
         assert "executor: `codex exec`" in prereg
         assert "Codex-only isolation" in prereg
+        assert "codex_home_policy: `per-trial-clean-auth-only`" in prereg
+        assert "codex_execution_policy: `approval_policy=never`" in prereg
+        assert "runner_content_sha256:" in prereg
+        assert "runner_tracked_at_frozen_sha:" in prereg
         assert "execution_work_root_inside_harness_repo: `false`" in prereg
 
 
@@ -247,6 +488,9 @@ def test_init_run_rejects_unknown_arm_or_scenario():
         proc2 = run_cli("init-run", "--run-id", "bad2", "--output-root", tmp, "--scenarios", "NOPE")
         assert proc2.returncode != 0
         assert "unknown scenarios" in proc2.stderr
+        proc3 = run_cli("init-run", "--run-id", "../../escape", "--output-root", tmp)
+        assert proc3.returncode != 0
+        assert "invalid run_id" in proc3.stderr
 
 
 def test_dry_run_creates_unexecuted_trial_results():

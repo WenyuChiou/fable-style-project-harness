@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import argparse
 import ast
+import contextlib
+import hashlib
 import json
 import os
 import random
@@ -25,11 +27,13 @@ from pathlib import Path
 from typing import Any
 
 
-REPO = Path(__file__).resolve().parent.parent
+RUNNER_PATH = Path(__file__).resolve()
+REPO = RUNNER_PATH.parent.parent
 DEFAULT_ROOT = REPO / "evals" / "long_codex_ab"
 DEFAULT_WORK_ROOT = Path(tempfile.gettempdir()) / "codex_long_task_ab_work"
 DEFAULT_MODEL = "gpt-5.5"
 DEFAULT_TIMEOUT = 900
+POST_KILL_TIMEOUT = 10
 
 ARMS = ("A_baseline", "B_harness", "C_pointer_control", "D_flat_dump")
 DEFAULT_SCENARIOS = ("LT1", "LT2", "LT3", "LT4")
@@ -81,7 +85,15 @@ def codex_exec_command(args: list[str]) -> list[str]:
     return ["codex", *args]
 
 
-def run_codex_process(cmd: list[str], work: Path, timeout: int, stdin_text: str = "") -> tuple[str, str, int | None, str]:
+def as_text(value: str | bytes | None) -> str:
+    """Normalize subprocess partial output, which may be bytes even in text mode."""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value or ""
+
+
+def run_codex_process(cmd: list[str], work: Path, timeout: int, stdin_text: str = "",
+                      env: dict[str, str] | None = None) -> tuple[str, str, int | None, str]:
     """Run Codex and reliably terminate its process tree on timeout."""
     start_new_session = os.name != "nt"
     creationflags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
@@ -94,6 +106,7 @@ def run_codex_process(cmd: list[str], work: Path, timeout: int, stdin_text: str 
         text=True,
         encoding="utf-8",
         errors="replace",
+        env=env,
         start_new_session=start_new_session,
         creationflags=creationflags,
     )
@@ -101,19 +114,81 @@ def run_codex_process(cmd: list[str], work: Path, timeout: int, stdin_text: str 
         stdout, stderr = proc.communicate(input=stdin_text, timeout=timeout)
         return stdout, stderr, proc.returncode, ""
     except subprocess.TimeoutExpired as exc:
+        termination_notes = []
+
+        def kill_direct() -> None:
+            try:
+                proc.kill()
+            except OSError as kill_exc:
+                termination_notes.append(f"direct_kill_failed:{type(kill_exc).__name__}")
+
         if os.name == "nt":
-            subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], capture_output=True, text=True)
+            try:
+                killed = subprocess.run(
+                    ["taskkill", "/F", "/T", "/PID", str(proc.pid)],
+                    capture_output=True,
+                    text=True,
+                    timeout=POST_KILL_TIMEOUT,
+                )
+                if killed.returncode != 0:
+                    termination_notes.append(f"taskkill_exit_{killed.returncode}")
+                    kill_direct()
+            except (subprocess.TimeoutExpired, OSError) as kill_exc:
+                termination_notes.append(f"taskkill_failed:{type(kill_exc).__name__}")
+                kill_direct()
         else:
-            os.killpg(proc.pid, signal.SIGKILL)
-        stdout, stderr = proc.communicate()
-        stdout = stdout or exc.stdout or ""
-        stderr = (stderr or exc.stderr or "") + f"\nTIMEOUT after {timeout} seconds"
+            try:
+                os.killpg(proc.pid, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError, OSError) as kill_exc:
+                termination_notes.append(f"killpg_failed:{type(kill_exc).__name__}")
+                kill_direct()
+        try:
+            stdout, stderr = proc.communicate(timeout=POST_KILL_TIMEOUT)
+        except subprocess.TimeoutExpired as followup_exc:
+            termination_notes.append("post_kill_wait_timeout")
+            kill_direct()
+            try:
+                stdout, stderr = proc.communicate(timeout=POST_KILL_TIMEOUT)
+            except subprocess.TimeoutExpired:
+                termination_notes.append("direct_kill_wait_timeout")
+                stdout, stderr = as_text(followup_exc.stdout), as_text(followup_exc.stderr)
+                for stream in (proc.stdin, proc.stdout, proc.stderr):
+                    if stream is not None:
+                        with contextlib.suppress(OSError):
+                            stream.close()
+        stdout = as_text(stdout) or as_text(exc.stdout)
+        stderr = (as_text(stderr) or as_text(exc.stderr)) + f"\nTIMEOUT after {timeout} seconds"
+        if termination_notes:
+            stderr += "\nTERMINATION: " + ",".join(termination_notes)
         return stdout, stderr, None, f"timeout_{timeout}s"
 
 
 def write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
+
+
+def prepare_clean_codex_home(destination: Path, source: Path | None = None) -> dict:
+    """Create an allowlisted Codex home: authentication only, no user config."""
+    source = source or Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
+    destination.mkdir(parents=True, exist_ok=False)
+    copied = []
+    auth = source / "auth.json"
+    if auth.is_file():
+        shutil.copy2(auth, destination / "auth.json")
+        copied.append("auth.json")
+    return {
+        "isolated": True,
+        "credential_source": "auth.json" if copied else (
+            "environment" if os.environ.get("OPENAI_API_KEY") else "none"),
+        "copied_files": copied,
+        "ignored_user_config": True,
+        "ignored_user_rules": True,
+        "ephemeral_session": True,
+        "approval_policy": "never",
+        "sandbox_mode": "workspace-write",
+        "windows_sandbox": "elevated" if os.name == "nt" else "not_applicable",
+    }
 
 
 def read(path: Path) -> str:
@@ -157,10 +232,25 @@ def is_relative_to(path: Path, root: Path) -> bool:
         return False
 
 
+def validate_path_component(value: str, label: str) -> str:
+    """Reject absolute or traversing identifiers before using them as paths."""
+    if value in {".", ".."} or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", value):
+        raise ValueError(f"invalid {label}: {value!r}")
+    return value
+
+
+def require_child_path(path: Path, root: Path, label: str) -> Path:
+    """Resolve and require a path to be a strict descendant of root."""
+    resolved = path.resolve()
+    root_resolved = root.resolve()
+    if resolved == root_resolved or not is_relative_to(resolved, root_resolved):
+        raise ValueError(f"{label} must stay beneath work root: {resolved}")
+    return resolved
+
+
 def remove_tree_under(path: Path, root: Path) -> None:
+    require_child_path(path, root, "removal path")
     if path.exists():
-        if not is_relative_to(path, root):
-            raise RuntimeError(f"refusing to remove path outside work root: {path}")
         shutil.rmtree(path)
 
 
@@ -484,9 +574,22 @@ def current_sha() -> str:
     return proc.stdout.strip() if proc.returncode == 0 else "UNKNOWN"
 
 
+def runner_provenance() -> dict:
+    """Bind a run to runner bytes and disclose uncommitted runner changes."""
+    relative = RUNNER_PATH.relative_to(REPO)
+    unstaged = run(["git", "diff", "--quiet", "HEAD", "--", str(relative)], REPO)
+    staged = run(["git", "diff", "--cached", "--quiet", "HEAD", "--", str(relative)], REPO)
+    return {
+        "runner_path": relative.as_posix(),
+        "runner_content_sha256": hashlib.sha256(RUNNER_PATH.read_bytes()).hexdigest(),
+        "runner_tracked_at_frozen_sha": unstaged.returncode == 0 and staged.returncode == 0,
+    }
+
+
 def create_run(args: argparse.Namespace) -> Path:
     output_root = args.output_root.resolve()
     work_root = args.work_root.resolve()
+    validate_path_component(args.run_id, "run_id")
     run_dir = output_root / args.run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     scenarios = args.scenarios.split(",")
@@ -503,10 +606,16 @@ def create_run(args: argparse.Namespace) -> Path:
         "run_id": args.run_id,
         "status": "pre_registered_not_complete",
         "frozen_sha": current_sha(),
+        **runner_provenance(),
         "model": args.model,
         "executor": EXECUTOR,
         "isolation_policy": ISOLATION_POLICY,
         "non_codex_ai_allowed": False,
+        "codex_home_policy": "per-trial-clean-auth-only",
+        "codex_user_config_loaded": False,
+        "codex_approval_policy": "never",
+        "codex_sandbox_mode": "workspace-write",
+        "codex_windows_sandbox": "elevated" if os.name == "nt" else "not_applicable",
         "raw_output_root": repo_relative_or_absolute(output_root),
         "raw_output_root_gitignored": output_root_ignored,
         "execution_work_root": str(work_root),
@@ -531,9 +640,16 @@ def create_run(args: argparse.Namespace) -> Path:
 
 - run_id: `{args.run_id}`
 - frozen_sha: `{manifest['frozen_sha']}`
+- runner_content_sha256: `{manifest['runner_content_sha256']}`
+- runner_tracked_at_frozen_sha: `{str(manifest['runner_tracked_at_frozen_sha']).lower()}`
 - model: `{args.model}`
 - executor: `{EXECUTOR}`
 - isolation: `{ISOLATION_POLICY}`
+- codex_home_policy: `per-trial-clean-auth-only` (`auth.json` only;
+  `--ignore-user-config --ignore-rules --ephemeral`)
+- codex_execution_policy: `approval_policy=never`, `sandbox=workspace-write`
+- codex_windows_sandbox: `elevated` on Windows (explicit runtime requirement;
+  not inherited from operator config)
 - execution_work_root: `{work_root}`
 - execution_work_root_inside_harness_repo: `{str(is_relative_to(work_root, REPO)).lower()}`
 - seed: `{args.seed}`
@@ -559,10 +675,15 @@ def trial_name(row: dict) -> str:
 def run_trial(run_dir: Path, row: dict, model: str, timeout: int, execute: bool, work_root: Path) -> dict:
     scenario = SCENARIOS[row["scenario"]]
     trial_dir = run_dir / "trials" / trial_name(row)
-    work = work_root / load_manifest(run_dir)["run_id"] / trial_name(row) / "work"
+    run_id = validate_path_component(load_manifest(run_dir)["run_id"], "run_id")
+    trial_component = validate_path_component(trial_name(row), "trial_name")
+    trial_base = require_child_path(work_root / run_id / trial_component, work_root, "trial base")
+    work = require_child_path(trial_base / "work", work_root, "trial work")
+    codex_home = require_child_path(trial_base / "codex_home", work_root, "Codex home")
     if trial_dir.exists():
         shutil.rmtree(trial_dir)
     remove_tree_under(work, work_root)
+    remove_tree_under(codex_home, work_root)
     work.mkdir(parents=True)
     scenario.build(work)
     prompt = build_prompt(row["arm"], work, scenario.prompt)
@@ -588,22 +709,40 @@ def run_trial(run_dir: Path, row: dict, model: str, timeout: int, execute: bool,
         write(trial_dir / "trial_result.json", json.dumps(result, indent=2))
         return result
 
-    cmd = codex_exec_command([
-        "exec",
-        "--json",
-        "-C",
-        str(work),
-        "-s",
-        "workspace-write",
-        "-m",
-        model,
-        "--skip-git-repo-check",
-        "-o",
-        str(final_path),
-        "-",
-    ])
-    started = time.perf_counter()
-    stdout, stderr, exit_code, timeout_reason = run_codex_process(cmd, work, timeout, prompt)
+    cleanup_error = ""
+    try:
+        home_isolation = prepare_clean_codex_home(codex_home)
+        process_env = os.environ.copy()
+        process_env["CODEX_HOME"] = str(codex_home)
+        cmd = codex_exec_command([
+            "exec",
+            "--json",
+            "--strict-config",
+            "--ephemeral",
+            "--ignore-user-config",
+            "--ignore-rules",
+            "-c",
+            'approval_policy="never"',
+            *(["-c", 'windows.sandbox="elevated"'] if os.name == "nt" else []),
+            "-C",
+            str(work),
+            "-s",
+            "workspace-write",
+            "-m",
+            model,
+            "--skip-git-repo-check",
+            "-o",
+            str(final_path),
+            "-",
+        ])
+        started = time.perf_counter()
+        stdout, stderr, exit_code, timeout_reason = run_codex_process(
+            cmd, work, timeout, prompt, env=process_env)
+    finally:
+        try:
+            remove_tree_under(codex_home, work_root)
+        except OSError as exc:
+            cleanup_error = f"codex_home_cleanup_failed:{exc}"
     duration = round(time.perf_counter() - started, 2)
     write(events_path, stdout)
     write(trial_dir / "codex_stderr.txt", stderr)
@@ -624,14 +763,20 @@ def run_trial(run_dir: Path, row: dict, model: str, timeout: int, execute: bool,
         "scenario_name": scenario.name,
         "executor": EXECUTOR,
         "isolation_policy": ISOLATION_POLICY,
+        "codex_home_isolation": home_isolation,
+        "codex_home_removed": not codex_home.exists(),
         "executed": True,
         "exit_code": exit_code,
         "duration_seconds": duration,
         **usage,
         **grade,
     }
+    if cleanup_error:
+        result["cleanup_error"] = cleanup_error
     if timeout_reason:
         result["unscored_reason"] = timeout_reason
+    elif cleanup_error:
+        result["unscored_reason"] = cleanup_error
     elif missing_result_reason:
         result["unscored_reason"] = missing_result_reason
     elif exit_code != 0:
