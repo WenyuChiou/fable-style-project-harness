@@ -1136,7 +1136,7 @@ files:
   - path: scripts/setup_harness.py
     id: SCRIPT-setup-harness
     layer: validation
-    purpose: "Idempotent stdlib post-clone setup: enables pre-commit gates, runs the 53-check verification, optionally installs the global Claude Code skill stub (path baked at install), wires the CLAUDE.md pointer (duplicate-safe), registers the weekly report-only scan, and prints per-runtime wiring for Codex/Cursor/Hermes/cron."
+    purpose: "Idempotent stdlib post-clone setup: enables pre-commit gates, runs the 54-check verification, optionally installs the global Claude Code skill stub (path baked at install), wires the CLAUDE.md pointer (duplicate-safe), registers the weekly report-only scan, and prints per-runtime wiring for Codex/Cursor/Hermes/cron."
     tags: ["validation", "script", "setup", "onboarding", "idempotent"]
     read_when: "Right after clone (any agent), or when the clone moves and the global stub needs re-pointing."
 
@@ -1232,7 +1232,7 @@ files:
   - path: prompts/hermes-router.md
     id: PROMPT-hermes-router
     layer: prompt
-    purpose: "Concise routing prompt for Hermes - classify the task, use tools, verify, and route to Claude Code or Codex only when it adds value; keep user replies concise."
+    purpose: "Compact routing contract for Hermes - classify, emit a parseable receipt, verify direct work, and escalate judgment without loading the full policy on every request."
     tags: ["prompt", "hermes", "routing", "classification"]
     read_when: "A request lands on Hermes (Telegram/CLI) and Hermes must decide handle-directly vs route."
 
@@ -1390,6 +1390,20 @@ files:
     tags: ["validation", "test", "codex", "long-task", "ab-test"]
     read_when: "After changing run_long_codex_ab.py or the long-task grading contract."
 
+  - path: scripts/run_hermes_router_benchmark.py
+    id: SCRIPT-run-hermes-router-benchmark
+    layer: validation
+    purpose: "Deterministic Hermes compact-router benchmark: frozen prompt-byte comparison, ten route fixtures, JSON receipt validation, protected-task misroute gate, and disclosed host-side time proxy."
+    tags: ["validation", "script", "hermes", "routing", "benchmark"]
+    read_when: "After changing the Hermes standing contract, receipt schema, or surface-routing mappings."
+
+  - path: scripts/test_run_hermes_router_benchmark.py
+    id: TEST-run-hermes-router-benchmark
+    layer: validation
+    purpose: "Regression tests for Hermes prompt economy, ten frozen route receipts, protected completion/governance routing, invalid receipt rejection, and evidence limitations."
+    tags: ["validation", "test", "hermes", "routing", "benchmark"]
+    read_when: "After changing run_hermes_router_benchmark.py or prompts/hermes-router.md."
+
   - path: scripts/summarize_harness_ab_pilot.py
     id: SCRIPT-summarize-harness-ab-pilot
     layer: validation
@@ -1407,9 +1421,23 @@ files:
   - path: benchmarks/harness_cases.yaml
     id: DATASET-harness-cases
     layer: dataset
-    purpose: "A/B benchmark scaffold for the adaptive-harness system itself - 11 pre-registered cases (skill adapter value, rolling loop vs one-shot, cadence, invocation-path simplification, multi-delegate splitter pipeline, context reset, model-routing cost router, validator output economy, grep-entry vs wholesale read, L2 hot/cold split, report brief vs full) complementing ai_review_cases.yaml without duplication."
+    purpose: "A/B benchmark scaffold for the adaptive-harness system itself - 14 pre-registered or completed cases complementing ai_review_cases.yaml without duplication."
     tags: ["dataset", "benchmark", "ab-test", "adaptive-harness", "pre-registration"]
     read_when: "experiment_design mode, or when an adaptive-harness recommendation is classified Experiment."
+
+  - path: benchmarks/hermes_router/baseline_prompt.txt
+    id: DATASET-hermes-router-baseline
+    layer: dataset
+    purpose: "Tracked offline fallback for the pre-compact Hermes standing prompt; the benchmark prefers the exact Git blob at 19c4966 when history is available."
+    tags: ["dataset", "benchmark", "hermes", "routing", "baseline"]
+    read_when: "Auditing or rerunning the Hermes standing-context byte comparison without Git history."
+
+  - path: benchmarks/hermes_router/cases.json
+    id: DATASET-hermes-router-cases
+    layer: dataset
+    purpose: "Ten frozen Hermes surface-routing fixtures with expected JSON receipts and protected completion/governance labels."
+    tags: ["dataset", "benchmark", "hermes", "routing", "receipt"]
+    read_when: "Rerunning or extending the Hermes compact-router benchmark."
 
   - path: validation/retrieval_probe.py
     id: SCRIPT-retrieval-probe
@@ -1456,7 +1484,7 @@ files:
   - path: validation/integration_check.py
     id: SCRIPT-integration-check
     layer: validation
-    purpose: "Phase-3 re-runnable integration instrument: 53 deterministic checks - CLI surface, all 17 runner modes dry-run to valid JSON, dry-run zero-mutation, E2E data flow with REC-id traceability, scheduled report-only (tree + ledger untouched), validators, probes, graph build, all 5 test suites, artifact inventory. Exit 0/1."
+    purpose: "Phase-3 re-runnable integration instrument: 54 deterministic checks - CLI surface, all 17 runner modes dry-run to valid JSON, dry-run zero-mutation, E2E data flow with REC-id traceability, scheduled report-only (tree + ledger untouched), validators, probes, graph build, all 6 test suites, artifact inventory. Exit 0/1."
     tags: ["validation", "script", "integration", "phase3", "matrix"]
     read_when: "Re-validating the whole adaptive harness system after any change; refreshing docs/integration_test_matrix.md."
 
@@ -1484,6 +1512,6 @@ files:
   - path: docs/integration_test_matrix.md
     id: DOC-integration-test-matrix
     layer: doc
-    purpose: "Executed Phase-3 matrix snapshot: 53/53 instrument checks + posture context judgments + model-tier rows (8 PASS, 2 UNVERIFIED Codex) with per-row evidence; the readiness record behind the CONDITIONAL_READY->READY verdict."
+    purpose: "Executed Phase-3 matrix snapshot: 54/54 instrument checks + posture context judgments + model-tier rows (8 PASS, 2 UNVERIFIED Codex) with per-row evidence; the readiness record behind the CONDITIONAL_READY->READY verdict."
     tags: ["doc", "integration", "test-matrix", "phase3"]
     read_when: "Judging system usability or refreshing the snapshot after re-running the instrument."

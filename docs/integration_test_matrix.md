@@ -12,11 +12,11 @@ tags: [doc, integration, test-matrix, phase3, validation]
 retrieval_keywords: [integration test matrix, phase 3 validation, pass fail partial unverified, model tier status, scheduled report only verified, readiness verdict]
 ---
 
-# Integration test matrix - executed 2026-07-08
+# Integration test matrix - executed 2026-07-13
 
-**Instrument:** `python validation/integration_check.py` -> **53/53 PASS**
-(exit 0; branch `main` at local commit `f961d67` plus the Codex long-task
-runner working tree). Re-run the instrument instead of trusting this snapshot.
+**Instrument:** `python validation/integration_check.py` -> **54/54 PASS**
+(exit 0 on 2026-07-13 with the Hermes router benchmark working tree). Re-run
+the instrument instead of trusting this snapshot.
 Model-tier rows come from workflow `wf_5f117689-bad` (5 real executions) +
 the session evidence; they are graded per `docs/model_compatibility_test_plan.md`.
 
@@ -35,7 +35,7 @@ the session evidence; they are graded per `docs/model_compatibility_test_plan.md
 | Validators (overlay + adaptive/posture) | 2 | PASS | both exit 0 |
 | Retrieval probes + INDEX ghosts | 1 | PASS | 13/13 probes, 0 ghosts |
 | Knowledge graph (build, 0 broken deps) | 1 | PASS | 0 broken depends_on (157 nodes / 789 edges at snapshot; counts grow with the tree - the criterion is the zero, not the counts) |
-| Test suites (5 suites incl. Codex long-task A/B runner) | 5 | PASS | all exit 0 |
+| Test suites (6 suites incl. Codex long-task A/B runner and Hermes router benchmark) | 6 | PASS | all exit 0 |
 | Artifact inventory (14 Phase-1/2/long-task artifacts + no-CI check) | 15 | PASS | on disk |
 
 ## Posture (section 2 - judged in context, not just grepped)
@@ -64,6 +64,6 @@ the session evidence; they are graded per `docs/model_compatibility_test_plan.md
 
 ## Summary
 
-PASS 53 deterministic + 10 model rows (Codex live compliance executed
+PASS 54 deterministic + 10 model rows (Codex live compliance executed
 2026-07-07) - FAIL 0 - remaining UNVERIFIED: the multi-delegate splitter
 efficiency A/B (pre-registered, not yet run).

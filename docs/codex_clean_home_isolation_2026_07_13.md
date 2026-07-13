@@ -71,7 +71,7 @@ Result after `7f3d702`: 27/27 pass. Isolation-specific assertions establish:
 | Path-traversing run ID rejected before credential copy | PASS |
 | Three repeated timeouts with byte output return bounded diagnostics | PASS |
 
-Repository integration remained 53/53.
+Repository integration remained 54/54.
 
 ## Commit-bound live smoke
 

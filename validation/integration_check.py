@@ -76,7 +76,7 @@ def main():
     import argparse
     global QUIET, FAIL_ONLY
     ap = argparse.ArgumentParser(prog="integration_check.py",
-                                 description="Phase-3 integration instrument (53 checks).")
+                                 description="Phase-3 integration instrument (computed check count).")
     ap.add_argument("--json", action="store_true",
                     help="Emit ONLY the JSON blob on stdout (human rows suppressed).")
     ap.add_argument("--quiet", action="store_true",
@@ -205,7 +205,8 @@ def main():
     # 5. Test suites
     for suite in ("scripts/test_run_ai_review.py", "scripts/test_run_adaptive_harness_review.py",
                   "scripts/test_build_harness_graph.py", "scripts/test_check_agent_artifacts.py",
-                  "scripts/test_run_long_codex_ab.py"):
+                  "scripts/test_run_long_codex_ab.py",
+                  "scripts/test_run_hermes_router_benchmark.py"):
         rc, out, err = run([PY, suite])
         last = out.strip().splitlines()[-1] if out.strip() else err[:100]
         row(f"suite {suite}", "tests", rc == 0, last, f"python {suite}")

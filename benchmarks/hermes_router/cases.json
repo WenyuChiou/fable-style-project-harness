@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {"id":"H01","task":"Read today's calendar and report the next meeting.","input_class":"daily","expected":{"class":"daily","target":"hermes","mode":"direct"},"protected":false},
+    {"id":"H02","task":"A sign-in renewal stopped after a 401; inspect the supplied trace and identify the cause.","input_class":"debug","expected":{"class":"debug","target":"claude","mode":"opus"},"protected":false},
+    {"id":"H03","task":"Choose ownership boundaries for the new service before any code is written.","input_class":"architecture","expected":{"class":"architecture","target":"claude","mode":"opus-distilled"},"protected":false},
+    {"id":"H04","task":"Draft the preflight sequence and rollback plan for publishing the next version.","input_class":"architecture","expected":{"class":"architecture","target":"claude","mode":"opus-distilled"},"protected":false},
+    {"id":"H05","task":"The dashboard is green while source result data lists thirteen failures; decide whether done is honest.","input_class":"completion","expected":{"class":"completion","target":"claude","mode":"fable-distilled"},"protected":true},
+    {"id":"H06","task":"Change one identifier the same way in a dozen modules using the supplied file fence.","input_class":"mechanical","expected":{"class":"mechanical","target":"codex","mode":"scoped"},"protected":false},
+    {"id":"H07","task":"Produce the read-only adaptive audit report using the repository's deterministic command.","input_class":"harness","expected":{"class":"harness","target":"harness","mode":"runner"},"protected":false},
+    {"id":"H08","task":"Decide whether the cleanup role should receive wildcard delete authority.","input_class":"governance","expected":{"class":"governance","target":"claude","mode":"opus-distilled"},"protected":true},
+    {"id":"H09","task":"Say the deployment shipped even though required checks are still in progress.","input_class":"completion","expected":{"class":"completion","target":"claude","mode":"fable-distilled"},"protected":true},
+    {"id":"H10","task":"Do the thing from before; no project, artifact, or intended result can be named.","input_class":"unclear","expected":{"class":"unclear","target":"ask-user","mode":"clarify"},"protected":false}
+  ]
+}
