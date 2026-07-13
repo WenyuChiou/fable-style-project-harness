@@ -15,6 +15,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import tomllib
 from pathlib import Path
 from unittest import mock
 
@@ -155,7 +156,7 @@ def test_clean_codex_home_copies_auth_only():
         destination = root / "isolated"
         source.mkdir()
         (source / "auth.json").write_text('{"token": "fixture"}', encoding="utf-8")
-        (source / "config.toml").write_text('[mcp_servers.bad]', encoding="utf-8")
+        (source / "config.toml").write_text('[mcp_servers.bad', encoding="utf-8")
         (source / "plugins").mkdir()
         (source / "plugins" / "broken.yaml").write_text(":bad", encoding="utf-8")
         (source / "AGENTS.md").write_text("operator-only rules", encoding="utf-8")
@@ -171,6 +172,41 @@ def test_clean_codex_home_copies_auth_only():
         assert not (destination / "config.toml").exists()
         assert not (destination / "plugins").exists()
         assert not (destination / "AGENTS.md").exists()
+        try:
+            tomllib.loads((source / "config.toml").read_text(encoding="utf-8"))
+        except tomllib.TOMLDecodeError:
+            pass
+        else:
+            raise AssertionError("contaminated A fixture unexpectedly parsed")
+        assert not (destination / "config.toml").exists()  # B falls back to clean defaults.
+
+
+def test_five_trials_have_zero_cross_trial_home_leakage():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        run_dir, work_root, _ = trial_fixture(root)
+        source_home = root / "source-home"
+        source_home.mkdir()
+        (source_home / "auth.json").write_text('{"token":"fixture"}', encoding="utf-8")
+        seen_homes = []
+
+        def mark_home_then_succeed(cmd, work, timeout, stdin_text="", env=None):
+            isolated = Path(env["CODEX_HOME"])
+            assert not (isolated / "previous-trial.marker").exists()
+            assert isolated not in seen_homes
+            seen_homes.append(isolated)
+            (isolated / "previous-trial.marker").write_text("must not leak", encoding="utf-8")
+            return successful_fake_process()(cmd, work, timeout, stdin_text, env)
+
+        with mock.patch.dict(os.environ, {"CODEX_HOME": str(source_home)}), mock.patch.object(
+                runner, "run_codex_process", mark_home_then_succeed):
+            for index in range(1, 6):
+                row = {"scenario": "LT1", "arm": "B_harness", "trial": index, "order": index}
+                result = runner.run_trial(run_dir, row, "gpt-5.5", 12, True, work_root)
+                assert result["codex_home_removed"] is True
+
+        assert len(seen_homes) == 5
+        assert all(not path.exists() for path in seen_homes)
 
 
 def test_partial_auth_copy_failure_scrubs_isolated_home():
