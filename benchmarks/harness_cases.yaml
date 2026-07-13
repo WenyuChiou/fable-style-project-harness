@@ -132,8 +132,8 @@ cases:
     variant_b: "Evidence-aware outcome ledger: exact commit subject or structured Harness-Outcome trailer; outcomes persist across later runs and stale current findings cannot erase them"
     expected_metrics: "false closures on negated/partial prose; resolved-outcome survival across 3 subsequent runs; carried-open parity; runner wall-clock"
     success_criteria: "B ships iff 0/5 adversarial commit messages falsely close, 2/2 valid evidence forms close, resolved outcomes survive 3/3 later rolling runs, carried-open behavior stays unchanged, and median dry-run wall-clock is <=1.2x A"
-    manual_review_notes: "Pre-registered from the 2026-07-12 Codex/Hermes optimization goal. Live evidence exposed both directions of drift: 20 stale recommendations repeat indefinitely, while commit b540484 contains 'applies REC-20260706-030 partial-evidence note' followed by 'no closure intended', which the current grep can match if that record disappears. No formal REC record minted."
-    status: proposed
+    manual_review_notes: "COMPLETED 2026-07-13 at d8fe0e8. PASS: 0/5 adversarial prose messages falsely closed; exact resolves subject plus evidence-backed validated trailer closed 2/2; one validated outcome survived 3/3 later rolling runs despite a stale current finding; carried-open regression stayed unchanged; later reopened evidence restored the item to the active queue. A same-HEAD/new-REC cache miss and failed-scan cache poisoning were found during review and regression-pinned. Commit-bound 15-sample interleaved overhead record: medians 435ms and 423ms, reported steady-state ratio 1.028x baseline (PASS <=1.2x; overhead gate only, not a speedup claim). Adaptive tests 20/20. Durable summary: docs/adaptive_outcome_ledger_2026_07_13.md."
+    status: completed
     linked_recommendation_id: none - user-requested Codex/Hermes adaptive-learning audit (2026-07-12)
 
   - case_name: codex_clean_home_vs_inherited_operator_home
