@@ -378,6 +378,387 @@ def test_as_text_normalizes_timeout_bytes():
     assert runner.as_text(None) == ""
 
 
+def fair_fixture_fingerprint(provider="fixture-provider"):
+    return {
+        "executable_path": "C:/fixture/hermes.exe",
+        "executable_sha256": "a" * 64,
+        "version_returncode": 0,
+        "version": "Hermes fixture 1.0",
+        "version_error": "",
+        "status_returncode": 0,
+        "status_sha256": "b" * 64,
+        "status_error": "",
+        "model": "fixture-model",
+        "provider": provider,
+        "config_path_returncode": 0,
+        "config_path": "C:/fixture/config.yaml",
+        "config_sha256": "c" * 64,
+        "config_error": "",
+        "raw_config_or_secrets_stored": False,
+    }
+
+
+def fair_fixture_provenance():
+    return {
+        "frozen_sha": "d" * 40,
+        "input_sha256": {},
+        "inputs_tracked_at_frozen_sha": True,
+        "frozen_input_hashes_match": True,
+        "live_command_policy": [],
+    }
+
+
+def test_fair_preregistration_schedule_and_prompt_are_frozen():
+    preregistration = runner.load_fair_preregistration()
+    assert runner.sha256_file(runner.FAIR_PREREGISTRATION) == runner.FAIR_PREREGISTRATION_SHA256
+    cases = runner.load_cases()
+    schedule = runner.build_fair_schedule(cases, 5)
+    assert len(schedule) == 100
+    assert sum(row["variant"] == "A" for row in schedule) == 50
+    assert sum(row["variant"] == "B" for row in schedule) == 50
+    assert sum(row["variant"] == "A" and row["position"] == 1 for row in schedule) == 25
+    assert sum(row["variant"] == "B" and row["position"] == 1 for row in schedule) == 25
+    for variant in ("A", "B"):
+        contract = runner.extract_baseline_contract()[0] if variant == "A" else runner.extract_compact_contract()
+        assert runner.fair_live_prompt(contract, "fixture", variant, preregistration) == runner.live_prompt(
+            contract, "fixture", variant)
+
+
+def test_fair_semantic_extractor_matches_all_frozen_adversarial_vectors():
+    preregistration = runner.load_fair_preregistration()
+    semantic_config = runner.fair_semantic_config(preregistration)
+    assert set(semantic_config) == {
+        "reference_semantic_extractor", "target_aliases", "mode_aliases"}
+    try:
+        semantic_config["target_aliases"]["leak"] = ("gold",)
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("semantic extractor config is mutable")
+    for vector in preregistration["grading"]["adversarial_vectors"]:
+        semantic = runner.extract_fair_semantics(vector["stdout"], semantic_config)
+        assert semantic["target_candidates"] == vector["target_candidates"], vector["stdout"]
+        assert semantic["target"] == vector["target"], vector["stdout"]
+        assert semantic["mode_candidates"] == vector["mode_candidates"], vector["stdout"]
+        assert semantic["mode"] == vector["mode"], vector["stdout"]
+        assert semantic["target_reason"] == (
+            "selected" if len(vector["target_candidates"]) == 1 else
+            "unresolved_zero_candidates" if not vector["target_candidates"] else
+            "ambiguous_multiple_candidates")
+        assert semantic["mode_reason"] == (
+            "selected" if len(vector["mode_candidates"]) == 1 else
+            "unresolved_zero_candidates" if not vector["mode_candidates"] else
+            "ambiguous_multiple_candidates")
+        protected_misroute = bool(
+            {"hermes", "codex"}.intersection(semantic["target_candidates"]))
+        assert protected_misroute == vector["protected_misroute"], vector["stdout"]
+    assert runner._fair_segment("opus-‐‑‒–—―/_+distilled") == "opus distilled"
+
+
+def test_fair_bootstrap_uses_frozen_lcg_median_and_nearest_rank():
+    result = runner.fair_bootstrap(
+        [(index + 1) / 50 for index in range(50)], runner.load_fair_preregistration())
+    assert result == {
+        "pair_median": 0.51,
+        "upper_95": 0.62,
+        "upper_index_zero_based": 9499,
+        "resamples": 10000,
+        "final_lcg_state": 2047826744685214089,
+    }
+
+
+def test_fair_runtime_fingerprint_hashes_resolved_executable_and_probes():
+    with tempfile.TemporaryDirectory() as tmp:
+        executable = Path(tmp) / "hermes.exe"
+        config = Path(tmp) / "config.yaml"
+        executable.write_bytes(b"fixture executable")
+        config.write_bytes(b"model: fixture\n")
+
+        def fake_run(cmd, **_kwargs):
+            if cmd[-1] == "--version":
+                return subprocess.CompletedProcess(cmd, 0, "Hermes fixture\n", "")
+            if cmd[-1] == "status":
+                return subprocess.CompletedProcess(
+                    cmd, 0, "Model: fixture-model\nProvider: fixture-provider\n", "")
+            if cmd[-2:] == ["config", "path"]:
+                return subprocess.CompletedProcess(cmd, 0, str(config) + "\n", "")
+            raise AssertionError(cmd)
+
+        with mock.patch.object(runner.shutil, "which", return_value=str(executable)), mock.patch.object(
+                runner.subprocess, "run", side_effect=fake_run):
+            fingerprint = runner.fair_runtime_fingerprint()
+        executable_resolved = str(executable.resolve())
+    assert fingerprint["executable_path"] == executable_resolved
+    assert fingerprint["executable_sha256"] == hashlib.sha256(b"fixture executable").hexdigest()
+    assert fingerprint["config_sha256"] == hashlib.sha256(b"model: fixture\n").hexdigest()
+    assert fingerprint["version_returncode"] == fingerprint["status_returncode"] == 0
+    assert fingerprint["config_path_returncode"] == 0
+    assert runner.fair_runtime_fingerprint_eligible(fingerprint) is True
+
+
+def _fair_fake_process_factory(cases, unresolved_protected_case=None, manifest_path=None):
+    calls = []
+
+    def fake_process(prompt, timeout, executable):
+        if manifest_path is not None:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            assert manifest["status"] == "pre_registered_not_complete"
+            assert len(manifest["schedule"]) == 100
+        case = next(case for case in cases if prompt.endswith("TASK: " + case["task"]))
+        variant = "B" if "Return the JSON receipt only" in prompt else "A"
+        expected = case["expected"]
+        if variant == "B" and case["id"] == unresolved_protected_case:
+            output = "route: execute locally\nmode: direct"
+        elif variant == "B":
+            output = json.dumps({"v": 1, **expected}, separators=(",", ":"))
+        else:
+            output = (
+                f"classification: {expected['class']}\nroute: {expected['target']}\n"
+                f"mode: {expected['mode']}\n")
+        calls.append((case["id"], variant, timeout, executable))
+        return output, "", 0, "", 0.8 if variant == "B" else 1.0
+
+    return fake_process, calls
+
+
+def test_fair_live_runner_executes_frozen_design_and_supports_speed_claim():
+    cases = runner.load_cases()
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        manifest_path = root / "fair-unit" / "manifest.json"
+        fake_process, calls = _fair_fake_process_factory(cases, manifest_path=manifest_path)
+        fingerprint = fair_fixture_fingerprint()
+        with mock.patch.object(runner, "run_hermes_process", fake_process), mock.patch.object(
+                runner, "fair_runtime_fingerprint", return_value=fingerprint), mock.patch.object(
+                runner, "fair_input_provenance", return_value=fair_fixture_provenance()):
+            report = runner.run_fair_paired_live("fair-unit", root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        first_orders = [
+            (row["variant"], row["position"]) for row in manifest["schedule"]
+            if row["case_id"] == "H01"]
+    assert len(calls) == 100
+    assert first_orders == [
+        ("A", 1), ("B", 2), ("B", 1), ("A", 2), ("A", 1),
+        ("B", 2), ("B", 1), ("A", 2), ("A", 1), ("B", 2)]
+    for variant in ("A", "B"):
+        summary = report["variant_summaries"][variant]
+        assert summary["scored"] == summary["native_parsed"] == 50
+        assert summary["semantic_target_correct"] == 50
+        assert summary["semantic_exact_route_correct"] == 50
+        assert summary["protected_target_correct"] == 15
+        assert summary["protected_exact_route_correct"] == 15
+    assert report["pair_count"] == 50
+    assert report["latency_bootstrap"]["pair_median"] == 0.8
+    assert report["latency_bootstrap"]["upper_95"] == 0.8
+    assert report["speed_claim_supported"] is True
+    assert report["latency_no_regression_supported"] is True
+    assert report["token_usage"]["status"] == "UNSCORED"
+    assert report["adopt_B"] is True
+
+
+def test_fair_live_protected_unresolved_blocks_adoption_at_45_of_50():
+    cases = runner.load_cases()
+    with tempfile.TemporaryDirectory() as tmp:
+        fake_process, _calls = _fair_fake_process_factory(cases, unresolved_protected_case="H05")
+        fingerprint = fair_fixture_fingerprint()
+        with mock.patch.object(runner, "run_hermes_process", fake_process), mock.patch.object(
+                runner, "fair_runtime_fingerprint", return_value=fingerprint), mock.patch.object(
+                runner, "fair_input_provenance", return_value=fair_fixture_provenance()):
+            report = runner.run_fair_paired_live("fair-protected-gap", Path(tmp))
+    b = report["variant_summaries"]["B"]
+    assert b["native_parsed"] == 45
+    assert b["semantic_target_correct"] == b["semantic_exact_route_correct"] == 45
+    assert b["protected_target_correct"] == b["protected_exact_route_correct"] == 10
+    assert b["protected_unresolved"] == 5
+    assert b["protected_misroutes"] == 0
+    assert report["gates"]["B_native_parse_at_least_45_of_50"] is True
+    assert report["gates"]["B_protected_target_15_of_15"] is False
+    assert report["gates"]["B_protected_unresolved_zero"] is False
+    assert report["adopt_B"] is False
+
+
+def test_fair_runtime_drift_and_path_traversal_fail_closed():
+    start = fair_fixture_fingerprint()
+    end = fair_fixture_fingerprint(provider="changed-provider")
+    assert runner.fair_provenance_eligible(fair_fixture_provenance(), start, end) is False
+    with tempfile.TemporaryDirectory() as tmp:
+        try:
+            runner.run_fair_paired_live("../../escape", Path(tmp))
+        except ValueError as exc:
+            assert "invalid fair live run_id" in str(exc)
+        else:
+            raise AssertionError("path-traversing fair run id accepted")
+
+
+def test_fair_invalid_start_provenance_fails_before_one_shot_and_writes_ineligible():
+    invalid = fair_fixture_provenance()
+    invalid["inputs_tracked_at_frozen_sha"] = False
+    fingerprint = fair_fixture_fingerprint()
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        with mock.patch.object(
+                runner, "run_hermes_process", side_effect=AssertionError("one-shot must not run")), \
+                mock.patch.object(runner, "fair_runtime_fingerprint", return_value=fingerprint), \
+                mock.patch.object(runner, "fair_input_provenance", return_value=invalid):
+            report = runner.run_fair_paired_live("fair-invalid-start", root)
+        manifest = json.loads(
+            (root / "fair-invalid-start" / "manifest.json").read_text(encoding="utf-8"))
+        scorecard = json.loads(
+            (root / "fair-invalid-start" / "scorecard.json").read_text(encoding="utf-8"))
+    assert report["status"] == scorecard["status"] == manifest["status"] == "ineligible"
+    assert report["executed"] == manifest["completed_calls"] == 0
+    assert report["terminal_error"] == "start_provenance_ineligible"
+    assert report["supported_claims"] == []
+    assert report["adopt_B"] is False
+
+
+def test_fair_mid_run_exception_writes_atomic_partial_scorecard_then_reraises():
+    cases = runner.load_cases()
+    normal_process, calls = _fair_fake_process_factory(cases)
+
+    def fail_second(prompt, timeout, executable):
+        if len(calls) == 1:
+            raise RuntimeError("fixture interruption")
+        return normal_process(prompt, timeout, executable)
+
+    fingerprint = fair_fixture_fingerprint()
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        with mock.patch.object(runner, "run_hermes_process", fail_second), mock.patch.object(
+                runner, "fair_runtime_fingerprint", return_value=fingerprint), mock.patch.object(
+                runner, "fair_input_provenance", return_value=fair_fixture_provenance()):
+            try:
+                runner.run_fair_paired_live("fair-partial", root)
+            except RuntimeError as exc:
+                assert str(exc) == "fixture interruption"
+            else:
+                raise AssertionError("mid-run exception was swallowed")
+        run_dir = root / "fair-partial"
+        manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+        scorecard = json.loads((run_dir / "scorecard.json").read_text(encoding="utf-8"))
+        trials = list((run_dir / "trials").glob("*.json"))
+        temporary_files = list(run_dir.rglob("*.tmp"))
+    assert len(calls) == 1
+    assert len(trials) == 1
+    assert temporary_files == []
+    assert manifest["status"] == scorecard["status"] == "partial"
+    assert manifest["completed_calls"] == scorecard["executed"] == 1
+    assert scorecard["terminal_error"] == "RuntimeError:fixture interruption"
+    assert scorecard["supported_claims"] == []
+    assert scorecard["adopt_B"] is False
+
+
+def test_fair_atomic_writer_ignores_precreated_predictable_hardlink():
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        target = root / "outside-target.txt"
+        target.write_text("do not truncate", encoding="utf-8")
+        destination = root / "manifest.json"
+        predictable = destination.with_name(f".{destination.name}.{runner.os.getpid()}.tmp")
+        runner.os.link(target, predictable)
+        runner.write_fair_json_atomic(destination, {"safe": True})
+        assert target.read_text(encoding="utf-8") == "do not truncate"
+        assert predictable.read_text(encoding="utf-8") == "do not truncate"
+        assert json.loads(destination.read_text(encoding="utf-8")) == {"safe": True}
+
+
+def test_fair_terminal_error_invalidates_one_hundred_otherwise_happy_rows():
+    cases = runner.load_cases()
+    fake_process, calls = _fair_fake_process_factory(cases)
+    fingerprint = fair_fixture_fingerprint()
+    provenance = fair_fixture_provenance()
+    preregistration = runner.load_fair_preregistration()
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        run_dir = root / "fair-terminal-after-100"
+        with mock.patch.object(runner, "run_hermes_process", fake_process), mock.patch.object(
+                runner, "fair_runtime_fingerprint", return_value=fingerprint), mock.patch.object(
+                runner, "fair_input_provenance", return_value=provenance):
+            complete = runner.run_fair_paired_live("fair-terminal-after-100", root)
+        manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+        invalidated = runner._finalize_fair_run(
+            run_dir, preregistration, cases, provenance, manifest,
+            fingerprint, fingerprint, complete["results"],
+            terminal_error="RuntimeError:after_final_result")
+    assert len(calls) == invalidated["executed"] == 100
+    assert invalidated["status"] == "partial"
+    assert invalidated["gates"]["clean_completion_without_terminal_error"] is False
+    assert invalidated["supported_claims"] == []
+    assert invalidated["speed_claim_supported"] is False
+    assert invalidated["latency_no_regression_supported"] is False
+    assert invalidated["adopt_B"] is False
+
+
+def test_fair_end_runtime_drift_is_ineligible_and_suppresses_all_claims():
+    cases = runner.load_cases()
+    fake_process, calls = _fair_fake_process_factory(cases)
+    start = fair_fixture_fingerprint()
+    end = fair_fixture_fingerprint(provider="changed-provider")
+    with tempfile.TemporaryDirectory() as tmp:
+        with mock.patch.object(runner, "run_hermes_process", fake_process), mock.patch.object(
+                runner, "fair_runtime_fingerprint", side_effect=[start, end]), mock.patch.object(
+                runner, "fair_input_provenance", return_value=fair_fixture_provenance()):
+            report = runner.run_fair_paired_live("fair-end-drift", Path(tmp))
+    assert len(calls) == 100
+    assert report["status"] == "ineligible"
+    assert report["provenance_eligible"] is False
+    assert report["runtime_fingerprints_identical"] is False
+    assert report["supported_claims"] == []
+    assert report["speed_claim_supported"] is False
+    assert report["latency_no_regression_supported"] is False
+    assert "paired latency no-regression" in report["unsupported_claims"]
+    assert "adopt compact B on the frozen fair-baseline task set" in report["unsupported_claims"]
+
+
+def test_fair_unscored_call_suppresses_performance_and_adoption_claims():
+    cases = runner.load_cases()
+    normal_process, calls = _fair_fake_process_factory(cases)
+
+    def one_unscored(prompt, timeout, executable):
+        if not calls:
+            calls.append(("unscored", "A", timeout, executable))
+            return "", "fixture failure", 7, "", 0.25
+        return normal_process(prompt, timeout, executable)
+
+    fingerprint = fair_fixture_fingerprint()
+    with tempfile.TemporaryDirectory() as tmp:
+        with mock.patch.object(runner, "run_hermes_process", one_unscored), mock.patch.object(
+                runner, "fair_runtime_fingerprint", return_value=fingerprint), mock.patch.object(
+                runner, "fair_input_provenance", return_value=fair_fixture_provenance()):
+            report = runner.run_fair_paired_live("fair-unscored", Path(tmp))
+    assert len(calls) == 100
+    assert report["status"] == "complete"
+    assert report["pair_count"] == 49
+    assert report["supported_claims"] == []
+    assert report["speed_claim_supported"] is False
+    assert report["latency_no_regression_supported"] is False
+    assert report["adopt_B"] is False
+
+
+def test_fair_cli_rejects_frozen_overrides_and_legacy_pair_default_stays_two():
+    invalid_argvs = [
+        ["--live-fair-run-id", "fair-cli", "--live-timeout", "179"],
+        ["--live-fair-run-id", "fair-cli", "--live-limit", "1"],
+        ["--live-fair-run-id", "fair-cli", "--live-variant", "A"],
+        ["--live-fair-run-id", "fair-cli", "--live-repetitions", "1"],
+    ]
+    with mock.patch.object(runner, "run_fair_paired_live") as fair_run:
+        for argv in invalid_argvs:
+            with mock.patch.object(sys, "stderr", new=io.StringIO()):
+                try:
+                    runner.main(argv)
+                except SystemExit as exc:
+                    assert exc.code == 2
+                else:
+                    raise AssertionError(f"fair CLI override accepted: {argv}")
+        fair_run.assert_not_called()
+    legacy_report = {"passed": True}
+    with mock.patch.object(runner, "run_paired_live", return_value=legacy_report) as legacy_run, \
+            mock.patch.object(sys, "stdout", new=io.StringIO()):
+        assert runner.main(["--live-paired-run-id", "legacy-cli", "--json"]) == 0
+    assert legacy_run.call_args.args[1] == 2
+
+
 TESTS = [value for name, value in sorted(globals().items()) if name.startswith("test_")]
 
 
