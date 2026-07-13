@@ -142,8 +142,8 @@ cases:
     variant_b: "Per-trial clean CODEX_HOME containing only the minimum authenticated runtime state required by codex exec"
     expected_metrics: "configuration-contamination failures; scored-trial yield; wasted wall-clock and tokens on non-task startup failures; auth continuity; cross-trial state leakage"
     success_criteria: "B ships iff a deterministic contaminated-home fixture fails under A but is ignored under B, auth continuity is regression-tested without copying plugin/MCP config, cross-trial state leakage is 0/5, and a live smoke produces a scored trial; do not claim the earlier 41% attrition is eliminated without a multi-trial rerun"
-    manual_review_notes: "Pre-registered follow-up to codex_confirmatory_20260710_t5: 33/80 trials were UNSCORED from expired operator MCP auth plus broken plugin-cache YAML, arm-uniform but costly. The runner currently passes no env override to subprocess.Popen. No formal REC record minted."
-    status: proposed
+    manual_review_notes: "COMPLETED 2026-07-13: implementation e950be8 plus deterministic gates 7f3d702. Invalid inherited config fails the frozen A parser fixture while B copies auth.json only; exact CLI/env and auth continuity pass; five sequential homes are distinct and 0/5 remain. Commit-bound live run codex_clean_home_committed_20260713: frozen_sha e950be8, runner hash matched, tracked=true, 1/1 scored+primary pass, canonical checked, false-done 0, home removed, exit 0. Scope: isolation/recovery evidence only; no claim that the earlier 41% attrition is eliminated or that tokens/latency improve. Durable summary: docs/codex_clean_home_isolation_2026_07_13.md."
+    status: completed
     linked_recommendation_id: none - user-requested Codex/Hermes adaptive-learning audit (2026-07-12)
 
   - case_name: hermes_compact_route_receipt_vs_freeform_router

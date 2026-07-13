@@ -411,6 +411,13 @@ files:
     tags: ["ab-test", "evaluation", "future-work", "pre-registration", "skill-effect", "confound-control"]
     read_when: "Designing, ratifying, or running the skill-effect experiment; reviewing the confound-controlled arm design and the non-proxy activation mechanism."
 
+  - path: docs/codex_clean_home_isolation_2026_07_13.md
+    id: DOC-codex-clean-home-isolation-2026-07-13
+    layer: doc
+    purpose: "Commit-bound evidence for Codex per-trial runtime isolation, cleanup, and scored-run recovery."
+    tags: ["codex", "isolation", "benchmark", "evidence", "cleanup"]
+    read_when: "Checking whether Codex benchmark trials still inherit operator MCP, plugin, or user configuration state."
+
   - path: docs/codex_long_task_ab.md
     id: DOC-codex-long-task-ab
     layer: doc
