@@ -119,6 +119,13 @@ table at the top. The full ledger — every positive, every negative, and the
 artifact to re-run each one — is in **[`docs/evidence.md`](docs/evidence.md)**.
 Read it before adopting.
 
+One load-bearing claim is still **unmeasured and scheduled**: whether the
+rolling improvement loop justifies its complexity versus plain ai-review
+(pre-registered as `ai_review_only_vs_ai_review_plus_adaptive_harness` in
+[`benchmarks/harness_cases.yaml`](benchmarks/harness_cases.yaml); frozen
+operationalization dated 2026-07-14, next optimization round). If the loop
+loses, it gets simplified — that result will ship here too.
+
 ## Repository map
 
 | Path | What's there |

@@ -32,7 +32,7 @@ cases:
     variant_b: "AI-review + rolling_improvement_review linking new/repeated/resolved via REC-id commits"
     expected_metrics: "findings lost between runs, re-derivation cost per session, time from finding to applied fix, repeated-finding detection rate"
     success_criteria: "B justifies its complexity iff repeated findings are detected mechanically (A misses them) AND per-session re-derivation drops measurably; otherwise simplify B away"
-    manual_review_notes: "This is the load-bearing case for the whole Phase-2 system - if B loses, the rolling loop should be reduced to a script that greps history."
+    manual_review_notes: "This is the load-bearing case for the whole Phase-2 system - if B loses, the rolling loop should be reduced to a script that greps history. SCHEDULED 2026-07-14 for the next optimization round with a frozen replay operationalization (arm A = k=3 agents re-deriving new/repeated/resolved from linkage-stripped report sequences vs ledger ground truth; arm B = the mechanical linkage itself); pre-registration operator-side at audits/harness-optimization-2026-07/rolling-loop-ab-round4/. A B-loses result ships to evidence.md too."
     status: proposed
     linked_recommendation_id: REC-20260706-034
 
