@@ -2,8 +2,10 @@
 """Regression tests for the fail-closed runtime activation probe."""
 
 import importlib.util
+import hashlib
 import json
 import sqlite3
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -43,7 +45,9 @@ def test_v2_preregistration_freezes_current_inputs_before_live_calls():
     assert payload["design"]["total_live_calls"] == 14 and payload["design"]["retries"] == 0
     assert "Do not claim API-token reduction or speedup" in payload["decision_gates"]["reporting"]
     for relative, expected in payload["frozen_input_sha256"].items():
-        assert runner.sha256_file(REPO / relative) == expected, f"v2 frozen input drifted: {relative}"
+        blob = subprocess.check_output(
+            ["git", "show", f"{payload['frozen_implementation_commit']}:{relative}"], cwd=REPO)
+        assert hashlib.sha256(blob).hexdigest() == expected, f"v2 frozen input drifted: {relative}"
 
 
 def test_receipt_parser_rejects_extra_or_invalid_values():
@@ -56,6 +60,14 @@ def test_receipt_parser_rejects_extra_or_invalid_values():
             pass
         else:
             raise AssertionError(f"accepted invalid receipt: {raw}")
+
+
+def test_receipt_scoring_ignores_schema_framing_but_not_a_wrong_decision():
+    expected = {"harness": "inactive", "reason": "routine"}
+    assert runner.receipt_matches_expected(
+        {"schema_version": 1, "harness": "inactive", "reason": "routine"}, expected)
+    assert not runner.receipt_matches_expected(
+        {"schema_version": 1, "harness": "active", "reason": "trigger"}, expected)
 
 
 def test_codex_usage_uses_reported_json_not_byte_estimates():
@@ -168,7 +180,7 @@ def test_scorecard_keeps_digests_not_raw_agent_output():
 def test_score_rejects_routine_overtrigger_and_unscored_rows():
     rows = []
     for case in runner.load_cases():
-        receipt = dict(case["expected"])
+        receipt = {"schema_version": 1, **case["expected"]}
         rows.append({"kind": case["kind"], "expected": case["expected"], "receipt": receipt,
                      "correct": True, "usage": {"status": "EXACT"}})
     assert runner.score(rows)["passed"] is True

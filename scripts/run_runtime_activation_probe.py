@@ -132,6 +132,11 @@ def parse_receipt(stdout: str) -> dict[str, Any]:
     return payload
 
 
+def receipt_matches_expected(receipt: dict[str, Any], expected: dict[str, Any]) -> bool:
+    """Compare the scored decision, not the receipt schema framing."""
+    return all(receipt.get(key) == value for key, value in expected.items())
+
+
 def codex_command(final_message: Path, workspace: Path) -> list[str]:
     base = ["codex", "exec", "--json", "--ephemeral", "--skip-git-repo-check",
             "-C", str(workspace), "-s", "read-only",
@@ -362,7 +367,8 @@ def run_case(runtime: str, case: dict[str, Any], timeout: int, state_db: Path | 
     except (json.JSONDecodeError, ValueError) as exc:
         result.update(receipt=None, receipt_error=type(exc).__name__, correct=False)
         return result
-    result.update(receipt=receipt, receipt_error="", correct=receipt == case["expected"])
+    result.update(receipt=receipt, receipt_error="",
+                  correct=receipt_matches_expected(receipt, case["expected"]))
     return result
 
 

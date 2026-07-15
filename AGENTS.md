@@ -25,7 +25,8 @@ contract is `docs/runtime_activation_contract.md`.
 
 For an evaluation prompt beginning `FABLE_ACTIVATION_PROBE`, inspect only the
 repository-root `.fable-harness-off` marker; do not load routed material or do
-task work.  Then return only
+task work.  The probe envelope and JSON receipt are not an explicit harness
+request: classify only its `TASK:` text using the criteria above.  Then return only
 `{"schema_version":1,"harness":"active|inactive","reason":"trigger|routine|rollback"}`.
 If the marker exists, return inactive with reason rollback.  This evaluation
 receipt is never ordinary user-facing text.

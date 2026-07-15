@@ -57,8 +57,10 @@ reviewer's interpretation of prose:
 `FABLE_ACTIVATION_PROBE` is evaluation-only.  The runner creates the actual
 per-case workspace and, for rollback, the real marker file.  The runtime may
 inspect that marker only; it must not load routed material or perform task
-work, then return exactly the receipt above.  The scorecard reports all of the
-following separately:
+work.  Its `FABLE_ACTIVATION_PROBE` envelope and receipt instruction are test
+scaffolding, not an activation trigger: the decision is made from `TASK:`
+alone.  It then returns exactly the receipt above.  The scorecard reports all
+of the following separately:
 
 1. trigger recall (active on required cases),
 2. routine over-trigger count (active on simple cases),
