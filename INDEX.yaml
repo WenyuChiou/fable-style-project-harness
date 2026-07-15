@@ -516,6 +516,13 @@ files:
     tags: ["codex", "opencode", "hermes", "agents-md", "runtime-interface", "global-pointer"]
     read_when: "Wiring this harness into Codex, OpenCode, Cursor, Hermes, or any AGENTS.md-convention runtime."
 
+  - path: docs/runtime_activation_contract.md
+    id: DOC-runtime-activation-contract
+    layer: doc
+    purpose: "Shared measurable and reversible conditional-activation contract for Codex and Hermes."
+    tags: ["codex", "hermes", "activation", "rollback", "telemetry", "evaluation"]
+    read_when: "Wiring the portable harness into Codex or Hermes, or evaluating activation recall, routine over-triggering, rollback, or telemetry."
+
   - path: docs/harness_ab_pilot_2026_07_07.md
     id: DOC-harness-ab-pilot-2026-07-07
     layer: doc
@@ -1189,6 +1196,13 @@ files:
     tags: ["entrypoint", "agent-instructions", "conventions"]
     read_when: "Auto-loaded at session start by convention-following agents; humans read to see what agents are told."
 
+  - path: HERMES.md
+    id: HERMES-runtime-switch
+    layer: entry
+    purpose: "Short first-priority Hermes shim that conditionally activates the full harness and names the local rollback marker."
+    tags: ["entrypoint", "hermes", "activation", "rollback", "prompt-economy"]
+    read_when: "Starting Hermes in this repository, or auditing its conditional harness activation and context cost."
+
   - path: SKILL.md
     id: SKILL
     layer: entry
@@ -1487,6 +1501,13 @@ files:
     purpose: "Regression tests for Hermes prompt economy and live runners, including fair schedule symmetry, stdout-only semantic isolation, protected routing, deterministic bootstrap, provenance drift, atomic partial evidence, and CLI compatibility."
     tags: ["validation", "test", "hermes", "routing", "benchmark"]
     read_when: "After changing run_hermes_router_benchmark.py or prompts/hermes-router.md."
+
+  - path: scripts/test_runtime_activation_contract.py
+    id: TEST-runtime-activation-contract
+    layer: validation
+    purpose: "Static regression checks for the shared Codex/Hermes activation probe, rollback marker, and Hermes shim context budget."
+    tags: ["validation", "test", "codex", "hermes", "activation", "rollback"]
+    read_when: "After changing runtime activation or rollback instructions."
 
   - path: scripts/check_codebase_memory_freshness.py
     id: SCRIPT-check-codebase-memory-freshness
