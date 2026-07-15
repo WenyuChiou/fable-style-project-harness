@@ -32,6 +32,7 @@ It only keeps what survives measurement — and asks you to work the same way.
 | Lever | Result |
 |---|---|
 | **Codex, long tasks** (inline micro-contract vs plain Codex) | **−27% input tokens · −59% tool calls · −34% wall-clock** (80-trial confirmatory A/B; a flat context dump costs 2.2× for no quality gain) |
+| **Hermes, routine-work context** (separate offline `prompt-size` measurement) | **−4,191 B / −69.9%** fixed project context, with no API call; separately, the pre-registered v3 live probe passed 4/4 triggers, 0/2 routine over-triggers, and 1/1 real-marker rollback on **both Hermes and Codex** |
 | **Claude, cost routing** (mixed workload vs all-strong-model) | **0.37×** the cost at exact quality parity (3/3 = 3/3), 30/30 blind routing accuracy, 0 honesty mis-routes |
 | **Claude, one-call orientation** (`route_pack.py`) | **0.72×** total cost and *fewer* turns than free reading (11.3 vs 16.0) |
 | **Capability lift** | **zero, across 8 experiments — by design.** This is the point, not a disclaimer. |
@@ -70,6 +71,22 @@ Then, for a real task:
 - Start at [`AGENTS.md`](AGENTS.md) ·
   [`docs/codex_harness_integration.md`](docs/codex_harness_integration.md) ·
   evidence in [`docs/codex_long_task_ab.md`](docs/codex_long_task_ab.md).
+
+## If you drive Hermes
+
+- **Conditional shim** — [`HERMES.md`](HERMES.md) is deliberately short. It
+  keeps a routine question, lookup, typo, or one-file mechanical edit out of
+  the full harness; it activates for multi-step work, multiple agents,
+  benchmarks, completion/release/safety/governance work, or explicit harness
+  requests.
+- **Measured boundary** — the pre-registered v3 live probe: Hermes and Codex
+  each passed **4/4** required activations, **0/2** routine over-triggers, and
+  **1/1** real rollback-marker case, with **7/7 exact** provider-usage rows.
+  A separate deterministic, no-API `hermes prompt-size` measurement found the
+  final shim cut fixed project context from **5,994 B to 1,803 B (−69.9%)**.
+- Honest limit: this establishes correct conditional behavior and a context
+  reduction, **not** an API-token reduction or speedup. See
+  [`docs/runtime_activation_telemetry_2026_07_15.md`](docs/runtime_activation_telemetry_2026_07_15.md).
 
 ## If you drive Claude (or any strong/cheap model pair)
 
@@ -160,7 +177,7 @@ compatibility claims.
 | Claude Code | `SKILL.md` (auto-discovered) | operational cases demonstrated (Haiku + Sonnet, n=1 per case) |
 | Codex | `AGENTS.md` · `docs/codex_harness_integration.md` | long-task efficiency **confirmed** (80-trial A/B: −27%/−59%/−34%); scoped-edit compliance demonstrated (n=1) |
 | Cursor · opencode · any AGENTS.md agent | `AGENTS.md` (convention) | enters by convention; not separately benchmarked |
-| Hermes · router surfaces | `docs/agent-routing-policy.md` | router only — deterministic scan, then route judgment onward |
+| Hermes | `HERMES.md` · `AGENTS.md` | conditional activation verified: 4/4 triggers, 0/2 routine over-triggers, 1/1 marker rollback, 7/7 exact usage rows; fixed context −69.9% |
 | Antigravity CLI · other agent CLIs | `core/GLOBAL_BOOTSTRAP.md` pointer | as a **delegate**: promoted after a pre-registered k=5 gate went 5/5; as the driving agent: reserved, not yet tested |
 | Bare model or shell | `BOOTSTRAP.md` · `core/GLOBAL_BOOTSTRAP.md` | portable pointer |
 

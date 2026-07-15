@@ -523,6 +523,13 @@ files:
     tags: ["codex", "hermes", "activation", "rollback", "telemetry", "evaluation"]
     read_when: "Wiring the portable harness into Codex or Hermes, or evaluating activation recall, routine over-triggering, rollback, or telemetry."
 
+  - path: docs/runtime_activation_telemetry_2026_07_15.md
+    id: DOC-runtime-activation-telemetry-2026-07-15
+    layer: doc
+    purpose: "Executed v3 result ledger for Codex/Hermes conditional activation, exact telemetry, real rollback, and Hermes context reduction."
+    tags: ["evidence", "codex", "hermes", "activation", "telemetry", "rollback"]
+    read_when: "Citing or auditing the measured Codex/Hermes runtime switch benefits and their explicit non-claims."
+
   - path: docs/harness_ab_pilot_2026_07_07.md
     id: DOC-harness-ab-pilot-2026-07-07
     layer: doc
