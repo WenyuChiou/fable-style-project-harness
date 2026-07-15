@@ -29,6 +29,7 @@ from typing import Any
 REPO = Path(__file__).resolve().parent.parent
 CASES = REPO / "benchmarks" / "runtime_activation" / "cases.json"
 LIVE_OUTPUT_ROOT = REPO / "evals" / "runtime_activation"
+WORKSPACE_ROOT = LIVE_OUTPUT_ROOT / "workspaces"
 RECEIPT_KEYS = {"schema_version", "harness", "reason"}
 REASONS = {"trigger", "routine", "rollback"}
 POST_KILL_TIMEOUT = 10
@@ -61,6 +62,52 @@ def load_cases(path: Path = CASES) -> list[dict[str, Any]]:
     if {case["kind"] for case in cases} != REASONS:
         raise ValueError("fixture must cover trigger, routine, and rollback")
     return cases
+
+
+def sha256_file(path: Path) -> str:
+    """Hash frozen text inputs canonically despite a Windows CRLF checkout."""
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
+def require_head_clean(relative: str) -> None:
+    """Require a frozen input to exist at HEAD without staged/worktree drift."""
+    for args, reason in ((["cat-file", "-e", f"HEAD:{relative}"], "not committed at HEAD"),
+                         (["diff", "--quiet", "HEAD", "--", relative], "has worktree drift"),
+                         (["diff", "--cached", "--quiet", "HEAD", "--", relative], "has staged drift")):
+        proc = subprocess.run(["git", *args], cwd=REPO, stdout=subprocess.DEVNULL,
+                              stderr=subprocess.DEVNULL, check=False)
+        if proc.returncode != 0:
+            raise ValueError(f"preregistration input {reason}: {relative}")
+
+
+def load_preregistration(path: Path) -> dict[str, Any]:
+    """Reject live calls unless a tracked preregistration freezes this runner."""
+    try:
+        relative_path = path.resolve().relative_to(REPO.resolve()).as_posix()
+    except ValueError as exc:
+        raise ValueError("preregistration must be inside the repository") from exc
+    require_head_clean(relative_path)
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"preregistration unreadable: {type(exc).__name__}") from exc
+    if (payload.get("schema_version") != 1 or payload.get("frozen_before_new_live_outputs") is not True
+            or payload.get("status") == "invalidated_before_scorecard"):
+        raise ValueError("preregistration is not a frozen schema-v1 design")
+    inputs = payload.get("frozen_input_sha256")
+    if not isinstance(inputs, dict) or not inputs:
+        raise ValueError("preregistration has no frozen inputs")
+    for relative, expected in inputs.items():
+        candidate = (REPO / relative).resolve()
+        if REPO.resolve() not in candidate.parents or not candidate.is_file() or not isinstance(expected, str):
+            raise ValueError(f"invalid preregistration input: {relative}")
+        require_head_clean(relative)
+        if sha256_file(candidate) != expected:
+            raise ValueError(f"preregistration input drifted: {relative}")
+    design = payload.get("design", {})
+    if (design.get("cases"), design.get("calls_per_runtime"), design.get("retries")) != (7, 7, 0):
+        raise ValueError("preregistration design drifted")
+    return payload
 
 
 def build_prompt(case: dict[str, Any], nonce: str) -> str:
@@ -271,13 +318,22 @@ def output_digest(value: str) -> dict[str, Any]:
     return {"bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
 
 
+def cleanup_workspace(path: Path) -> str:
+    """Best-effort cleanup: Hermes may keep an MCP child cwd open on Windows."""
+    try:
+        shutil.rmtree(path)
+    except OSError:
+        return "pending"
+    return "removed"
+
+
 def run_case(runtime: str, case: dict[str, Any], timeout: int, state_db: Path | None) -> dict[str, Any]:
     nonce = uuid.uuid4().hex
     prompt = build_prompt(case, nonce)
     before = snapshot_session_ids(state_db) if runtime == "hermes" else set()
-    with tempfile.TemporaryDirectory(prefix="fable-runtime-activation-") as tmp:
-        workspace = Path(tmp) / "workspace"
-        workspace.mkdir()
+    WORKSPACE_ROOT.mkdir(parents=True, exist_ok=True)
+    workspace = Path(tempfile.mkdtemp(prefix=f"{runtime}-{case['id']}-", dir=WORKSPACE_ROOT))
+    try:
         prepare_workspace(workspace, case["marker_present"])
         final_message = workspace / "codex-final.txt"
         command = ["hermes", "-z", prompt] if runtime == "hermes" else codex_command(final_message, workspace)
@@ -285,10 +341,13 @@ def run_case(runtime: str, case: dict[str, Any], timeout: int, state_db: Path | 
         stdout, stderr, exit_code, process_reason, duration = run_process(command, stdin, timeout, workspace)
         receipt_text = stdout if runtime == "hermes" else (
             final_message.read_text(encoding="utf-8", errors="replace") if final_message.is_file() else "")
+    finally:
+        workspace_cleanup = cleanup_workspace(workspace)
     result: dict[str, Any] = {
         "id": case["id"], "kind": case["kind"], "expected": case["expected"],
         "exit_code": exit_code, "duration_seconds": round(duration, 6),
         "process_reason": process_reason, "marker_present": case["marker_present"],
+        "workspace_cleanup": workspace_cleanup,
         "receipt_output": output_digest(receipt_text), "process_stderr": output_digest(stderr),
     }
     if runtime == "hermes":
@@ -337,6 +396,8 @@ def main(argv: list[str] | None = None) -> int:
     run = sub.add_parser("run", help="run live activation probes and write canonical JSON")
     run.add_argument("--runtime", choices=("codex", "hermes"), required=True)
     run.add_argument("--output", type=Path, required=True)
+    run.add_argument("--preregistration", type=Path, required=True,
+                     help="tracked frozen design whose input hashes must match")
     run.add_argument("--timeout", type=int, default=180)
     run.add_argument("--hermes-state-db", type=Path)
     args = parser.parse_args(argv)
@@ -348,6 +409,10 @@ def main(argv: list[str] | None = None) -> int:
         destination = output_path(args.output)
     except ValueError as exc:
         parser.error(str(exc))
+    try:
+        preregistration = load_preregistration(args.preregistration)
+    except ValueError as exc:
+        parser.error(str(exc))
     if shutil.which("hermes" if args.runtime == "hermes" else "codex") is None:
         print(f"UNSCORED: {args.runtime} executable unavailable", file=sys.stderr)
         return 2
@@ -355,7 +420,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.runtime == "hermes" and state_db is None:
         state_db = default_hermes_state_db()
     results = [run_case(args.runtime, case, args.timeout, state_db) for case in cases]
-    scorecard = {"schema_version": 1, "runtime": args.runtime, "results": results, "metrics": score(results)}
+    scorecard = {"schema_version": 1, "runtime": args.runtime,
+                 "preregistration_id": preregistration.get("experiment_id"),
+                 "preregistration_sha256": sha256_file(args.preregistration),
+                 "results": results, "metrics": score(results)}
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(json.dumps(scorecard, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(scorecard["metrics"], sort_keys=True))

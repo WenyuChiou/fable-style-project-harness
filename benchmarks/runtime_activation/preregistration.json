@@ -2,8 +2,10 @@
   "schema_version": 1,
   "experiment_id": "runtime_activation_telemetry_v1_20260715",
   "frozen_before_new_live_outputs": true,
+  "status": "invalidated_before_scorecard",
+  "invalidation": "The first Hermes call on 2026-07-15 completed its subprocess but the v1 runner crashed while deleting a Windows-locked TemporaryDirectory, before correlation or scorecard emission. Its AGENTS.md hash was also computed from a CRLF worktree rather than canonical LF bytes. No v1 scorecard exists and no v1 call may be retried; v2 uses persistent ignored workspaces and canonical text hashes.",
   "frozen_implementation_commit": "c9de9f83afc57179c98418d7ab7739287e347b63",
-  "prior_output_policy": "No runtime-activation live scorecard exists at registration. Do not alter cases, entrypoints, parser, correlation rule, or thresholds after a scorecard is produced; publish any partial, null, or failing result without retries.",
+  "prior_output_policy": "No runtime-activation live scorecard existed at registration. This v1 design is invalidated before scorecard emission; do not use it for any later call or claim.",
   "frozen_input_sha256": {
     "AGENTS.md": "2be0805381b66807563cd0449727876cb5954b2fdf1a200ce31e87cd2628cf85",
     "HERMES.md": "be62ebc3f29c295f353a42e02b7658bdbd6ff23105a2a22fde818adb6163adbd",

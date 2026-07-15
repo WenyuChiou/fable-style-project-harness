@@ -2,7 +2,6 @@
 """Regression tests for the fail-closed runtime activation probe."""
 
 import importlib.util
-import hashlib
 import json
 import sqlite3
 import sys
@@ -31,11 +30,10 @@ def test_fixture_is_complete_and_valid():
 def test_preregistration_freezes_the_live_inputs_and_claim_boundary():
     payload = json.loads(PREREGISTRATION.read_text(encoding="utf-8"))
     assert payload["schema_version"] == 1 and payload["frozen_before_new_live_outputs"] is True
+    assert payload["status"] == "invalidated_before_scorecard"
+    assert "no v1 call may be retried" in payload["invalidation"]
     assert payload["design"]["total_live_calls"] == 14 and payload["design"]["retries"] == 0
     assert "not an API token or latency claim" in payload["offline_context_measurement"]["claim_boundary"]
-    for relative, expected in payload["frozen_input_sha256"].items():
-        actual = hashlib.sha256((REPO / relative).read_bytes()).hexdigest()
-        assert actual == expected, f"frozen input drifted: {relative}"
 
 
 def test_receipt_parser_rejects_extra_or_invalid_values():
@@ -121,12 +119,34 @@ def test_workspace_uses_an_actual_marker_and_output_stays_local():
 def test_invalid_output_fails_before_any_runtime_invocation():
     with mock.patch.object(runner, "run_case") as run_case:
         try:
-            runner.main(["run", "--runtime", "codex", "--output", str(Path(tempfile.gettempdir()) / "bad.json")])
+            runner.main(["run", "--runtime", "codex", "--output", str(Path(tempfile.gettempdir()) / "bad.json"),
+                         "--preregistration", str(PREREGISTRATION)])
         except SystemExit as exc:
             assert exc.code == 2
         else:
             raise AssertionError("accepted output outside ignored local root")
         run_case.assert_not_called()
+
+
+def test_live_preregistration_requires_committed_provenance_and_cleanup_is_nonfatal():
+    with tempfile.TemporaryDirectory() as tmp:
+        prereg = Path(tmp) / "prereg.json"
+        prereg.write_text(json.dumps({"schema_version": 1, "frozen_before_new_live_outputs": True,
+                                      "frozen_input_sha256": {"AGENTS.md": runner.sha256_file(REPO / "AGENTS.md")},
+                                      "design": {"cases": 7, "calls_per_runtime": 7, "retries": 0}}), encoding="utf-8")
+        with mock.patch.object(runner, "run_case") as run_case:
+            try:
+                runner.main(["run", "--runtime", "codex", "--output",
+                             str(runner.LIVE_OUTPUT_ROOT / "fixture.json"), "--preregistration", str(prereg)])
+            except SystemExit as exc:
+                assert exc.code == 2
+            else:
+                raise AssertionError("accepted external preregistration")
+            run_case.assert_not_called()
+        workspace = Path(tmp) / "workspace"
+        workspace.mkdir()
+        with mock.patch.object(runner.shutil, "rmtree", side_effect=PermissionError):
+            assert runner.cleanup_workspace(workspace) == "pending"
 
 
 def test_scorecard_keeps_digests_not_raw_agent_output():

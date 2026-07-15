@@ -72,3 +72,10 @@ database.  A telemetry runner may accept those counters only when one and only
 one new session can be correlated to the probe; any missing database, multiple
 candidates, or zero-evidence row is `UNSCORED`.  Byte counts and bytes/4 are
 context-size proxies only.
+
+The live runner requires a committed preregistration whose frozen input hashes
+match before it invokes either runtime.  Probe workspaces are under ignored
+`evals/runtime_activation/workspaces/`: on Windows Hermes may retain an MCP
+child's working directory after a completed call, so cleanup is best-effort
+and a pending cleanup is recorded rather than turning an otherwise valid call
+into an unreported crash.
