@@ -148,7 +148,8 @@ def as_text(value: str | bytes | None) -> str:
     return value.decode("utf-8", "replace") if isinstance(value, bytes) else (value or "")
 
 
-def run_process(command: list[str], prompt: str, timeout: int, workspace: Path) -> tuple[str, str, int | None, str, float]:
+def run_process(command: list[str], prompt: str, timeout: int, workspace: Path,
+                env: dict[str, str] | None = None) -> tuple[str, str, int | None, str, float]:
     """Run an agent and terminate its complete process tree on timeout."""
     started = time.monotonic()
     start_new_session = os.name != "nt"
@@ -157,7 +158,8 @@ def run_process(command: list[str], prompt: str, timeout: int, workspace: Path) 
         proc = subprocess.Popen(command, cwd=str(workspace), stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                                 encoding="utf-8", errors="replace",
-                                start_new_session=start_new_session, creationflags=creationflags)
+                                start_new_session=start_new_session, creationflags=creationflags,
+                                env=env)
     except OSError as exc:
         return "", "", None, f"spawn_{type(exc).__name__}", time.monotonic() - started
     try:

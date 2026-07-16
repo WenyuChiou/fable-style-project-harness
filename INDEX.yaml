@@ -1642,6 +1642,20 @@ files:
     tags: ["validation", "test", "adaptive-harness", "codex", "hermes", "lifecycle"]
     read_when: "After changing the adaptive rule catalog, lifecycle scorer, state schema, or prompt-pack policy."
 
+  - path: scripts/run_adaptive_loop_experiment.py
+    id: SCRIPT-run-adaptive-loop-experiment
+    layer: validation
+    purpose: "Preregistered zero-retry paired Codex/Hermes runner with immutable git-blob semantics, exact usage normalization, frozen marker evidence, disabled Codex shell access, zero-tool Hermes execution, per-call runtime/OAuth identity receipts, blocked cross-runtime auth fallbacks, sanitized absolute launchers, must-remove credentials, HMAC anti-rollback checkpoints, canonical locking, and public-safe observations."
+    tags: ["validation", "adaptive-harness", "codex", "hermes", "ab-test", "telemetry", "rework"]
+    read_when: "Binding, running, resuming, or auditing the adaptive rule-lifecycle live experiment."
+
+  - path: scripts/test_run_adaptive_loop_experiment.py
+    id: TEST-run-adaptive-loop-experiment
+    layer: validation
+    purpose: "Regression tests for paired schedule symmetry, cache-safe Codex accounting, frozen marker evidence, disabled Codex shell access, zero-tool Hermes execution, oracle-derived rework, immutable semantic inputs, OAuth/child-env and cross-runtime auth isolation, credential deletion, HMAC forgery/rollback rejection, strict binding parity, and no-retry recovery."
+    tags: ["validation", "test", "adaptive-harness", "codex", "hermes", "ab-test", "fail-closed"]
+    read_when: "After changing the adaptive-loop live runner, binding schema, usage semantics, workspace isolation, or progress state machine."
+
   - path: scripts/summarize_harness_ab_pilot.py
     id: SCRIPT-summarize-harness-ab-pilot
     layer: validation
