@@ -1621,6 +1621,27 @@ files:
     tags: ["preregistration", "adaptive-harness", "codex", "hermes", "telemetry", "rework", "evaluation"]
     read_when: "Before implementing, binding, running, or interpreting the adaptive rule-lifecycle experiment."
 
+  - path: benchmarks/adaptive_loop/rules_v1.json
+    id: DATASET-adaptive-rule-catalog-v1
+    layer: dataset
+    purpose: "Versioned Codex/Hermes learned-rule catalog with confirmatory and retire-or-degrade-only promotion policies."
+    tags: ["dataset", "adaptive-harness", "codex", "hermes", "rules", "prompt-pack"]
+    read_when: "Initializing lifecycle state, scoring a rule window, or rendering runtime prompt packs."
+
+  - path: scripts/adaptive_rule_lifecycle.py
+    id: SCRIPT-adaptive-rule-lifecycle
+    layer: validation
+    purpose: "Deterministic safety-first scorer that updates local rule state and excludes candidate, degraded, or retired rules from Codex/Hermes packs."
+    tags: ["validation", "adaptive-harness", "codex", "hermes", "lifecycle", "telemetry"]
+    read_when: "Scoring paired rule evidence, auditing automatic degradation or retirement, or regenerating active prompt packs."
+
+  - path: scripts/test_adaptive_rule_lifecycle.py
+    id: TEST-adaptive-rule-lifecycle
+    layer: validation
+    purpose: "Regression tests for harm-first retirement, exact rework metrics, duplicate-window rejection, cost-only promotion, catalog drift, and pack exclusion."
+    tags: ["validation", "test", "adaptive-harness", "codex", "hermes", "lifecycle"]
+    read_when: "After changing the adaptive rule catalog, lifecycle scorer, state schema, or prompt-pack policy."
+
   - path: scripts/summarize_harness_ab_pilot.py
     id: SCRIPT-summarize-harness-ab-pilot
     layer: validation
