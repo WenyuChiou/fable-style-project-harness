@@ -1607,6 +1607,20 @@ files:
     tags: ["preregistration", "codex", "hermes", "activation", "telemetry", "evaluation"]
     read_when: "Required argument for the fresh v3 runtime-activation live probe; inspect before interpreting its scorecard."
 
+  - path: benchmarks/adaptive_loop/cases_v1.json
+    id: DATASET-adaptive-loop-cases-v1
+    layer: dataset
+    purpose: "Six unseen paired Codex/Hermes activation cases for measuring repeated defects and actual corrective work."
+    tags: ["dataset", "adaptive-harness", "codex", "hermes", "activation", "rework", "benchmark"]
+    read_when: "Running or auditing the adaptive rule-lifecycle confirmatory experiment."
+
+  - path: benchmarks/adaptive_loop/preregistration_design_v1.json
+    id: PREREG-adaptive-rule-lifecycle-design-v1
+    layer: dataset
+    purpose: "Frozen design for exact token and rework measurement plus exhaustive active, degraded, and retired rule transitions."
+    tags: ["preregistration", "adaptive-harness", "codex", "hermes", "telemetry", "rework", "evaluation"]
+    read_when: "Before implementing, binding, running, or interpreting the adaptive rule-lifecycle experiment."
+
   - path: scripts/summarize_harness_ab_pilot.py
     id: SCRIPT-summarize-harness-ab-pilot
     layer: validation
