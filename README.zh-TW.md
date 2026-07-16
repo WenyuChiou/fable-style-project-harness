@@ -6,7 +6,7 @@
 
 [English](README.md) | **繁體中文**
 
-![混沌進、紀律出——原始脈絡經過 classify/route/gate 匯成一道有序光束;實測數字 −27%、0.37×、0.72×](docs/assets/hero.svg)
+![Fable Method Harness 架構：Claude Code、Codex 與 Cursor、Hermes、Shell 或 CI 分別從對應入口進入；harness 按需載入一條路由、依任務性質分工、驗證完成聲稱，並把已測試結果回饋到下一次路由。實測結果包括 Codex 輸入 tokens 減少 27%、Hermes 固定專案脈絡減少 69.9%、定向總成本為 0.72 倍、成本路由代理值為全強模型的 0.37 倍。](docs/assets/readme-harness.zh-TW.png)
 
 > **給任何 AI agent 的 Fable 等級規劃紀律——長任務實測省 token、
 > 一個會發表自身敗績的自我改進迴路、以及設計上為零的能力提升。**

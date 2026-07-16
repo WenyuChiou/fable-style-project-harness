@@ -68,17 +68,45 @@ files:
     tags: ["entrypoint", "overview", "locale-mirror", "zh-TW"]
     read_when: "First contact by a Chinese-reading visitor; when auditing locale-mirror parity after any README.md change"
 
-  - path: docs/assets/hero.svg
-    id: ASSET-hero-svg
+  - path: docs/assets/harness-core-image2.png
+    id: ASSET-harness-core-image2
     layer: doc
-    purpose: "Self-contained promotional hero banner for both READMEs (chaos-in/discipline-out funnel artwork; visual-first, 16 words, measured-number accents only) - no external fonts/scripts, theme-safe on GitHub light+dark"
-    tags: ["asset", "svg", "readme", "promotion"]
-    read_when: "Editing the README hero or re-checking the SVG's self-containment/theme constraints"
+    purpose: "Text-free Image 2.0 art layer for the bilingual README architecture infographics - four illustrated scenes cover multi-CLI entry, selective loading, routing, and evidence feedback; provenance is recorded in the adjacent prompt manifest"
+    tags: ["asset", "png", "readme", "image2", "source-art"]
+    read_when: "Regenerating or restyling the bilingual README harness visuals"
+
+  - path: docs/assets/harness-core-image2.prompt.md
+    id: DOC-harness-core-image2-prompt
+    layer: doc
+    purpose: "Generation provenance and text-free production prompt for the Image 2.0 README source art, including the honest non-bit-exact reproducibility boundary"
+    tags: ["asset", "readme", "image2", "prompt", "provenance"]
+    read_when: "Regenerating the README source illustration or auditing how the visual was produced"
+
+  - path: docs/assets/readme-harness.en.png
+    id: ASSET-readme-harness-en
+    layer: doc
+    purpose: "English README hero infographic - four runtime entries, selective skill loading, task-character routing, evidence feedback loop, and four evidence-bounded efficiency results"
+    tags: ["asset", "png", "readme", "infographic", "english"]
+    read_when: "Auditing the English README visual, its measured numbers, or locale parity"
+
+  - path: docs/assets/readme-harness.zh-TW.png
+    id: ASSET-readme-harness-zh-tw
+    layer: doc
+    purpose: "Traditional-Chinese mirror of the README harness infographic with identical architecture, metrics, and evidence boundaries"
+    tags: ["asset", "png", "readme", "infographic", "zh-TW", "locale-mirror"]
+    read_when: "Auditing the Traditional-Chinese README visual, its measured numbers, or locale parity"
+
+  - path: scripts/render_readme_visuals.py
+    id: SCRIPT-render-readme-visuals
+    layer: tool
+    purpose: "Deterministically typeset the English and Traditional-Chinese README infographics over the Image 2.0 art layer so metrics and translated labels remain exact"
+    tags: ["script", "readme", "image", "locale-mirror", "deterministic-render"]
+    read_when: "Regenerating the README infographics after copy, evidence, or design changes"
 
   - path: docs/assets/how-it-works.svg
     id: ASSET-how-it-works-svg
     layer: doc
-    purpose: "Self-contained pictogram flow for both READMEs (Classify -> Route -> Gate -> Measure with the remove-losers feedback loop; 9 words) - same constraints as hero.svg"
+    purpose: "Self-contained pictogram flow for both READMEs (Classify -> Route -> Gate -> Measure with the remove-losers feedback loop; 9 words)"
     tags: ["asset", "svg", "readme", "diagram"]
     read_when: "Editing the How-it-works section or the diagram itself"
 

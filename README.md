@@ -6,7 +6,7 @@
 
 **English** | [繁體中文](README.zh-TW.md)
 
-![Chaos in, discipline out — raw context funnels through classify/route/gate into one ordered beam; measured accents −27%, 0.37×, 0.72×](docs/assets/hero.svg)
+![Fable Method Harness architecture: Claude Code, Codex and Cursor, Hermes, and Shell or CI enter through runtime-specific files; the harness selectively loads one route, assigns work by task character, verifies claims, and feeds tested outcomes back into the next route. Measured results include 27 percent fewer Codex input tokens, 69.9 percent less fixed Hermes project context, 0.72 times orientation cost, and a routing cost proxy at 0.37 times all-strong.](docs/assets/readme-harness.en.png)
 
 > **Fable-grade planning discipline for any AI agent — measured token savings
 > on long tasks, a self-improvement loop that publishes its own losses, and
