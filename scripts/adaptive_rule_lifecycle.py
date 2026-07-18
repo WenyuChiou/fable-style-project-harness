@@ -304,13 +304,15 @@ def derive_metrics(control: dict[str, Any], treatment: dict[str, Any]) -> dict[s
     for case_id in ids:
         c = control[case_id]
         t = treatment[case_id]
-        if not all(isinstance(value, bool) for value in (
-                c["initial_correct"], c["final_correct"],
-                t["initial_correct"], t["final_correct"])):
-            continue
-        if ((not t["initial_correct"]) > (not c["initial_correct"])
-                or t["corrective_invocations"] > c["corrective_invocations"]
-                or (not t["final_correct"]) > (not c["final_correct"])):
+        initial_comparable = all(isinstance(value, bool) for value in (
+            c["initial_correct"], t["initial_correct"]))
+        final_comparable = all(isinstance(value, bool) for value in (
+            c["final_correct"], t["final_correct"]))
+        if ((initial_comparable and (
+                (not t["initial_correct"]) > (not c["initial_correct"])
+                or t["corrective_invocations"] > c["corrective_invocations"]))
+                or (final_comparable
+                    and (not t["final_correct"]) > (not c["final_correct"]))):
             harmful_cases.append(case_id)
     exact_usage = all(
         control[case_id]["usage_status"] == "EXACT"

@@ -308,6 +308,41 @@ def test_new_unresolved_defect_triggers_safety_veto():
     assert score["metrics"]["treatment_unresolved_defects"] == 1
 
 
+def test_more_treatment_rework_retires_even_when_corrective_result_is_unscored():
+    state, catalog = state_and_catalog()
+    observation = window(treatment_bad=1, exact=False)
+    treatment = observation["treatment"]["cases"][0]
+    treatment["final_correct"] = None
+    treatment["process_status"] = "timeout"
+    score, _ = apply(state, catalog, observation)
+    assert score["decision_branch"] == "safety_veto"
+    assert score["status_after"] == "retired"
+    assert score["metrics"]["harmful_cases"] == ["C0"]
+    assert score["metrics"]["treatment_rework_invocations"] == 1
+    assert score["metrics"]["exact_usage"] is False
+    assert score["metrics"]["correctness_complete"] is False
+
+
+def test_rework_difference_is_not_harm_when_initial_pair_is_not_comparable():
+    state, catalog = state_and_catalog()
+    observation = window(treatment_bad=1, exact=False)
+    control = observation["control"]["cases"][0]
+    control.update(
+        initial_correct=None,
+        final_correct=None,
+        process_status="error",
+    )
+    treatment = observation["treatment"]["cases"][0]
+    treatment.update(
+        final_correct=None,
+        process_status="timeout",
+    )
+    score, _ = apply(state, catalog, observation)
+    assert score["decision_branch"] == "unscored"
+    assert score["status_after"] == "candidate"
+    assert score["metrics"]["harmful_cases"] == []
+
+
 def test_negative_control_policy_cannot_activate_from_retrospective_evidence():
     state, catalog = state_and_catalog()
     observation = window(rule="activation_envelope_trigger_v0",
@@ -788,6 +823,8 @@ TESTS = [
     test_last_eligible_cannot_disagree_with_append_only_history,
     test_case_level_harm_retires_even_when_aggregate_defects_improve,
     test_new_unresolved_defect_triggers_safety_veto,
+    test_more_treatment_rework_retires_even_when_corrective_result_is_unscored,
+    test_rework_difference_is_not_harm_when_initial_pair_is_not_comparable,
     test_negative_control_policy_cannot_activate_from_retrospective_evidence,
     test_invalid_corrective_contract_is_rejected,
     test_cli_dry_run_writes_nothing,
