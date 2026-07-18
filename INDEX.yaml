@@ -1614,6 +1614,13 @@ files:
     tags: ["dataset", "adaptive-harness", "codex", "hermes", "activation", "rework", "benchmark"]
     read_when: "Running or auditing the adaptive rule-lifecycle confirmatory experiment."
 
+  - path: benchmarks/adaptive_loop/final_binding_v1.json
+    id: BINDING-adaptive-rule-lifecycle-v1
+    layer: dataset
+    purpose: "Immutable public-safe instrument binding for the frozen Codex/Hermes adaptive rule-lifecycle live experiment."
+    tags: ["binding", "adaptive-harness", "codex", "hermes", "telemetry", "rework", "evaluation"]
+    read_when: "Required before running, resuming, scoring, or auditing the bound adaptive rule-lifecycle experiment."
+
   - path: benchmarks/adaptive_loop/preregistration_design_v1.json
     id: PREREG-adaptive-rule-lifecycle-design-v1
     layer: dataset
