@@ -30,6 +30,7 @@
 |---|---|
 | **Codex 長任務**(行內 micro-contract vs 素的 Codex) | **−27% 輸入 tokens · −59% 工具呼叫 · −34% 耗時**(80 次試驗確認性 A/B;整包傾倒脈絡的做法貴 2.2 倍且品質毫無提升) |
 | **Hermes 日常工作脈絡**（獨立離線 `prompt-size` 量測） | 固定專案脈絡 **−4,191 B / −69.9%**，且沒有 API call；另行的預註冊 v3 live probe 在 **Hermes 與 Codex** 都通過 4/4 trigger、0/2 routine over-trigger、1/1 真實 marker rollback |
+| **自適應學習迴路，每個 runtime 6 個配對案例** | **僅 Codex：**防止 1 個 defect 與 1 次 corrective invocation；同一 frozen binding 下總 token ratio 為 0.858288（−14.17%）、latency ratio 為 0.672159（−32.78%）。**Hermes：**12 個 pair-side 全為 process error，故 token／correctness 效果是 **UNSCORED**，不是成功也不是失敗。 |
 | **Claude 成本路由**(混合工作負載 vs 全強模型) | **0.37×** 成本、品質完全持平(3/3 = 3/3)、盲路由準確率 30/30、誠實任務誤路由 0 |
 | **Claude 一次呼叫定向**(`route_pack.py`) | **0.72×** 總成本,回合數*少於*自由閱讀(11.3 vs 16.0) |
 | **能力提升** | **零,橫跨 8 個實驗——這是設計目標。** 這是重點,不是免責聲明。 |

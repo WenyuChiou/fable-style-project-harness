@@ -33,6 +33,7 @@ It only keeps what survives measurement — and asks you to work the same way.
 |---|---|
 | **Codex, long tasks** (inline micro-contract vs plain Codex) | **−27% input tokens · −59% tool calls · −34% wall-clock** (80-trial confirmatory A/B; a flat context dump costs 2.2× for no quality gain) |
 | **Hermes, routine-work context** (separate offline `prompt-size` measurement) | **−4,191 B / −69.9%** fixed project context, with no API call; separately, the pre-registered v3 live probe passed 4/4 triggers, 0/2 routine over-triggers, and 1/1 real-marker rollback on **both Hermes and Codex** |
+| **Adaptive learning loop, 6 paired cases per runtime** | **Codex only:** 1 defect and 1 corrective invocation prevented; 0.858288 total-token ratio (−14.17%) and 0.672159 latency ratio (−32.78%) under one frozen binding. **Hermes:** all 12 pair-sides ended in process error, so token/correctness effect is **UNSCORED**, not a win or a loss. |
 | **Claude, cost routing** (mixed workload vs all-strong-model) | **0.37×** the cost at exact quality parity (3/3 = 3/3), 30/30 blind routing accuracy, 0 honesty mis-routes |
 | **Claude, one-call orientation** (`route_pack.py`) | **0.72×** total cost and *fewer* turns than free reading (11.3 vs 16.0) |
 | **Capability lift** | **zero, across 8 experiments — by design.** This is the point, not a disclaimer. |

@@ -1614,6 +1614,13 @@ files:
     tags: ["dataset", "adaptive-harness", "codex", "hermes", "activation", "rework", "benchmark"]
     read_when: "Running or auditing the adaptive rule-lifecycle confirmatory experiment."
 
+  - path: benchmarks/adaptive_loop/evidence_v1.json
+    id: EVIDENCE-adaptive-rule-lifecycle-v1
+    layer: dataset
+    purpose: "Computed public-safe aggregate of the frozen Codex/Hermes adaptive lifecycle observations, including UNSCORED outcomes."
+    tags: ["evidence", "adaptive-harness", "codex", "hermes", "telemetry", "rework"]
+    read_when: "Interpreting the completed adaptive rule-lifecycle result and its explicit claim boundary."
+
   - path: benchmarks/adaptive_loop/final_binding_v1.json
     id: BINDING-adaptive-rule-lifecycle-v1
     layer: dataset
@@ -1662,6 +1669,20 @@ files:
     purpose: "Regression tests for paired schedule symmetry, cache-safe Codex accounting, frozen marker evidence, disabled Codex shell access, zero-tool Hermes execution, oracle-derived rework, immutable semantic inputs, OAuth/child-env and cross-runtime auth isolation, credential deletion, HMAC forgery/rollback rejection, strict binding parity, and no-retry recovery."
     tags: ["validation", "test", "adaptive-harness", "codex", "hermes", "ab-test", "fail-closed"]
     read_when: "After changing the adaptive-loop live runner, binding schema, usage semantics, workspace isolation, or progress state machine."
+
+  - path: scripts/summarize_adaptive_loop.py
+    id: SCRIPT-summarize-adaptive-loop
+    layer: validation
+    purpose: "Deterministically renders public-safe adaptive-loop aggregates from canonical local observations and lifecycle scorecards."
+    tags: ["validation", "adaptive-harness", "codex", "hermes", "evidence", "unscored"]
+    read_when: "Publishing or auditing the adaptive-loop evidence artifact without exposing raw local telemetry."
+
+  - path: scripts/test_summarize_adaptive_loop.py
+    id: TEST-summarize-adaptive-loop
+    layer: validation
+    purpose: "Regression tests for adaptive-loop aggregate source matching and public-path exclusion."
+    tags: ["validation", "test", "adaptive-harness", "evidence"]
+    read_when: "After changing the adaptive-loop summary renderer or public evidence contract."
 
   - path: scripts/summarize_harness_ab_pilot.py
     id: SCRIPT-summarize-harness-ab-pilot
