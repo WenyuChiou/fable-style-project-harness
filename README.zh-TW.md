@@ -55,6 +55,8 @@ python validation/integration_check.py   # 59 項檢查,約 3 分鐘
 
 > Read `core/GLOBAL_BOOTSTRAP.md` and follow its routing for this task.
 
+剛接觸 harness？請從面向採用者的[導入指南](docs/adoption-guide.zh-TW.md)開始：判斷它是否適合你的專案、產生最小的 Codex／Hermes wiring、隨時撤回，並在擴大前量測你自己的結果。
+
 ## 如果你開的是 Codex
 
 - **長任務 micro-contract**——用一小段行內契約取代整包脈絡傾倒或反覆重新

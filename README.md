@@ -58,6 +58,10 @@ Then, for a real task:
 
 > Read `core/GLOBAL_BOOTSTRAP.md` and follow its routing for this task.
 
+New to the harness? Start with the user-facing [adoption guide](docs/adoption-guide.md):
+decide whether it fits your project, generate the minimal Codex/Hermes wiring,
+roll it back, and measure your own result before expanding it.
+
 ## If you drive Codex
 
 - **Long-task micro-contract** — a small inline contract instead of a flat

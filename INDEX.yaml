@@ -1252,12 +1252,33 @@ files:
     tags: ["entrypoint", "setup", "onboarding", "ai-runbook", "cross-runtime"]
     read_when: "Immediately after cloning, on any machine, by whichever agent the user has."
 
+  - path: docs/adoption-guide.md
+    id: DOC-adoption-guide
+    layer: doc
+    purpose: "User-facing guide for deciding whether to adopt the portable harness, wiring it into another project, rolling it back, and measuring its local value."
+    tags: ["adoption", "onboarding", "codex", "hermes", "rollback", "evidence"]
+    read_when: "Before adding the harness pointer to another repository or explaining its controls and evidence boundary to a project owner."
+
+  - path: docs/adoption-guide.zh-TW.md
+    id: DOC-adoption-guide-zh-TW
+    layer: doc
+    purpose: "提供採用者判斷是否導入可攜 harness、整合到另一個專案、撤回，以及量測本地效益的繁中指南。"
+    tags: ["adoption", "onboarding", "codex", "hermes", "rollback", "evidence", "zh-TW"]
+    read_when: "在另一個 repository 加入 harness pointer 前，或向專案負責人說明控制權與證據邊界時。"
+
   - path: scripts/setup_harness.py
     id: SCRIPT-setup-harness
     layer: validation
     purpose: "Idempotent stdlib post-clone setup: enables pre-commit gates, runs the 59-check verification, optionally installs the global Claude Code skill stub (path baked at install), wires the CLAUDE.md pointer (duplicate-safe), registers the weekly report-only scan, and prints per-runtime wiring for Codex/Cursor/Hermes/cron."
     tags: ["validation", "script", "setup", "onboarding", "idempotent"]
     read_when: "Right after clone (any agent), or when the clone moves and the global stub needs re-pointing."
+
+  - path: scripts/test_setup_harness.py
+    id: SCRIPT-test-setup-harness
+    layer: validation
+    purpose: "Regression check that generated Codex and Hermes wiring includes a target-repository rollback marker and target-ready bootstrap path."
+    tags: ["test", "setup", "wiring", "codex", "hermes", "rollback"]
+    read_when: "Changing the generated runtime wiring or verifying that a new-project installation has a local rollback path."
 
   - path: scripts/register_scheduled_scan.bat
     id: SCRIPT-register-scheduled-scan
