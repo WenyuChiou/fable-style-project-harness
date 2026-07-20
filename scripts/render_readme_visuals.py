@@ -16,7 +16,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "docs" / "assets"
-ART = ASSETS / "harness-core-image2.png"
+ART = ASSETS / "harness-core-image3.png"
 WIDTH, HEIGHT = 2048, 1480
 
 COLORS = {

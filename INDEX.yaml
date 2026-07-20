@@ -82,6 +82,20 @@ files:
     tags: ["asset", "readme", "image2", "prompt", "provenance"]
     read_when: "Regenerating the README source illustration or auditing how the visual was produced"
 
+  - path: docs/assets/harness-core-image3.png
+    id: ASSET-harness-core-image3
+    layer: doc
+    purpose: "Text-free Image 2.0 v3 art layer for the bilingual README architecture infographics, with a connected flow from multi-CLI input through selective skills, routing, verification, halt, and evidence feedback."
+    tags: ["asset", "png", "readme", "image2", "source-art", "v3"]
+    read_when: "Regenerating or restyling the current bilingual README harness visuals."
+
+  - path: docs/assets/harness-core-image3.prompt.md
+    id: DOC-harness-core-image3-prompt
+    layer: doc
+    purpose: "Generation provenance and text-free production prompt for the Image 2.0 v3 README source art, including the honest non-bit-exact reproducibility boundary."
+    tags: ["asset", "readme", "image2", "prompt", "provenance", "v3"]
+    read_when: "Auditing or regenerating the current README source illustration."
+
   - path: docs/assets/readme-harness.en.png
     id: ASSET-readme-harness-en
     layer: doc
@@ -99,7 +113,7 @@ files:
   - path: scripts/render_readme_visuals.py
     id: SCRIPT-render-readme-visuals
     layer: tool
-    purpose: "Deterministically typeset the English and Traditional-Chinese README infographics over the Image 2.0 art layer so metrics and translated labels remain exact"
+    purpose: "Deterministically typeset the English and Traditional-Chinese README infographics over the current Image 2.0 source-art layer so metrics and translated labels remain exact"
     tags: ["script", "readme", "image", "locale-mirror", "deterministic-render"]
     read_when: "Regenerating the README infographics after copy, evidence, or design changes"
 
