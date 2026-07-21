@@ -1037,6 +1037,9 @@ def build_test_binding():
 def test_binding_builder_freezes_all_instruments_and_keeps_cases_out_of_parity():
     binding = build_test_binding()
     assert set(binding["frozen_input_sha256"]) == set(runner.FROZEN_INPUTS)
+    for relative in runner.FROZEN_INPUTS:
+        frozen = runner.git_bytes("show", f"HEAD:{relative}")
+        assert binding["frozen_input_sha256"][relative] == runner.sha256_bytes(frozen)
     assert len(binding["schedule"]) == 24
     frozen_fingerprint = binding["parity_fingerprints"]["codex"]
     changed = json.loads(json.dumps(binding))
@@ -1047,6 +1050,30 @@ def test_binding_builder_freezes_all_instruments_and_keeps_cases_out_of_parity()
     changed["frozen_input_sha256"]["benchmarks/adaptive_loop/rules_v1.json"] = "c" * 64
     assert runner.sha256_bytes(
         runner.canonical_json(runner.parity_payload(changed, "codex")).encode("utf-8")) != frozen_fingerprint
+
+
+def test_frozen_inputs_reject_a_clean_head_that_differs_from_the_binding():
+    binding = build_test_binding()
+    relative = "benchmarks/adaptive_loop/cases_v1.json"
+    original_git_bytes = runner.git_bytes
+    original_tracked = runner.require_tracked_at_head
+
+    def changed_head(*args):
+        if args == ("show", f"HEAD:{relative}"):
+            return b'{"tampered": true}\n'
+        return original_git_bytes(*args)
+
+    runner.git_bytes = changed_head
+    runner.require_tracked_at_head = lambda path: path.as_posix()
+    try:
+        runner.validate_frozen_inputs_at_head(binding)
+    except ValueError as exc:
+        assert f"frozen input drifted: {relative}" == str(exc)
+    else:
+        raise AssertionError("clean HEAD input drift was accepted")
+    finally:
+        runner.git_bytes = original_git_bytes
+        runner.require_tracked_at_head = original_tracked
 
 
 def test_live_semantic_inputs_load_from_immutable_git_blobs():

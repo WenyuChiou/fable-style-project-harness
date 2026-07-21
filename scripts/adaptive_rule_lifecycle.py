@@ -31,8 +31,8 @@ def read_json(path: Path) -> dict[str, Any]:
     return value
 
 
-def load_catalog(path: Path) -> dict[str, Any]:
-    catalog = read_json(path)
+def catalog_from_payload(catalog: dict[str, Any]) -> dict[str, Any]:
+    """Validate a catalog decoded from either a file or a frozen Git blob."""
     if catalog.get("schema_version") != SCHEMA_VERSION:
         raise ValueError("unsupported catalog schema_version")
     rules = catalog.get("rules")
@@ -55,6 +55,10 @@ def load_catalog(path: Path) -> dict[str, Any]:
         if rule.get("promotion_policy") not in ("confirmatory", "retire_or_degrade_only"):
             raise ValueError(f"{rule_id}: invalid promotion_policy")
     return catalog
+
+
+def load_catalog(path: Path) -> dict[str, Any]:
+    return catalog_from_payload(read_json(path))
 
 
 def rule_map(catalog: dict[str, Any]) -> dict[str, dict[str, Any]]:

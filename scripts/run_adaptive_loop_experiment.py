@@ -285,7 +285,11 @@ def require_tracked_at_head(path: Path) -> str:
     except ValueError as exc:
         raise ValueError(f"tracked input is outside repository: {path}") from exc
     git_bytes("cat-file", "-e", f"HEAD:{relative}")
-    if git_bytes("show", f"HEAD:{relative}") != path.read_bytes():
+    # Git's clean check correctly normalizes an autocrlf checkout. Comparing
+    # raw worktree bytes would reject an otherwise clean Windows checkout.
+    if subprocess.run(
+            ["git", "diff", "--quiet", "HEAD", "--", relative],
+            cwd=REPO, timeout=30).returncode != 0:
         raise ValueError(f"tracked input differs from HEAD: {relative}")
     return relative
 
@@ -1532,7 +1536,10 @@ def build_binding(args: argparse.Namespace) -> dict[str, Any]:
     arms = design["confirmatory_design"]["arms"]
     for arm in ARMS:
         load_arm_entrypoints(design, arm)
-    frozen = {relative: sha256_file(REPO / relative) for relative in FROZEN_INPUTS}
+    frozen = {
+        relative: sha256_bytes(git_bytes("show", f"HEAD:{relative}"))
+        for relative in FROZEN_INPUTS
+    }
     binding: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "experiment_id": args.experiment_id,
@@ -1773,11 +1780,7 @@ def validate_binding(path: Path, *, verify_environment: bool = True) -> dict[str
             ["git", "merge-base", "--is-ancestor", binding.get("instrument_commit", ""), "HEAD"],
             cwd=REPO, capture_output=True, timeout=30).returncode != 0:
         raise ValueError("binding instrument commit is not an ancestor of HEAD")
-    for frozen_path, expected in binding["frozen_input_sha256"].items():
-        candidate = (REPO / frozen_path).resolve()
-        require_tracked_at_head(candidate)
-        if sha256_file(candidate) != expected:
-            raise ValueError(f"frozen input drifted: {frozen_path}")
+    validate_frozen_inputs_at_head(binding)
     design = load_frozen_design(binding)
     cases = load_frozen_cases(binding)
     case_payload = frozen_object(binding, "benchmarks/adaptive_loop/cases_v1.json")
@@ -1813,6 +1816,17 @@ def validate_binding(path: Path, *, verify_environment: bool = True) -> dict[str
             raise ValueError(f"runtime home isolation drifted: {runtime}")
     binding["binding_path"] = relative
     return binding
+
+
+def validate_frozen_inputs_at_head(binding: dict[str, Any]) -> None:
+    """Reject a clean newer HEAD whose frozen inputs differ from the binding."""
+    for frozen_path, expected in binding["frozen_input_sha256"].items():
+        candidate = (REPO / frozen_path).resolve()
+        require_tracked_at_head(candidate)
+        head_bytes = git_bytes("show", f"HEAD:{frozen_path}")
+        if sha256_bytes(head_bytes) != expected:
+            raise ValueError(f"frozen input drifted: {frozen_path}")
+        frozen_input_bytes(binding, frozen_path)
 
 
 def progress_path(output: Path) -> Path:

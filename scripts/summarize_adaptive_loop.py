@@ -10,10 +10,12 @@ import re
 from pathlib import Path
 from typing import Any
 
-from adaptive_rule_lifecycle import derive_metrics, load_catalog, validate_observation
+from adaptive_rule_lifecycle import catalog_from_payload, derive_metrics, validate_observation
 from run_adaptive_loop_experiment import (
     FROZEN_INPUTS,
     canonical_json,
+    frozen_input_bytes,
+    frozen_object,
     parity_payload,
     sha256_bytes,
     validate_binding_structure,
@@ -39,8 +41,7 @@ def validate_frozen_binding(binding: dict[str, Any]) -> None:
     """Ensure every scoring input and runtime parity claim matches the binding."""
     validate_binding_structure(binding)
     for relative in FROZEN_INPUTS:
-        if sha256_file(REPO / relative) != binding["frozen_input_sha256"][relative]:
-            raise ValueError(f"frozen scoring input drifted: {relative}")
+        frozen_input_bytes(binding, relative)
     for runtime in ("codex", "hermes"):
         expected = sha256_bytes(canonical_json(parity_payload(binding, runtime)).encode("utf-8"))
         if binding["parity_fingerprints"][runtime] != expected:
@@ -76,10 +77,11 @@ def render(binding_path: Path, catalog_path: Path, observations: dict[str, Path]
     validate_frozen_binding(binding)
     if binding.get("status") != "frozen_before_live_calls":
         raise ValueError("binding is not frozen")
-    catalog = load_catalog(catalog_path)
-    frozen_catalog = binding.get("frozen_input_sha256", {}).get("benchmarks/adaptive_loop/rules_v1.json")
-    if frozen_catalog != sha256_file(catalog_path):
+    expected_catalog = REPO / "benchmarks" / "adaptive_loop" / "rules_v1.json"
+    if catalog_path.resolve() != expected_catalog.resolve():
         raise ValueError("catalog differs from the frozen binding")
+    catalog = catalog_from_payload(frozen_object(
+        binding, "benchmarks/adaptive_loop/rules_v1.json"))
     runtime_results: dict[str, Any] = {}
     for runtime in ("codex", "hermes"):
         observation = read_object(observations[runtime])
